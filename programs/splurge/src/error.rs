@@ -8,4 +8,10 @@ pub enum ErrorCode {
     UnauthorizedAdmin,
     #[msg("Admin is already assigned")]
     AdminAlreadyAssigned,
+    #[msg("Shopper name is required")]
+    ShopperNameRequired = 100,
+    #[msg("Shopper name exceeded maximum length")]
+    ShopperNameTooLong,
+    #[msg("Shopper image is required")]
+    ShopperImageRequired,
 }

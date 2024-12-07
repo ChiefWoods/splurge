@@ -40,6 +40,15 @@ export function getSplurgeConfigPdaAndBump(): [PublicKey, number] {
   );
 }
 
+export function getShopperPdaAndBump(
+  authority: PublicKey,
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("shopper"), authority.toBuffer()],
+    SPLURGE_PROGRAM_ID,
+  );
+}
+
 export async function initializeConfig(admin: Keypair) {
   await program.methods
     .initializeConfig()
@@ -72,5 +81,26 @@ export async function updateAdmin(oldAdmin: Keypair, newAdmin: Keypair) {
   return {
     splurgeConfigAcc:
       await program.account.splurgeConfig.fetch(splurgeConfigPda),
+  };
+}
+
+export async function createShopper(
+  program: Program<Splurge>,
+  name: string,
+  image: string,
+  authority: Keypair,
+) {
+  await program.methods
+    .createShopper(name, image)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  const [shopperPda] = getShopperPdaAndBump(authority.publicKey);
+
+  return {
+    shopperAcc: await program.account.shopper.fetch(shopperPda),
   };
 }

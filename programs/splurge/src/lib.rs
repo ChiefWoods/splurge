@@ -19,4 +19,8 @@ pub mod splurge {
     pub fn update_admin(ctx: Context<UpdateAdmin>, new_admin: Pubkey) -> Result<()> {
         instructions::update_admin(ctx, new_admin)
     }
+
+    pub fn create_shopper(ctx: Context<CreateShopper>, name: String, image: String) -> Result<()> {
+        instructions::create_shopper(ctx, name, image)
+    }
 }
