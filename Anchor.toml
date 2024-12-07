@@ -17,4 +17,9 @@ cluster = "Localnet"
 wallet = "splurge-wallet.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "bun test --timeout 1000000"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = true
