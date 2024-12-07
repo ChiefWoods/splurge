@@ -23,4 +23,8 @@ pub mod splurge {
     pub fn create_shopper(ctx: Context<CreateShopper>, name: String, image: String) -> Result<()> {
         instructions::create_shopper(ctx, name, image)
     }
+
+    pub fn create_store(ctx: Context<CreateStore>, name: String, image: String) -> Result<()> {
+        instructions::create_store(ctx, name, image)
+    }
 }

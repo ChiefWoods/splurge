@@ -49,6 +49,13 @@ export function getShopperPdaAndBump(
   );
 }
 
+export function getStorePdaAndBump(authority: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("store"), authority.toBuffer()],
+    SPLURGE_PROGRAM_ID,
+  );
+}
+
 export async function initializeConfig(admin: Keypair) {
   await program.methods
     .initializeConfig()
@@ -102,5 +109,26 @@ export async function createShopper(
 
   return {
     shopperAcc: await program.account.shopper.fetch(shopperPda),
+  };
+}
+
+export async function createStore(
+  program: Program<Splurge>,
+  name: string,
+  image: string,
+  authority: Keypair,
+) {
+  await program.methods
+    .createStore(name, image)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  const [storePda] = getStorePdaAndBump(authority.publicKey);
+
+  return {
+    storeAcc: await program.account.store.fetch(storePda),
   };
 }
