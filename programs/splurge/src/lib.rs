@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("HNeWmxGWaFCg8ZzdgTbTe6BEShySoTfdtjeEiRky7ySj");
+declare_id!("SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7");
 
 #[program]
 pub mod splurge {
