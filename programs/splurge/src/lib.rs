@@ -4,11 +4,19 @@ pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
-use {instructions::*, state::*};
+use instructions::*;
 
 declare_id!("SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7");
 
 #[program]
 pub mod splurge {
     use super::*;
+
+    pub fn initialize_config(ctx: Context<InitializeConfig>) -> Result<()> {
+        instructions::initialize_config(ctx)
+    }
+
+    pub fn update_admin(ctx: Context<UpdateAdmin>, new_admin: Pubkey) -> Result<()> {
+        instructions::update_admin(ctx, new_admin)
+    }
 }

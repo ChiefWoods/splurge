@@ -1,3 +1,4 @@
 {
-  "programs/splurge/src/**/*.rs": "cargo fmt --"
+  "programs/splurge/src/**/*.rs": "cargo fmt --",
+  "tests/**/*.ts": "prettier -w"
 }
