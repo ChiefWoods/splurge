@@ -1,5 +1,5 @@
 use crate::{constants::*, error::ErrorCode, state::*};
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn add_whitelisted_mint(ctx: Context<AddWhitelistedMint>, mints: Vec<Pubkey>) -> Result<()> {
     for mint in mints.iter() {
@@ -23,7 +23,7 @@ pub struct AddWhitelistedMint<'info> {
     pub admin: Signer<'info>,
     #[account(
       mut,
-      realloc = splurge_config.to_account_info().data_len() + (32 * mints.len()),
+      realloc = splurge_config.to_account_info().data_len() + (mints.len() * PUBKEY_BYTES),
       realloc::payer = admin,
       realloc::zero = false,
       seeds = [SPLURGE_CONFIG_SEED],

@@ -1,5 +1,5 @@
 use crate::{constants::*, state::*};
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn initialize_config(
     ctx: Context<InitializeConfig>,
@@ -19,7 +19,7 @@ pub struct InitializeConfig<'info> {
     pub authority: Signer<'info>,
     #[account(
       init,
-      space = SplurgeConfig::MIN_SPACE + (32 * whitelisted_mints.len()),
+      space = SplurgeConfig::MIN_SPACE + (whitelisted_mints.len() * PUBKEY_BYTES),
       seeds = [SPLURGE_CONFIG_SEED],
       bump,
       payer = authority,

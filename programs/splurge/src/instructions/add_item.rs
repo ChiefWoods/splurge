@@ -1,5 +1,5 @@
 use crate::{constants::*, error::ErrorCode, state::*};
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn add_item(
     ctx: Context<AddItem>,
@@ -49,7 +49,7 @@ pub struct AddItem<'info> {
     pub store_item: Account<'info, StoreItem>,
     #[account(
       mut,
-      realloc = store.to_account_info().data_len() + 32,
+      realloc = store.to_account_info().data_len() + PUBKEY_BYTES,
       realloc::payer = authority,
       realloc::zero = false,
       seeds = [STORE_SEED, authority.key().as_ref()],

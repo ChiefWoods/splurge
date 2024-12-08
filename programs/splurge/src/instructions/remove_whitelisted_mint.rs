@@ -1,5 +1,5 @@
 use crate::{constants::*, error::ErrorCode, state::*};
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn remove_whitelisted_mint(
     ctx: Context<RemoveWhitelistedMint>,
@@ -29,7 +29,7 @@ pub struct RemoveWhitelistedMint<'info> {
     pub admin: Signer<'info>,
     #[account(
       mut,
-      realloc = splurge_config.to_account_info().data_len() - (32 * new_mints.len()),
+      realloc = splurge_config.to_account_info().data_len() - (new_mints.len() * PUBKEY_BYTES),
       realloc::payer = admin,
       realloc::zero = false,
       seeds = [SPLURGE_CONFIG_SEED],
