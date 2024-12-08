@@ -95,10 +95,11 @@ export async function createShopper(
   program: Program<Splurge>,
   name: string,
   image: string,
+  address: string,
   authority: Keypair,
 ) {
   await program.methods
-    .createShopper(name, image)
+    .createShopper(name, image, address)
     .accounts({
       authority: authority.publicKey,
     })

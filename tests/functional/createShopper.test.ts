@@ -52,8 +52,16 @@ describe("createShopper", () => {
   test("creates a shopper account", async () => {
     const name = "Shopper A";
     const image = "https://example.com/image.png";
+    const address =
+      "Sunway University, Jalan Universiti, Bandar Sunway, 47500 Subang Jaya, Selangor";
 
-    const { shopperAcc } = await createShopper(program, name, image, walletA);
+    const { shopperAcc } = await createShopper(
+      program,
+      name,
+      image,
+      address,
+      walletA,
+    );
 
     const shopperBump = getShopperPdaAndBump(walletA.publicKey)[1];
 
@@ -69,6 +77,7 @@ describe("createShopper", () => {
         program,
         "",
         "https://example.com/image.png",
+        "Sunway University, Jalan Universiti, Bandar Sunway, 47500 Subang Jaya, Selangor",
         walletB,
       );
     } catch (err) {
@@ -86,6 +95,7 @@ describe("createShopper", () => {
         program,
         "_".repeat(shopperNameMaxLength + 1),
         "https://example.com/image.png",
+        "Sunway University, Jalan Universiti, Bandar Sunway, 47500 Subang Jaya, Selangor",
         walletB,
       );
     } catch (err) {
@@ -97,11 +107,33 @@ describe("createShopper", () => {
 
   test("throws when image is empty", async () => {
     try {
-      await createShopper(program, "Shopper B", "", walletB);
+      await createShopper(
+        program,
+        "Shopper B",
+        "",
+        "Sunway University, Jalan Universiti, Bandar Sunway, 47500 Subang Jaya, Selangor",
+        walletB,
+      );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
       expect(err.error.errorCode.code).toEqual("ShopperImageRequired");
       expect(err.error.errorCode.number).toEqual(6102);
+    }
+  });
+
+  test("throws when address is empty", async () => {
+    try {
+      await createShopper(
+        program,
+        "Shopper B",
+        "https://example.com/image.png",
+        "",
+        walletB,
+      );
+    } catch (err) {
+      expect(err).toBeInstanceOf(AnchorError);
+      expect(err.error.errorCode.code).toEqual("ShopperAddressRequired");
+      expect(err.error.errorCode.number).toEqual(6103);
     }
   });
 });

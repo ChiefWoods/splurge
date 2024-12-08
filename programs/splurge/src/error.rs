@@ -14,6 +14,8 @@ pub enum ErrorCode {
     ShopperNameTooLong,
     #[msg("Shopper image is required")]
     ShopperImageRequired,
+    #[msg("Shopper address is required")]
+    ShopperAddressRequired,
     #[msg("Store name is required")]
     StoreNameRequired = 200,
     #[msg("Store name exceeded maximum length")]
