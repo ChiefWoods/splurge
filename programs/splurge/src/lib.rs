@@ -46,8 +46,13 @@ pub mod splurge {
         instructions::create_shopper(ctx, name, image, address)
     }
 
-    pub fn create_store(ctx: Context<CreateStore>, name: String, image: String) -> Result<()> {
-        instructions::create_store(ctx, name, image)
+    pub fn create_store(
+        ctx: Context<CreateStore>,
+        name: String,
+        image: String,
+        about: String,
+    ) -> Result<()> {
+        instructions::create_store(ctx, name, image, about)
     }
 
     pub fn add_item(

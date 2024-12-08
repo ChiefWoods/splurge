@@ -48,20 +48,34 @@ describe("createStore", () => {
   test("creates a store account", async () => {
     const name = "Store A";
     const image = "https://example.com/image.png";
+    const about = "This is a store";
 
-    const { storeAcc } = await createStore(program, name, image, walletA);
+    const { storeAcc } = await createStore(
+      program,
+      name,
+      image,
+      about,
+      walletA,
+    );
 
     const shopperBump = getStorePdaAndBump(walletA.publicKey)[1];
 
     expect(storeAcc.bump).toEqual(shopperBump);
     expect(storeAcc.name).toEqual(name);
     expect(storeAcc.image).toEqual(image);
+    expect(storeAcc.about).toEqual(about);
     expect(storeAcc.items).toEqual([]);
   });
 
   test("throws when name is empty", async () => {
     try {
-      await createStore(program, "", "https://example.com/image.png", walletB);
+      await createStore(
+        program,
+        "",
+        "https://example.com/image.png",
+        "This is a store",
+        walletB,
+      );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
       expect(err.error.errorCode.code).toEqual("StoreNameRequired");
@@ -77,6 +91,7 @@ describe("createStore", () => {
         program,
         "_".repeat(storeNameMaxLength + 1),
         "https://example.com/image.png",
+        "This is a store",
         walletB,
       );
     }).toThrow();
@@ -84,7 +99,7 @@ describe("createStore", () => {
 
   test("throws when image is empty", async () => {
     try {
-      await createStore(program, "Store B", "", walletB);
+      await createStore(program, "Store B", "", "This is a store", walletB);
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
       expect(err.error.errorCode.code).toEqual("StoreImageRequired");

@@ -156,10 +156,11 @@ export async function createStore(
   program: Program<Splurge>,
   name: string,
   image: string,
+  about: string,
   authority: Keypair,
 ) {
   await program.methods
-    .createStore(name, image)
+    .createStore(name, image, about)
     .accounts({
       authority: authority.publicKey,
     })
