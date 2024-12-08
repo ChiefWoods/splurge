@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES, Discriminator};
 
 #[account]
 pub struct StoreItem {
@@ -14,4 +14,8 @@ pub struct StoreItem {
 
 impl StoreItem {
     pub const MIN_SPACE: usize = StoreItem::DISCRIMINATOR.len() + 1 + 8 + 8 + 32 + 4 + 4 + 4 + 4;
+
+    pub fn get_reviews_space(&self) -> usize {
+        self.reviews.len() * PUBKEY_BYTES
+    }
 }

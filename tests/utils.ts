@@ -225,3 +225,28 @@ export async function addItem(
     storeAcc: await getStoreAcc(program, storePda),
   };
 }
+
+export async function updateItem(
+  program: Program<Splurge>,
+  name: string,
+  inventoryCount: number,
+  price: number,
+  authority: Keypair,
+) {
+  await program.methods
+    .updateItem(name, new BN(inventoryCount), price)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  const [storePda] = getStorePdaAndBump(authority.publicKey);
+
+  return {
+    storeItemAcc: await getStoreItemAcc(
+      program,
+      getStoreItemPdaAndBump(storePda, name)[0],
+    ),
+  };
+}
