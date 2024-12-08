@@ -8,6 +8,10 @@ pub enum ErrorCode {
     UnauthorizedAdmin,
     #[msg("Admin is already assigned")]
     AdminAlreadyAssigned,
+    #[msg("Mint is already whitelisted")]
+    MintAlreadyWhitelisted,
+    #[msg("Mint is not whitelisted")]
+    MintNotWhitelisted,
     #[msg("Shopper name is required")]
     ShopperNameRequired = 100,
     #[msg("Shopper name exceeded maximum length")]

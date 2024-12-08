@@ -1,15 +1,18 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
   connection,
-  getSplurgeConfigPdaAndBump,
+  getFundedKeypair,
   initializeConfig,
   masterWallet,
+  setAdmin,
 } from "../utils";
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 // NOTE: Run against local validator
 
-describe("initializeConfig", () => {
+describe("setAdmin", () => {
+  let newAdmin: Keypair;
+
   beforeAll(async () => {
     const { blockhash, lastValidBlockHeight } =
       await connection.getLatestBlockhash();
@@ -22,23 +25,18 @@ describe("initializeConfig", () => {
         5_000_000_000,
       ),
     });
+
+    newAdmin = await getFundedKeypair();
   });
 
-  test("initializes a config", async () => {
-    const whitelistedMints = [
+  test("set config admin", async () => {
+    await initializeConfig(masterWallet, [
       new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
       new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
-    ];
+    ]);
 
-    const { splurgeConfigAcc } = await initializeConfig(
-      masterWallet,
-      whitelistedMints,
-    );
+    const { splurgeConfigAcc } = await setAdmin(masterWallet, newAdmin);
 
-    const splurgeConfigBump = getSplurgeConfigPdaAndBump()[1];
-
-    expect(splurgeConfigAcc.bump).toEqual(splurgeConfigBump);
-    expect(splurgeConfigAcc.admin).toEqual(masterWallet.publicKey);
-    expect(splurgeConfigAcc.whitelistedMints).toEqual(whitelistedMints);
+    expect(splurgeConfigAcc.admin).toEqual(newAdmin.publicKey);
   });
 });

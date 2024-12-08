@@ -56,9 +56,16 @@ export function getStorePdaAndBump(authority: PublicKey): [PublicKey, number] {
   );
 }
 
-export async function initializeConfig(admin: Keypair) {
+async function getSplurgeConfigAcc() {
+  return program.account.splurgeConfig.fetch(getSplurgeConfigPdaAndBump()[0]);
+}
+
+export async function initializeConfig(
+  admin: Keypair,
+  whitelistedMints: PublicKey[],
+) {
   await program.methods
-    .initializeConfig()
+    .initializeConfig(whitelistedMints)
     .accounts({
       authority: admin.publicKey,
       splurgeProgramData: SPLURGE_PROGRAM_DATA_PDA,
@@ -66,29 +73,34 @@ export async function initializeConfig(admin: Keypair) {
     .signers([admin])
     .rpc();
 
-  const [splurgeConfigPda] = getSplurgeConfigPdaAndBump();
-
-  return {
-    splurgeConfigAcc:
-      await program.account.splurgeConfig.fetch(splurgeConfigPda),
-  };
+  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
 }
 
-export async function updateAdmin(oldAdmin: Keypair, newAdmin: Keypair) {
+export async function setAdmin(oldAdmin: Keypair, newAdmin: Keypair) {
   await program.methods
-    .updateAdmin(newAdmin.publicKey)
+    .setAdmin(newAdmin.publicKey)
     .accounts({
       authority: oldAdmin.publicKey,
     })
     .signers([oldAdmin])
     .rpc();
 
-  const [splurgeConfigPda] = getSplurgeConfigPdaAndBump();
+  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+}
 
-  return {
-    splurgeConfigAcc:
-      await program.account.splurgeConfig.fetch(splurgeConfigPda),
-  };
+export async function addWhitelistedMint(admin: Keypair, mints: PublicKey[]) {
+  await program.methods.addWhitelistedMint(mints).signers([admin]).rpc();
+
+  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+}
+
+export async function removeWhitelistedMint(
+  admin: Keypair,
+  mints: PublicKey[],
+) {
+  await program.methods.removeWhitelistedMint(mints).signers([admin]).rpc();
+
+  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
 }
 
 export async function createShopper(

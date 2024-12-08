@@ -1,15 +1,15 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
   connection,
-  getSplurgeConfigPdaAndBump,
   initializeConfig,
   masterWallet,
+  removeWhitelistedMint,
 } from "../utils";
 import { PublicKey } from "@solana/web3.js";
 
 // NOTE: Run against local validator
 
-describe("initializeConfig", () => {
+describe("removeWhitelistedMint", () => {
   beforeAll(async () => {
     const { blockhash, lastValidBlockHeight } =
       await connection.getLatestBlockhash();
@@ -24,21 +24,23 @@ describe("initializeConfig", () => {
     });
   });
 
-  test("initializes a config", async () => {
-    const whitelistedMints = [
+  test("remove whitelisted mints", async () => {
+    await initializeConfig(masterWallet, [
       new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+      new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
+    ]);
+
+    const mintsToRemove = [
       new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
     ];
 
-    const { splurgeConfigAcc } = await initializeConfig(
+    const { splurgeConfigAcc } = await removeWhitelistedMint(
       masterWallet,
-      whitelistedMints,
+      mintsToRemove,
     );
 
-    const splurgeConfigBump = getSplurgeConfigPdaAndBump()[1];
-
-    expect(splurgeConfigAcc.bump).toEqual(splurgeConfigBump);
-    expect(splurgeConfigAcc.admin).toEqual(masterWallet.publicKey);
-    expect(splurgeConfigAcc.whitelistedMints).toEqual(whitelistedMints);
+    mintsToRemove.forEach((mint) =>
+      expect(splurgeConfigAcc.whitelistedMints).not.toContain(mint),
+    );
   });
 });

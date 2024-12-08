@@ -12,12 +12,29 @@ declare_id!("SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7");
 pub mod splurge {
     use super::*;
 
-    pub fn initialize_config(ctx: Context<InitializeConfig>) -> Result<()> {
-        instructions::initialize_config(ctx)
+    pub fn initialize_config(
+        ctx: Context<InitializeConfig>,
+        whitelisted_mints: Vec<Pubkey>,
+    ) -> Result<()> {
+        instructions::initialize_config(ctx, whitelisted_mints)
     }
 
-    pub fn update_admin(ctx: Context<UpdateAdmin>, new_admin: Pubkey) -> Result<()> {
-        instructions::update_admin(ctx, new_admin)
+    pub fn set_admin(ctx: Context<SetAdmin>, new_admin: Pubkey) -> Result<()> {
+        instructions::set_admin(ctx, new_admin)
+    }
+
+    pub fn add_whitelisted_mint(
+        ctx: Context<AddWhitelistedMint>,
+        mints: Vec<Pubkey>,
+    ) -> Result<()> {
+        instructions::add_whitelisted_mint(ctx, mints)
+    }
+
+    pub fn remove_whitelisted_mint(
+        ctx: Context<RemoveWhitelistedMint>,
+        mints: Vec<Pubkey>,
+    ) -> Result<()> {
+        instructions::remove_whitelisted_mint(ctx, mints)
     }
 
     pub fn create_shopper(
