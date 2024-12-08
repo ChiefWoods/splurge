@@ -55,6 +55,15 @@ pub mod splurge {
         instructions::create_store(ctx, name, image, about)
     }
 
+    pub fn update_store(
+        ctx: Context<UpdateStore>,
+        name: String,
+        image: String,
+        about: String,
+    ) -> Result<()> {
+        instructions::update_store(ctx, name, image, about)
+    }
+
     pub fn add_item(
         ctx: Context<AddItem>,
         name: String,

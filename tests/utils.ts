@@ -175,6 +175,29 @@ export async function createStore(
   };
 }
 
+export async function updateStore(
+  program: Program<Splurge>,
+  name: string,
+  image: string,
+  about: string,
+  authority: Keypair,
+) {
+  await program.methods
+    .updateStore(name, image, about)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  return {
+    storeAcc: await getStoreAcc(
+      program,
+      getStorePdaAndBump(authority.publicKey)[0],
+    ),
+  };
+}
+
 export async function addItem(
   program: Program<Splurge>,
   name: string,
