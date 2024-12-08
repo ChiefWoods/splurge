@@ -57,24 +57,24 @@ export function getStoreItemPdaAndBump(
 }
 
 async function getSplurgeConfigAcc(program: Program<Splurge>) {
-  return await program.account.splurgeConfig.fetch(
+  return await program.account.splurgeConfig.fetchNullable(
     getSplurgeConfigPdaAndBump()[0],
   );
 }
 
 async function getShopperAcc(program: Program<Splurge>, shopperPda: PublicKey) {
-  return await program.account.shopper.fetch(shopperPda);
+  return await program.account.shopper.fetchNullable(shopperPda);
 }
 
 async function getStoreAcc(program: Program<Splurge>, storePda: PublicKey) {
-  return await program.account.store.fetch(storePda);
+  return await program.account.store.fetchNullable(storePda);
 }
 
 async function getStoreItemAcc(
   program: Program<Splurge>,
   storeItemPda: PublicKey,
 ) {
-  return await program.account.storeItem.fetch(storeItemPda);
+  return await program.account.storeItem.fetchNullable(storeItemPda);
 }
 
 export async function initializeConfig(
