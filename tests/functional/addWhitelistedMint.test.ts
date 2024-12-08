@@ -1,27 +1,30 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
   addWhitelistedMint,
-  connection,
+  getBankrunSetup,
   initializeConfig,
-  masterWallet,
 } from "../utils";
-import { PublicKey } from "@solana/web3.js";
-
-// NOTE: Run against local validator
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { BanksClient, ProgramTestContext } from "solana-bankrun";
+import { BankrunProvider } from "anchor-bankrun";
+import { Splurge } from "../../target/types/splurge";
+import { AnchorError, Program } from "@coral-xyz/anchor";
 
 describe("addWhitelistedMint", () => {
-  beforeAll(async () => {
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+  let context: ProgramTestContext;
+  let banksClient: BanksClient;
+  let payer: Keypair;
+  let provider: BankrunProvider;
+  let program: Program<Splurge>;
 
-    await connection.confirmTransaction({
-      blockhash,
-      lastValidBlockHeight,
-      signature: await connection.requestAirdrop(
-        masterWallet.publicKey,
-        5_000_000_000,
-      ),
-    });
+  beforeAll(async () => {
+    const bankrunSetup = await getBankrunSetup([]);
+
+    context = bankrunSetup.context;
+    banksClient = bankrunSetup.banksClient;
+    payer = bankrunSetup.payer;
+    provider = bankrunSetup.provider;
+    program = bankrunSetup.program;
   });
 
   test("add whitelisted mints", async () => {
@@ -29,7 +32,8 @@ describe("addWhitelistedMint", () => {
       new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
       new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
     ];
-    await initializeConfig(masterWallet, mints);
+
+    await initializeConfig(program, payer, mints);
 
     const newMints = [
       new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"),
@@ -37,10 +41,25 @@ describe("addWhitelistedMint", () => {
     ];
 
     const { splurgeConfigAcc } = await addWhitelistedMint(
-      masterWallet,
+      program,
+      payer,
       newMints,
     );
 
     expect(splurgeConfigAcc.whitelistedMints).toEqual([...mints, ...newMints]);
+  });
+
+  test("throws if mint is already whitelisted", async () => {
+    const newMints = [
+      new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
+    ];
+
+    try {
+      await addWhitelistedMint(program, payer, newMints);
+    } catch (err) {
+      expect(err).toBeInstanceOf(AnchorError);
+      expect(err.error.errorCode.code).toEqual("MintAlreadyWhitelisted");
+      expect(err.error.errorCode.number).toEqual(6003);
+    }
   });
 });

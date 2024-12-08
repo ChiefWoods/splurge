@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, program::Splurge, state::*};
+use crate::{constants::*, state::*};
 use anchor_lang::prelude::*;
 
 pub fn initialize_config(
@@ -25,9 +25,5 @@ pub struct InitializeConfig<'info> {
       payer = authority,
     )]
     pub splurge_config: Account<'info, SplurgeConfig>,
-    #[account(constraint = splurge_program.programdata_address()? == Some(splurge_program_data.key()) @ ErrorCode::IncorrectProgramDataAddress)]
-    pub splurge_program: Program<'info, Splurge>,
-    #[account(constraint = splurge_program_data.upgrade_authority_address == Some(authority.key()) @ ErrorCode::UnauthorizedAdmin)]
-    pub splurge_program_data: Account<'info, ProgramData>,
     pub system_program: Program<'info, System>,
 }

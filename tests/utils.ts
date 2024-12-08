@@ -1,36 +1,26 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
-import idl from "../target/idl/splurge.json";
-import { Program, workspace } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { Splurge } from "../target/types/splurge";
-
-export const program = workspace.Splurge as Program<Splurge>;
-export const connection = program.provider.connection;
-export const masterWallet = Keypair.fromSecretKey(
-  new Uint8Array(await Bun.file("splurge-wallet.json").json()),
-);
+import { AddedAccount, startAnchor } from "solana-bankrun";
+import { BankrunProvider } from "anchor-bankrun";
+import idl from "../target/idl/splurge.json";
 
 const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
-const SPLURGE_PROGRAM_DATA_PDA = PublicKey.findProgramAddressSync(
-  [SPLURGE_PROGRAM_ID.toBuffer()],
-  new PublicKey("BPFLoaderUpgradeab1e11111111111111111111111"),
-)[0];
 
-export async function getFundedKeypair(): Promise<Keypair> {
-  const { blockhash, lastValidBlockHeight } =
-    await connection.getLatestBlockhash();
+export async function getBankrunSetup(accounts: AddedAccount[]) {
+  const context = await startAnchor("", [], accounts);
+  const banksClient = context.banksClient;
+  const payer = context.payer;
+  const provider = new BankrunProvider(context);
+  const program = new Program(idl as Splurge, provider);
 
-  const keypair = Keypair.generate();
-
-  await connection.confirmTransaction({
-    blockhash,
-    lastValidBlockHeight,
-    signature: await connection.requestAirdrop(
-      keypair.publicKey,
-      5_000_000_000,
-    ),
-  });
-
-  return keypair;
+  return {
+    context,
+    banksClient,
+    payer,
+    provider,
+    program,
+  };
 }
 
 export function getSplurgeConfigPdaAndBump(): [PublicKey, number] {
@@ -56,11 +46,32 @@ export function getStorePdaAndBump(authority: PublicKey): [PublicKey, number] {
   );
 }
 
-async function getSplurgeConfigAcc() {
-  return program.account.splurgeConfig.fetch(getSplurgeConfigPdaAndBump()[0]);
+export function getStoreItemPdaAndBump(
+  storePda: PublicKey,
+  name: string,
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("store_item"), storePda.toBuffer(), Buffer.from(name)],
+    SPLURGE_PROGRAM_ID,
+  );
+}
+
+async function getSplurgeConfigAcc(program: Program<Splurge>) {
+  return await program.account.splurgeConfig.fetch(
+    getSplurgeConfigPdaAndBump()[0],
+  );
+}
+
+async function getShopperAcc(program: Program<Splurge>, shopperPda: PublicKey) {
+  return await program.account.shopper.fetch(shopperPda);
+}
+
+async function getStoreAcc(program: Program<Splurge>, storePda: PublicKey) {
+  return await program.account.store.fetch(storePda);
 }
 
 export async function initializeConfig(
+  program: Program<Splurge>,
   admin: Keypair,
   whitelistedMints: PublicKey[],
 ) {
@@ -68,15 +79,18 @@ export async function initializeConfig(
     .initializeConfig(whitelistedMints)
     .accounts({
       authority: admin.publicKey,
-      splurgeProgramData: SPLURGE_PROGRAM_DATA_PDA,
     })
     .signers([admin])
     .rpc();
 
-  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+  return { splurgeConfigAcc: await getSplurgeConfigAcc(program) };
 }
 
-export async function setAdmin(oldAdmin: Keypair, newAdmin: Keypair) {
+export async function setAdmin(
+  program: Program<Splurge>,
+  oldAdmin: Keypair,
+  newAdmin: Keypair,
+) {
   await program.methods
     .setAdmin(newAdmin.publicKey)
     .accounts({
@@ -85,22 +99,27 @@ export async function setAdmin(oldAdmin: Keypair, newAdmin: Keypair) {
     .signers([oldAdmin])
     .rpc();
 
-  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+  return { splurgeConfigAcc: await getSplurgeConfigAcc(program) };
 }
 
-export async function addWhitelistedMint(admin: Keypair, mints: PublicKey[]) {
+export async function addWhitelistedMint(
+  program: Program<Splurge>,
+  admin: Keypair,
+  mints: PublicKey[],
+) {
   await program.methods.addWhitelistedMint(mints).signers([admin]).rpc();
 
-  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+  return { splurgeConfigAcc: await getSplurgeConfigAcc(program) };
 }
 
 export async function removeWhitelistedMint(
+  program: Program<Splurge>,
   admin: Keypair,
   mints: PublicKey[],
 ) {
   await program.methods.removeWhitelistedMint(mints).signers([admin]).rpc();
 
-  return { splurgeConfigAcc: await getSplurgeConfigAcc() };
+  return { splurgeConfigAcc: await getSplurgeConfigAcc(program) };
 }
 
 export async function createShopper(
@@ -118,10 +137,11 @@ export async function createShopper(
     .signers([authority])
     .rpc();
 
-  const [shopperPda] = getShopperPdaAndBump(authority.publicKey);
-
   return {
-    shopperAcc: await program.account.shopper.fetch(shopperPda),
+    shopperAcc: await getShopperAcc(
+      program,
+      getShopperPdaAndBump(authority.publicKey)[0],
+    ),
   };
 }
 
@@ -139,9 +159,10 @@ export async function createStore(
     .signers([authority])
     .rpc();
 
-  const [storePda] = getStorePdaAndBump(authority.publicKey);
-
   return {
-    storeAcc: await program.account.store.fetch(storePda),
+    storeAcc: await getStoreAcc(
+      program,
+      getStorePdaAndBump(authority.publicKey)[0],
+    ),
   };
 }

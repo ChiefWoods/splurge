@@ -1,31 +1,34 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
-  connection,
+  getBankrunSetup,
   initializeConfig,
-  masterWallet,
   removeWhitelistedMint,
 } from "../utils";
-import { PublicKey } from "@solana/web3.js";
-
-// NOTE: Run against local validator
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { BanksClient, ProgramTestContext } from "solana-bankrun";
+import { BankrunProvider } from "anchor-bankrun";
+import { Splurge } from "../../target/types/splurge";
+import { Program } from "@coral-xyz/anchor";
 
 describe("removeWhitelistedMint", () => {
-  beforeAll(async () => {
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+  let context: ProgramTestContext;
+  let banksClient: BanksClient;
+  let payer: Keypair;
+  let provider: BankrunProvider;
+  let program: Program<Splurge>;
 
-    await connection.confirmTransaction({
-      blockhash,
-      lastValidBlockHeight,
-      signature: await connection.requestAirdrop(
-        masterWallet.publicKey,
-        5_000_000_000,
-      ),
-    });
+  beforeAll(async () => {
+    const bankrunSetup = await getBankrunSetup([]);
+
+    context = bankrunSetup.context;
+    banksClient = bankrunSetup.banksClient;
+    payer = bankrunSetup.payer;
+    provider = bankrunSetup.provider;
+    program = bankrunSetup.program;
   });
 
   test("remove whitelisted mints", async () => {
-    await initializeConfig(masterWallet, [
+    await initializeConfig(program, payer, [
       new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
       new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
     ]);
@@ -35,12 +38,27 @@ describe("removeWhitelistedMint", () => {
     ];
 
     const { splurgeConfigAcc } = await removeWhitelistedMint(
-      masterWallet,
+      program,
+      payer,
       mintsToRemove,
     );
 
     mintsToRemove.forEach((mint) =>
       expect(splurgeConfigAcc.whitelistedMints).not.toContain(mint),
     );
+  });
+
+  test("throws if mint is not whitelisted", async () => {
+    const mintsToRemove = [
+      new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"),
+    ];
+
+    try {
+      await removeWhitelistedMint(program, payer, mintsToRemove);
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+      expect(err.error.errorCode.code).toEqual("MintNotWhitelisted");
+      expect(err.error.errorCode.number).toEqual(6004);
+    }
   });
 });

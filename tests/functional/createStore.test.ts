@@ -2,10 +2,9 @@ import { AnchorError, Program } from "@coral-xyz/anchor";
 import { Keypair, SystemProgram } from "@solana/web3.js";
 import { BankrunProvider } from "anchor-bankrun";
 import { beforeAll, describe, expect, test } from "bun:test";
-import { BanksClient, ProgramTestContext, startAnchor } from "solana-bankrun";
+import { BanksClient, ProgramTestContext } from "solana-bankrun";
 import { Splurge } from "../../target/types/splurge";
-import idl from "../../target/idl/splurge.json";
-import { createStore, getStorePdaAndBump } from "../utils";
+import { createStore, getBankrunSetup, getStorePdaAndBump } from "../utils";
 
 describe("createStore", () => {
   let context: ProgramTestContext;
@@ -18,35 +17,32 @@ describe("createStore", () => {
   const walletB = Keypair.generate();
 
   beforeAll(async () => {
-    context = await startAnchor(
-      "",
-      [],
-      [
-        {
-          address: walletA.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: 5_000_000_000,
-            owner: SystemProgram.programId,
-          },
+    const bankrunSetup = await getBankrunSetup([
+      {
+        address: walletA.publicKey,
+        info: {
+          data: Buffer.alloc(0),
+          executable: false,
+          lamports: 5_000_000_000,
+          owner: SystemProgram.programId,
         },
-        {
-          address: walletB.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: 5_000_000_000,
-            owner: SystemProgram.programId,
-          },
+      },
+      {
+        address: walletB.publicKey,
+        info: {
+          data: Buffer.alloc(0),
+          executable: false,
+          lamports: 5_000_000_000,
+          owner: SystemProgram.programId,
         },
-      ],
-    );
+      },
+    ]);
 
-    banksClient = context.banksClient;
-    payer = context.payer;
-    provider = new BankrunProvider(context);
-    program = new Program(idl as Splurge, provider);
+    context = bankrunSetup.context;
+    banksClient = bankrunSetup.banksClient;
+    payer = bankrunSetup.payer;
+    provider = bankrunSetup.provider;
+    program = bankrunSetup.program;
   });
 
   test("creates a store account", async () => {
