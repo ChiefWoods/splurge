@@ -70,6 +70,13 @@ async function getStoreAcc(program: Program<Splurge>, storePda: PublicKey) {
   return await program.account.store.fetch(storePda);
 }
 
+async function getStoreItemAcc(
+  program: Program<Splurge>,
+  storeItemPda: PublicKey,
+) {
+  return await program.account.storeItem.fetch(storeItemPda);
+}
+
 export async function initializeConfig(
   program: Program<Splurge>,
   admin: Keypair,
@@ -164,5 +171,32 @@ export async function createStore(
       program,
       getStorePdaAndBump(authority.publicKey)[0],
     ),
+  };
+}
+
+export async function addItem(
+  program: Program<Splurge>,
+  name: string,
+  image: string,
+  inventoryCount: number,
+  price: number,
+  authority: Keypair,
+) {
+  await program.methods
+    .addItem(name, image, new BN(inventoryCount), price)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  const [storePda] = getStorePdaAndBump(authority.publicKey);
+
+  return {
+    storeItemAcc: await getStoreItemAcc(
+      program,
+      getStoreItemPdaAndBump(storePda, name)[0],
+    ),
+    storeAcc: await getStoreAcc(program, storePda),
   };
 }

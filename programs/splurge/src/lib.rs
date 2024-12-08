@@ -49,4 +49,14 @@ pub mod splurge {
     pub fn create_store(ctx: Context<CreateStore>, name: String, image: String) -> Result<()> {
         instructions::create_store(ctx, name, image)
     }
+
+    pub fn add_item(
+        ctx: Context<AddItem>,
+        name: String,
+        image: String,
+        inventory_count: i64,
+        price: f64,
+    ) -> Result<()> {
+        instructions::add_item(ctx, name, image, inventory_count, price)
+    }
 }
