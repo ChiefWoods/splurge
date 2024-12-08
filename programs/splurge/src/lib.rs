@@ -83,4 +83,8 @@ pub mod splurge {
     ) -> Result<()> {
         instructions::update_item(ctx, name, inventory_count, price)
     }
+
+    pub fn delete_item(ctx: Context<DeleteItem>, name: String) -> Result<()> {
+        instructions::delete_item(ctx, name)
+    }
 }

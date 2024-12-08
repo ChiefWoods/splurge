@@ -250,3 +250,23 @@ export async function updateItem(
     ),
   };
 }
+
+export async function deleteItem(
+  program: Program<Splurge>,
+  name: string,
+  authority: Keypair,
+) {
+  await program.methods
+    .deleteItem(name)
+    .accounts({
+      authority: authority.publicKey,
+    })
+    .signers([authority])
+    .rpc();
+
+  const [storePda] = getStorePdaAndBump(authority.publicKey);
+
+  return {
+    storeAcc: await getStoreAcc(program, storePda),
+  };
+}
