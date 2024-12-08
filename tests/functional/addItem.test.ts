@@ -40,6 +40,7 @@ describe("addItem", () => {
   test("add item", async () => {
     const name = "Store Item A";
     const image = "https://example.com/item.png";
+    const description = "This is a description";
     const inventoryCount = 10;
     const price = 5.55;
 
@@ -47,6 +48,7 @@ describe("addItem", () => {
       program,
       name,
       image,
+      description,
       inventoryCount,
       price,
       payer,
@@ -64,6 +66,7 @@ describe("addItem", () => {
     expect(storeItemAcc.store).toEqual(storePda);
     expect(storeItemAcc.name).toEqual(name);
     expect(storeItemAcc.image).toEqual(image);
+    expect(storeItemAcc.description).toEqual(description);
     expect(storeItemAcc.reviews).toEqual([]);
     expect(storeAcc.items[0]).toEqual(storeItemPda);
   });
@@ -74,6 +77,7 @@ describe("addItem", () => {
         program,
         "",
         "https://example.com/item.png",
+        "This is a description",
         10,
         5.55,
         payer,
@@ -93,6 +97,7 @@ describe("addItem", () => {
         program,
         "_".repeat(storeItemNameMaxLength + 1),
         "https://example.com/item.png",
+        "This is a description",
         10,
         5.55,
         payer,
@@ -102,7 +107,15 @@ describe("addItem", () => {
 
   test("throws if item image is empty", async () => {
     try {
-      await addItem(program, "Store Item B", "", 10, 5.55, payer);
+      await addItem(
+        program,
+        "Store Item B",
+        "",
+        "This is a description",
+        10,
+        5.55,
+        payer,
+      );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
       expect(err.error.errorCode.code).toEqual("StoreItemImageRequired");

@@ -5,6 +5,7 @@ pub fn add_item(
     ctx: Context<AddItem>,
     name: String,
     image: String,
+    description: String,
     inventory_count: i64,
     price: f64,
 ) -> Result<()> {
@@ -23,6 +24,7 @@ pub fn add_item(
     store_item.store = ctx.accounts.store.key();
     store_item.name = name;
     store_item.image = image;
+    store_item.description = description;
     store_item.reviews = Vec::new();
 
     let store = &mut ctx.accounts.store;
@@ -33,13 +35,13 @@ pub fn add_item(
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, image: String)]
+#[instruction(name: String, image: String, description: String)]
 pub struct AddItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
       init,
-      space = StoreItem::MIN_SPACE + name.len() + image.len(),
+      space = StoreItem::MIN_SPACE + name.len() + image.len() + description.len(),
       seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
       bump,
       payer = authority,

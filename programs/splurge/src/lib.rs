@@ -59,9 +59,10 @@ pub mod splurge {
         ctx: Context<AddItem>,
         name: String,
         image: String,
+        description: String,
         inventory_count: i64,
         price: f64,
     ) -> Result<()> {
-        instructions::add_item(ctx, name, image, inventory_count, price)
+        instructions::add_item(ctx, name, image, description, inventory_count, price)
     }
 }

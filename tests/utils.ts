@@ -179,12 +179,13 @@ export async function addItem(
   program: Program<Splurge>,
   name: string,
   image: string,
+  description: string,
   inventoryCount: number,
   price: number,
   authority: Keypair,
 ) {
   await program.methods
-    .addItem(name, image, new BN(inventoryCount), price)
+    .addItem(name, image, description, new BN(inventoryCount), price)
     .accounts({
       authority: authority.publicKey,
     })
