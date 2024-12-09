@@ -67,6 +67,11 @@ pub struct CreateOrder<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
+        mut,
+        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+    )]
+    pub admin: Signer<'info>,
+    #[account(
         seeds = [SPLURGE_CONFIG_SEED],
         bump = splurge_config.bump,
     )]
@@ -90,14 +95,14 @@ pub struct CreateOrder<'info> {
         bump,
         payer = authority,
     )]
-    pub order: Account<'info, Order>,
+    pub order: Box<Account<'info, Order>>,
     #[account(
         constraint = splurge_config.whitelisted_mints.contains(&payment_mint.key()) @ ErrorCode::PaymentMintNotWhitelisted,
     )]
     pub payment_mint: InterfaceAccount<'info, Mint>,
     #[account(
         init,
-        payer = authority,
+        payer = admin,
         associated_token::mint = payment_mint,
         associated_token::authority = order,
         associated_token::token_program = token_program,

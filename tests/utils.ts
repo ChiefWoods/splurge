@@ -301,17 +301,19 @@ export async function createOrder(
   paymentMint: PublicKey,
   tokenProgram: PublicKey,
   authority: Keypair,
+  admin: Keypair,
 ) {
   await program.methods
     .createOrder(new BN(timestamp), new BN(amount), totalUsd)
     .accounts({
       authority: authority.publicKey,
+      admin: admin.publicKey,
       store: storePda,
       storeItem: storeItemPda,
       paymentMint,
       tokenProgram,
     })
-    .signers([authority])
+    .signers([authority, admin])
     .rpc();
 
   return {

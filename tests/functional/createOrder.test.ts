@@ -206,6 +206,7 @@ describe("createOrder", () => {
       paymentMint,
       paymentMintOwner,
       walletA,
+      payer,
     );
 
     const [orderPda, orderBump] = getOrderPdaAndBump(
@@ -263,6 +264,7 @@ describe("createOrder", () => {
         paymentMint,
         paymentMintOwner,
         walletA,
+        payer,
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
@@ -292,6 +294,7 @@ describe("createOrder", () => {
         paymentMint,
         paymentMintOwner,
         walletA,
+        payer,
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
@@ -321,6 +324,7 @@ describe("createOrder", () => {
         paymentMint,
         paymentMintOwner,
         walletA,
+        payer,
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
@@ -350,6 +354,7 @@ describe("createOrder", () => {
         paymentMint,
         paymentMintOwner,
         walletA,
+        payer,
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
@@ -392,6 +397,7 @@ describe("createOrder", () => {
         paymentMint,
         paymentMintOwner,
         walletA,
+        payer,
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
