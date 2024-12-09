@@ -56,6 +56,22 @@ export function getStoreItemPdaAndBump(
   );
 }
 
+export function getOrderPdaAndBump(
+  shopperPda: PublicKey,
+  storeItemPda: PublicKey,
+  timestamp: BN,
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("order"),
+      shopperPda.toBuffer(),
+      storeItemPda.toBuffer(),
+      timestamp.toArrayLike(Buffer, "le", 8),
+    ],
+    SPLURGE_PROGRAM_ID,
+  );
+}
+
 async function getSplurgeConfigAcc(program: Program<Splurge>) {
   return await program.account.splurgeConfig.fetchNullable(
     getSplurgeConfigPdaAndBump()[0],
@@ -75,6 +91,10 @@ async function getStoreItemAcc(
   storeItemPda: PublicKey,
 ) {
   return await program.account.storeItem.fetchNullable(storeItemPda);
+}
+
+async function getOrderAcc(program: Program<Splurge>, orderPda: PublicKey) {
+  return await program.account.order.fetchNullable(orderPda);
 }
 
 export async function initializeConfig(
@@ -268,5 +288,45 @@ export async function deleteItem(
 
   return {
     storeAcc: await getStoreAcc(program, storePda),
+  };
+}
+
+export async function createOrder(
+  program: Program<Splurge>,
+  timestamp: number,
+  amount: number,
+  totalUsd: number,
+  storePda: PublicKey,
+  storeItemPda: PublicKey,
+  paymentMint: PublicKey,
+  tokenProgram: PublicKey,
+  authority: Keypair,
+) {
+  await program.methods
+    .createOrder(new BN(timestamp), new BN(amount), totalUsd)
+    .accounts({
+      authority: authority.publicKey,
+      store: storePda,
+      storeItem: storeItemPda,
+      paymentMint,
+      tokenProgram,
+    })
+    .signers([authority])
+    .rpc();
+
+  return {
+    shopperAcc: await getShopperAcc(
+      program,
+      getShopperPdaAndBump(authority.publicKey)[0],
+    ),
+    storeItemAcc: await getStoreItemAcc(program, storeItemPda),
+    orderAcc: await getOrderAcc(
+      program,
+      getOrderPdaAndBump(
+        getShopperPdaAndBump(authority.publicKey)[0],
+        storeItemPda,
+        new BN(timestamp),
+      )[0],
+    ),
   };
 }

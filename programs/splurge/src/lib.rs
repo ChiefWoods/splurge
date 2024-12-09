@@ -87,4 +87,13 @@ pub mod splurge {
     pub fn delete_item(ctx: Context<DeleteItem>, name: String) -> Result<()> {
         instructions::delete_item(ctx, name)
     }
+
+    pub fn create_order(
+        ctx: Context<CreateOrder>,
+        timestamp: i64,
+        amount: i64,
+        total_usd: f64,
+    ) -> Result<()> {
+        instructions::create_order(ctx, timestamp, amount, total_usd)
+    }
 }

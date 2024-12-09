@@ -86,7 +86,7 @@ describe("createStore", () => {
   test("throws when name is too long", async () => {
     const storeNameMaxLength = 64;
 
-    expect(async () => {
+    try {
       await createStore(
         program,
         "_".repeat(storeNameMaxLength + 1),
@@ -94,7 +94,11 @@ describe("createStore", () => {
         "This is a store",
         walletB,
       );
-    }).toThrow();
+    } catch (err) {
+      expect(err).toBeInstanceOf(AnchorError);
+      expect(err.error.errorCode.code).toEqual("StoreNameTooLong");
+      expect(err.error.errorCode.number).toEqual(6201);
+    }
   });
 
   test("throws when image is empty", async () => {
