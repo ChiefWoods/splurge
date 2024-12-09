@@ -4,7 +4,7 @@ pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
-use instructions::*;
+use {instructions::*, state::*};
 
 declare_id!("SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7");
 
@@ -95,5 +95,9 @@ pub mod splurge {
         total_usd: f64,
     ) -> Result<()> {
         instructions::create_order(ctx, timestamp, amount, total_usd)
+    }
+
+    pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
+        instructions::update_order(ctx, status)
     }
 }

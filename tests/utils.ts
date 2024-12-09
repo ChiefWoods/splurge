@@ -330,3 +330,27 @@ export async function createOrder(
     ),
   };
 }
+
+export async function updateOrder(
+  program: Program<Splurge>,
+  status:
+    | { pending: {} }
+    | { shipping: {} }
+    | { cancelled: {} }
+    | { completed: {} },
+  orderPda: PublicKey,
+  admin: Keypair,
+) {
+  await program.methods
+    .updateOrder(status)
+    .accounts({
+      admin: admin.publicKey,
+      order: orderPda,
+    })
+    .signers([admin])
+    .rpc();
+
+  return {
+    orderAcc: await getOrderAcc(program, orderPda),
+  };
+}

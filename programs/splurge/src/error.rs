@@ -42,4 +42,6 @@ pub enum ErrorCode {
     OrderTotalIncorrect,
     #[msg("Store item has insufficient inventory to fulfill order")]
     InsufficientInventory,
+    #[msg("Order already finalized")]
+    OrderAlreadyFinalized,
 }
