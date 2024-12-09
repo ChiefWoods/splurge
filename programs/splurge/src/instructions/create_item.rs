@@ -40,20 +40,20 @@ pub struct CreateItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-      init,
-      space = StoreItem::MIN_SPACE + name.len() + image.len() + description.len(),
-      seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
-      bump,
-      payer = authority,
+        init,
+        payer = authority,
+        space = StoreItem::MIN_SPACE + name.len() + image.len() + description.len(),
+        seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
+        bump,
     )]
     pub store_item: Account<'info, StoreItem>,
     #[account(
-      mut,
-      realloc = store.to_account_info().data_len() + PUBKEY_BYTES,
-      realloc::payer = authority,
-      realloc::zero = false,
-      seeds = [STORE_SEED, authority.key().as_ref()],
-      bump = store.bump,
+        mut,
+        realloc = store.to_account_info().data_len() + PUBKEY_BYTES,
+        realloc::payer = authority,
+        realloc::zero = false,
+        seeds = [STORE_SEED, authority.key().as_ref()],
+        bump = store.bump,
     )]
     pub store: Account<'info, Store>,
     pub system_program: Program<'info, System>,

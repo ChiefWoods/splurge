@@ -18,11 +18,11 @@ pub struct InitializeConfig<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-      init,
-      space = SplurgeConfig::MIN_SPACE + (whitelisted_mints.len() * PUBKEY_BYTES),
-      seeds = [SPLURGE_CONFIG_SEED],
-      bump,
-      payer = authority,
+        init,
+        payer = authority,
+        space = SplurgeConfig::MIN_SPACE + (whitelisted_mints.len() * PUBKEY_BYTES),
+        seeds = [SPLURGE_CONFIG_SEED],
+        bump,
     )]
     pub splurge_config: Account<'info, SplurgeConfig>,
     pub system_program: Program<'info, System>,

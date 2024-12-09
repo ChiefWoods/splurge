@@ -32,12 +32,12 @@ pub struct CreateShopper<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-    init,
-    space = Shopper::MIN_SPACE + name.len() + image.len() + address.len(),
-    seeds = [SHOPPER_SEED, authority.key().as_ref()],
-    bump,
-    payer = authority,
-  )]
+        init,
+        payer = authority,
+        space = Shopper::MIN_SPACE + name.len() + image.len() + address.len(),
+        seeds = [SHOPPER_SEED, authority.key().as_ref()],
+        bump,
+    )]
     pub shopper: Account<'info, Shopper>,
     pub system_program: Program<'info, System>,
 }

@@ -48,10 +48,10 @@ pub struct CreateReview<'info> {
     pub order: Account<'info, Order>,
     #[account(
         init,
+        payer = authority,
         space = Review::MIN_SPACE + text.len(),
         seeds = [REVIEW_SEED, order.key().as_ref()],
         bump,
-        payer = authority,
     )]
     pub review: Account<'info, Review>,
     pub system_program: Program<'info, System>,

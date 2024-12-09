@@ -90,10 +90,10 @@ pub struct CreateOrder<'info> {
     pub store_item: Account<'info, StoreItem>,
     #[account(
         init,
+        payer = authority,
         space = Order::DISCRIMINATOR.len() + Order::INIT_SPACE,
         seeds = [ORDER_SEED, shopper.key().as_ref(), store_item.key().as_ref(), timestamp.to_le_bytes().as_ref()],
         bump,
-        payer = authority,
     )]
     pub order: Box<Account<'info, Order>>,
     #[account(

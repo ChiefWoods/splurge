@@ -11,15 +11,15 @@ pub fn set_admin(ctx: Context<SetAdmin>, new_admin: Pubkey) -> Result<()> {
 #[instruction(new_admin: Pubkey)]
 pub struct SetAdmin<'info> {
     #[account(
-      mut,
-      address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
-      constraint = splurge_config.admin != new_admin @ ErrorCode::AdminAlreadyAssigned
+        mut,
+        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        constraint = splurge_config.admin != new_admin @ ErrorCode::AdminAlreadyAssigned
     )]
     pub authority: Signer<'info>,
     #[account(
-      mut,
-      seeds = [SPLURGE_CONFIG_SEED],
-      bump = splurge_config.bump,
+        mut,
+        seeds = [SPLURGE_CONFIG_SEED],
+        bump = splurge_config.bump,
     )]
     pub splurge_config: Account<'info, SplurgeConfig>,
 }

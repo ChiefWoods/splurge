@@ -23,17 +23,17 @@ pub fn remove_whitelisted_mint(
 #[instruction(new_mints: Vec<Pubkey>)]
 pub struct RemoveWhitelistedMint<'info> {
     #[account(
-      mut,
-      address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        mut,
+        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(
-      mut,
-      realloc = splurge_config.to_account_info().data_len() - (new_mints.len() * PUBKEY_BYTES),
-      realloc::payer = admin,
-      realloc::zero = false,
-      seeds = [SPLURGE_CONFIG_SEED],
-      bump = splurge_config.bump,
+        mut,
+        realloc = splurge_config.to_account_info().data_len() - (new_mints.len() * PUBKEY_BYTES),
+        realloc::payer = admin,
+        realloc::zero = false,
+        seeds = [SPLURGE_CONFIG_SEED],
+        bump = splurge_config.bump,
     )]
     pub splurge_config: Account<'info, SplurgeConfig>,
     pub system_program: Program<'info, System>,

@@ -31,11 +31,11 @@ pub struct CreateStore<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-      init,
-      space = Store::MIN_SPACE + name.len() + image.len() + about.len(),
-      seeds = [STORE_SEED, authority.key().as_ref()],
-      bump,
-      payer = authority,
+        init,
+        payer = authority,
+        space = Store::MIN_SPACE + name.len() + image.len() + about.len(),
+        seeds = [STORE_SEED, authority.key().as_ref()],
+        bump,
     )]
     pub store: Account<'info, Store>,
     pub system_program: Program<'info, System>,
