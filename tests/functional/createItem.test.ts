@@ -90,7 +90,7 @@ describe("createItem", () => {
   });
 
   test("throws if item name is too long", async () => {
-    const storeItemNameMaxLength = 64;
+    const storeItemNameMaxLength = 32;
 
     expect(async () => {
       await createItem(
