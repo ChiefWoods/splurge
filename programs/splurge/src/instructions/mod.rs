@@ -1,5 +1,5 @@
-pub mod add_item;
 pub mod add_whitelisted_mint;
+pub mod create_item;
 pub mod create_shopper;
 pub mod create_store;
 pub mod delete_item;
@@ -9,8 +9,8 @@ pub mod set_admin;
 pub mod update_item;
 pub mod update_store;
 
-pub use add_item::*;
 pub use add_whitelisted_mint::*;
+pub use create_item::*;
 pub use create_shopper::*;
 pub use create_store::*;
 pub use delete_item::*;

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
-  addItem,
+  createItem,
   createStore,
   deleteItem,
   getBankrunSetup,
@@ -40,7 +40,7 @@ describe("deleteItem", () => {
       payer,
     );
 
-    await addItem(
+    await createItem(
       program,
       itemName,
       "https://example.com/item.png",

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { addItem, createStore, getBankrunSetup, updateItem } from "../utils";
+import { createItem, createStore, getBankrunSetup, updateItem } from "../utils";
 import { Keypair } from "@solana/web3.js";
 import { BanksClient, ProgramTestContext } from "solana-bankrun";
 import { BankrunProvider } from "anchor-bankrun";
@@ -32,7 +32,7 @@ describe("updateItem", () => {
       payer,
     );
 
-    await addItem(
+    await createItem(
       program,
       itemName,
       "https://example.com/item.png",

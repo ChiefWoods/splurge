@@ -1,8 +1,8 @@
 use crate::{constants::*, error::ErrorCode, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
-pub fn add_item(
-    ctx: Context<AddItem>,
+pub fn create_item(
+    ctx: Context<CreateItem>,
     name: String,
     image: String,
     description: String,
@@ -36,7 +36,7 @@ pub fn add_item(
 
 #[derive(Accounts)]
 #[instruction(name: String, image: String, description: String)]
-pub struct AddItem<'info> {
+pub struct CreateItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(

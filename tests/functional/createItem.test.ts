@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import {
-  addItem,
+  createItem,
   createStore,
   getBankrunSetup,
   getStoreItemPdaAndBump,
@@ -12,7 +12,7 @@ import { BankrunProvider } from "anchor-bankrun";
 import { Splurge } from "../../target/types/splurge";
 import { AnchorError, Program } from "@coral-xyz/anchor";
 
-describe("addItem", () => {
+describe("createItem", () => {
   let context: ProgramTestContext;
   let banksClient: BanksClient;
   let payer: Keypair;
@@ -44,7 +44,7 @@ describe("addItem", () => {
     const inventoryCount = 10;
     const price = 5.55;
 
-    const { storeItemAcc, storeAcc } = await addItem(
+    const { storeItemAcc, storeAcc } = await createItem(
       program,
       name,
       image,
@@ -73,7 +73,7 @@ describe("addItem", () => {
 
   test("throws if item name is empty", async () => {
     try {
-      await addItem(
+      await createItem(
         program,
         "",
         "https://example.com/item.png",
@@ -93,7 +93,7 @@ describe("addItem", () => {
     const storeItemNameMaxLength = 64;
 
     expect(async () => {
-      await addItem(
+      await createItem(
         program,
         "_".repeat(storeItemNameMaxLength + 1),
         "https://example.com/item.png",
@@ -107,7 +107,7 @@ describe("addItem", () => {
 
   test("throws if item image is empty", async () => {
     try {
-      await addItem(
+      await createItem(
         program,
         "Store Item B",
         "",

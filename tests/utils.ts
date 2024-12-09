@@ -198,7 +198,7 @@ export async function updateStore(
   };
 }
 
-export async function addItem(
+export async function createItem(
   program: Program<Splurge>,
   name: string,
   image: string,
@@ -208,7 +208,7 @@ export async function addItem(
   authority: Keypair,
 ) {
   await program.methods
-    .addItem(name, image, description, new BN(inventoryCount), price)
+    .createItem(name, image, description, new BN(inventoryCount), price)
     .accounts({
       authority: authority.publicKey,
     })
