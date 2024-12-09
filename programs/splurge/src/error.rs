@@ -48,4 +48,10 @@ pub enum ErrorCode {
     OrderNotShipping,
     #[msg("Order already completed")]
     OrderAlreadyCompleted,
+    #[msg("Order not completed")]
+    OrderNotCompleted = 500,
+    #[msg("Rating must be between 1 and 5")]
+    ReviewRatingInvalid,
+    #[msg("Review for order already exists")]
+    ReviewForOrderAlreadyExists,
 }

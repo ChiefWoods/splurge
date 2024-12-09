@@ -104,4 +104,8 @@ pub mod splurge {
     pub fn complete_order(ctx: Context<CompleteOrder>, timestamp: i64) -> Result<()> {
         instructions::complete_order(ctx, timestamp)
     }
+
+    pub fn create_review(ctx: Context<CreateReview>, text: String, rating: i8) -> Result<()> {
+        instructions::create_review(ctx, text, rating)
+    }
 }

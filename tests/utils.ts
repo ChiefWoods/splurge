@@ -72,6 +72,13 @@ export function getOrderPdaAndBump(
   );
 }
 
+export function getReviewPdaAndBump(orderPda: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("review"), orderPda.toBuffer()],
+    SPLURGE_PROGRAM_ID,
+  );
+}
+
 async function getSplurgeConfigAcc(program: Program<Splurge>) {
   return await program.account.splurgeConfig.fetchNullable(
     getSplurgeConfigPdaAndBump()[0],
@@ -95,6 +102,10 @@ async function getStoreItemAcc(
 
 async function getOrderAcc(program: Program<Splurge>, orderPda: PublicKey) {
   return await program.account.order.fetchNullable(orderPda);
+}
+
+async function getReviewAcc(program: Program<Splurge>, reviewPda: PublicKey) {
+  return await program.account.review.fetchNullable(reviewPda);
 }
 
 export async function initializeConfig(
@@ -385,5 +396,29 @@ export async function completeOrder(
       program,
       getOrderPdaAndBump(shopperPda, storeItemPda, new BN(timestamp))[0],
     ),
+  };
+}
+
+export async function createReview(
+  program: Program<Splurge>,
+  text: string,
+  rating: number,
+  authority: Keypair,
+  storeItemPda: PublicKey,
+  orderPda: PublicKey,
+) {
+  await program.methods
+    .createReview(text, rating)
+    .accounts({
+      authority: authority.publicKey,
+      storeItem: storeItemPda,
+      order: orderPda,
+    })
+    .signers([authority])
+    .rpc();
+
+  return {
+    reviewAcc: await getReviewAcc(program, getReviewPdaAndBump(orderPda)[0]),
+    storeItemAcc: await getStoreItemAcc(program, storeItemPda),
   };
 }
