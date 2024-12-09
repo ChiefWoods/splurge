@@ -1,4 +1,5 @@
 pub mod add_whitelisted_mint;
+pub mod complete_order;
 pub mod create_item;
 pub mod create_order;
 pub mod create_shopper;
@@ -12,6 +13,7 @@ pub mod update_order;
 pub mod update_store;
 
 pub use add_whitelisted_mint::*;
+pub use complete_order::*;
 pub use create_item::*;
 pub use create_order::*;
 pub use create_shopper::*;

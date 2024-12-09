@@ -100,4 +100,8 @@ pub mod splurge {
     pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
         instructions::update_order(ctx, status)
     }
+
+    pub fn complete_order(ctx: Context<CompleteOrder>, timestamp: i64) -> Result<()> {
+        instructions::complete_order(ctx, timestamp)
+    }
 }

@@ -356,3 +356,34 @@ export async function updateOrder(
     orderAcc: await getOrderAcc(program, orderPda),
   };
 }
+
+export async function completeOrder(
+  program: Program<Splurge>,
+  timestamp: number,
+  admin: Keypair,
+  shopperPda: PublicKey,
+  storePda: PublicKey,
+  storeItemPda: PublicKey,
+  paymentMint: PublicKey,
+  tokenProgram: PublicKey,
+) {
+  await program.methods
+    .completeOrder(new BN(timestamp))
+    .accounts({
+      admin: admin.publicKey,
+      shopper: shopperPda,
+      store: storePda,
+      storeItem: storeItemPda,
+      paymentMint,
+      tokenProgram,
+    })
+    .signers([admin])
+    .rpc();
+
+  return {
+    orderAcc: await getOrderAcc(
+      program,
+      getOrderPdaAndBump(shopperPda, storeItemPda, new BN(timestamp))[0],
+    ),
+  };
+}

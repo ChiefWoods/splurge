@@ -44,4 +44,8 @@ pub enum ErrorCode {
     InsufficientInventory,
     #[msg("Order already finalized")]
     OrderAlreadyFinalized,
+    #[msg("Order is not in shipping status")]
+    OrderNotShipping,
+    #[msg("Order already completed")]
+    OrderAlreadyCompleted,
 }
