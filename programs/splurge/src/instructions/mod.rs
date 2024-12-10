@@ -12,6 +12,7 @@ pub mod set_admin;
 pub mod update_item;
 pub mod update_order;
 pub mod update_store;
+pub mod withdraw_earnings;
 
 pub use add_whitelisted_mint::*;
 pub use complete_order::*;
@@ -27,3 +28,4 @@ pub use set_admin::*;
 pub use update_item::*;
 pub use update_order::*;
 pub use update_store::*;
+pub use withdraw_earnings::*;

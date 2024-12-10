@@ -422,3 +422,22 @@ export async function createReview(
     storeItemAcc: await getStoreItemAcc(program, storeItemPda),
   };
 }
+
+export async function withdrawEarnings(
+  program: Program<Splurge>,
+  authority: Keypair,
+  admin: Keypair,
+  paymentMint: PublicKey,
+  tokenProgram: PublicKey,
+) {
+  await program.methods
+    .withdrawEarnings()
+    .accounts({
+      authority: authority.publicKey,
+      admin: admin.publicKey,
+      paymentMint,
+      tokenProgram,
+    })
+    .signers([authority, admin])
+    .rpc();
+}

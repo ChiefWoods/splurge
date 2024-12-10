@@ -108,4 +108,8 @@ pub mod splurge {
     pub fn create_review(ctx: Context<CreateReview>, text: String, rating: i8) -> Result<()> {
         instructions::create_review(ctx, text, rating)
     }
+
+    pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>) -> Result<()> {
+        instructions::withdraw_earnings(ctx)
+    }
 }
