@@ -9,12 +9,15 @@ use anchor_spl::{
 };
 
 pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>) -> Result<()> {
-    let authority_key = ctx.accounts.authority.key();
     let store_token_account = &ctx.accounts.store_token_account;
     let payment_mint = &ctx.accounts.payment_mint;
     let store = &ctx.accounts.store;
 
-    let signer_seeds: &[&[&[u8]]] = &[&[STORE_SEED, authority_key.as_ref(), &[store.bump]]];
+    let signer_seeds: &[&[&[u8]]] = &[&[
+        STORE_SEED,
+        ctx.accounts.authority.key.as_ref(),
+        &[store.bump],
+    ]];
 
     transfer_checked(
         CpiContext::new(

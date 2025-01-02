@@ -2,13 +2,15 @@ use crate::{constants::*, error::ErrorCode, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn add_whitelisted_mint(ctx: Context<AddWhitelistedMint>, mints: Vec<Pubkey>) -> Result<()> {
+    let whitelisted_mints = &mut ctx.accounts.splurge_config.whitelisted_mints;
+
     for mint in mints.iter() {
-        if ctx.accounts.splurge_config.whitelisted_mints.contains(mint) {
+        if whitelisted_mints.contains(mint) {
             return Err(ErrorCode::MintAlreadyWhitelisted.into());
         }
     }
 
-    ctx.accounts.splurge_config.whitelisted_mints.extend(mints);
+    whitelisted_mints.extend(mints);
 
     Ok(())
 }

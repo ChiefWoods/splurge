@@ -27,9 +27,7 @@ pub fn create_item(
     store_item.description = description;
     store_item.reviews = Vec::new();
 
-    let store = &mut ctx.accounts.store;
-
-    store.items.push(store_item.key());
+    ctx.accounts.store.items.push(store_item.key());
 
     Ok(())
 }
