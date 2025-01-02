@@ -32,6 +32,10 @@ pub enum ErrorCode {
     StoreItemNameTooLong,
     #[msg("Store item image is required")]
     StoreItemImageRequired,
+    #[msg("Store item price must be at least 0")]
+    StoreItemPriceIsNegative,
+    #[msg("Store item not found")]
+    StoreItemNotFound,
     #[msg("Payment mint is not whitelisted")]
     PaymentMintNotWhitelisted = 400,
     #[msg("Order amount must be greater than 0")]

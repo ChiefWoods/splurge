@@ -1,4 +1,4 @@
-use crate::{constants::*, state::*};
+use crate::{constants::*, error::ErrorCode, state::*};
 use anchor_lang::prelude::*;
 
 pub fn update_item(
@@ -7,6 +7,8 @@ pub fn update_item(
     inventory_count: i64,
     price: f64,
 ) -> Result<()> {
+    require!(price >= 0.0, ErrorCode::StoreItemPriceIsNegative);
+
     let store_item = &mut ctx.accounts.store_item;
 
     store_item.inventory_count = inventory_count;

@@ -1,11 +1,16 @@
-use crate::{constants::*, state::*};
+use crate::{constants::*, error::ErrorCode, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn delete_item(ctx: Context<DeleteItem>, _name: String) -> Result<()> {
-    ctx.accounts
-        .store
-        .items
-        .retain(|item| item != &ctx.accounts.store_item.key());
+    let store = &mut ctx.accounts.store;
+    let store_item = &ctx.accounts.store_item.key();
+
+    require!(
+        store.items.contains(store_item),
+        ErrorCode::StoreItemNotFound
+    );
+
+    store.items.retain(|item| item != store_item);
 
     Ok(())
 }
