@@ -7,3 +7,4 @@ test-ledger
 .yarn
 splurge-wallet.json
 .env
+tests/fixtures

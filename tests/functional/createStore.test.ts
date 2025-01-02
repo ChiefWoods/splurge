@@ -1,64 +1,55 @@
-import { AnchorError, Program } from "@coral-xyz/anchor";
-import { Keypair, SystemProgram } from "@solana/web3.js";
-import { BankrunProvider } from "anchor-bankrun";
-import { beforeAll, describe, expect, test } from "bun:test";
-import { BanksClient, ProgramTestContext } from "solana-bankrun";
-import { Splurge } from "../../target/types/splurge";
-import { createStore, getBankrunSetup, getStorePdaAndBump } from "../utils";
+import { AnchorError, Program } from '@coral-xyz/anchor';
+import { Keypair, SystemProgram } from '@solana/web3.js';
+import { BankrunProvider } from 'anchor-bankrun';
+import { beforeEach, describe, expect, test } from 'bun:test';
+import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import { Splurge } from '../../target/types/splurge';
+import { createStore } from '../methods';
+import { getBankrunSetup } from '../utils';
+import { getStorePdaAndBump } from '../pda';
+import { MAX_STORE_NAME_LEN } from '../constants';
 
-describe("createStore", () => {
-  let context: ProgramTestContext;
-  let banksClient: BanksClient;
-  let payer: Keypair;
-  let provider: BankrunProvider;
-  let program: Program<Splurge>;
+describe('createStore', () => {
+  let { context, banksClient, payer, provider, program } = {} as {
+    context: ProgramTestContext;
+    banksClient: BanksClient;
+    payer: Keypair;
+    provider: BankrunProvider;
+    program: Program<Splurge>;
+  };
 
-  const walletA = Keypair.generate();
-  const walletB = Keypair.generate();
+  const storeWallet = Keypair.generate();
 
-  beforeAll(async () => {
-    const bankrunSetup = await getBankrunSetup([
-      {
-        address: walletA.publicKey,
-        info: {
-          data: Buffer.alloc(0),
-          executable: false,
-          lamports: 5_000_000_000,
-          owner: SystemProgram.programId,
+  beforeEach(async () => {
+    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
+      [
+        {
+          address: storeWallet.publicKey,
+          info: {
+            data: Buffer.alloc(0),
+            executable: false,
+            lamports: 5_000_000,
+            owner: SystemProgram.programId,
+          },
         },
-      },
-      {
-        address: walletB.publicKey,
-        info: {
-          data: Buffer.alloc(0),
-          executable: false,
-          lamports: 5_000_000_000,
-          owner: SystemProgram.programId,
-        },
-      },
-    ]);
-
-    context = bankrunSetup.context;
-    banksClient = bankrunSetup.banksClient;
-    payer = bankrunSetup.payer;
-    provider = bankrunSetup.provider;
-    program = bankrunSetup.program;
+      ]
+    ));
   });
 
-  test("creates a store account", async () => {
-    const name = "Store A";
-    const image = "https://example.com/image.png";
-    const about = "This is a store";
+  test('creates a store account', async () => {
+    const name = 'Store A';
+    const image = 'https://example.com/image.png';
+    const about = 'This is a store';
 
     const { storeAcc } = await createStore(
       program,
       name,
       image,
       about,
-      walletA,
+      storeWallet
     );
 
-    const shopperBump = getStorePdaAndBump(walletA.publicKey)[1];
+    const shopperBump = getStorePdaAndBump(storeWallet.publicKey)[1];
 
     expect(storeAcc.bump).toEqual(shopperBump);
     expect(storeAcc.name).toEqual(name);
@@ -67,46 +58,44 @@ describe("createStore", () => {
     expect(storeAcc.items).toEqual([]);
   });
 
-  test("throws when name is empty", async () => {
+  test('throws when name is empty', async () => {
     try {
       await createStore(
         program,
-        "",
-        "https://example.com/image.png",
-        "This is a store",
-        walletB,
+        '',
+        'https://example.com/image.png',
+        'This is a store',
+        storeWallet
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual("StoreNameRequired");
+      expect(err.error.errorCode.code).toEqual('StoreNameRequired');
       expect(err.error.errorCode.number).toEqual(6200);
     }
   });
 
-  test("throws when name is too long", async () => {
-    const storeNameMaxLength = 64;
-
+  test('throws when name is too long', async () => {
     try {
       await createStore(
         program,
-        "_".repeat(storeNameMaxLength + 1),
-        "https://example.com/image.png",
-        "This is a store",
-        walletB,
+        '_'.repeat(MAX_STORE_NAME_LEN + 1),
+        'https://example.com/image.png',
+        'This is a store',
+        storeWallet
       );
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual("StoreNameTooLong");
+      expect(err.error.errorCode.code).toEqual('StoreNameTooLong');
       expect(err.error.errorCode.number).toEqual(6201);
     }
   });
 
-  test("throws when image is empty", async () => {
+  test('throws when image is empty', async () => {
     try {
-      await createStore(program, "Store B", "", "This is a store", walletB);
+      await createStore(program, 'Store A', '', 'This is a store', storeWallet);
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual("StoreImageRequired");
+      expect(err.error.errorCode.code).toEqual('StoreImageRequired');
       expect(err.error.errorCode.number).toEqual(6202);
     }
   });

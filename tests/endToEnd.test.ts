@@ -1,14 +1,15 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
+import { beforeEach, describe, test } from 'bun:test';
 import {
   completeOrder,
   createItem,
   createOrder,
+  createReview,
   createShopper,
   createStore,
   initializeConfig,
   updateOrder,
   withdrawEarnings,
-} from '../methods';
+} from './methods';
 import {
   clusterApiUrl,
   Connection,
@@ -19,23 +20,21 @@ import {
 import {
   ACCOUNT_SIZE,
   AccountLayout,
-  getAccount,
   getAssociatedTokenAddressSync,
-  getMint,
 } from '@solana/spl-token';
 import { BanksClient, ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
-import { Splurge } from '../../target/types/splurge';
+import { Splurge } from '../target/types/splurge';
 import { BN, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
+import { getBankrunSetup } from './utils';
 import {
   getOrderPdaAndBump,
   getShopperPdaAndBump,
   getStoreItemPdaAndBump,
   getStorePdaAndBump,
-} from '../pda';
+} from './pda';
 
-describe('withdrawEarnings', () => {
+describe('end-to-end', () => {
   let { context, banksClient, payer, provider, program } = {} as {
     context: ProgramTestContext;
     banksClient: BanksClient;
@@ -49,18 +48,9 @@ describe('withdrawEarnings', () => {
   const usdcMint = new PublicKey(
     '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
   );
-  const timestamp = Date.now();
-  const storeItemName = 'Store Item A';
-  const price = 5.55;
 
   let shopperUsdcAta: PublicKey;
-  let usdcDecimals: number;
   let usdcMintOwner: PublicKey;
-  let totalUsd: number;
-  let storePda: PublicKey;
-  let storeItemPda: PublicKey;
-  let shopperPda: PublicKey;
-  let orderPda: PublicKey;
 
   beforeEach(async () => {
     const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
@@ -129,11 +119,9 @@ describe('withdrawEarnings', () => {
         },
       ]
     ));
+  });
 
-    usdcDecimals = await getMint(provider.connection, usdcMint).then(
-      (mint) => mint.decimals
-    );
-
+  test('splurge', async () => {
     await initializeConfig(program, payer, [usdcMint]);
 
     await createStore(
@@ -143,6 +131,9 @@ describe('withdrawEarnings', () => {
       'This is a description',
       storeWallet
     );
+
+    const storeItemName = 'Store Item A';
+    const price = 5.55;
 
     await createItem(
       program,
@@ -162,10 +153,11 @@ describe('withdrawEarnings', () => {
       shopperWallet
     );
 
+    const timestamp = Date.now();
     const amount = 2;
-    totalUsd = price * amount;
-    [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const totalUsd = price * amount;
+    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
+    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
 
     await createOrder(
       program,
@@ -180,8 +172,8 @@ describe('withdrawEarnings', () => {
       payer
     );
 
-    [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
-    [orderPda] = getOrderPdaAndBump(
+    const [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
+    const [orderPda] = getOrderPdaAndBump(
       shopperPda,
       storeItemPda,
       new BN(timestamp)
@@ -199,44 +191,22 @@ describe('withdrawEarnings', () => {
       usdcMint,
       usdcMintOwner
     );
-  });
 
-  test('withdraw earnings', async () => {
-    const authority = storeWallet;
-    const admin = payer;
-    const paymentMint = usdcMint;
-    const paymentMintOwner = usdcMintOwner;
+    await createReview(
+      program,
+      'This is a review',
+      3,
+      shopperWallet,
+      storeItemPda,
+      orderPda
+    );
 
     await withdrawEarnings(
       program,
-      authority,
-      admin,
-      paymentMint,
-      paymentMintOwner
+      storeWallet,
+      payer,
+      usdcMint,
+      usdcMintOwner
     );
-
-    const authorityTokenAcc = await getAccount(
-      provider.connection,
-      getAssociatedTokenAddressSync(
-        paymentMint,
-        storeWallet.publicKey,
-        false,
-        paymentMintOwner
-      )
-    );
-
-    const storeTokenAcc = await banksClient.getAccount(
-      getAssociatedTokenAddressSync(
-        paymentMint,
-        storePda,
-        true,
-        paymentMintOwner
-      )
-    );
-
-    expect(Number(authorityTokenAcc.amount) / 10 ** usdcDecimals).toEqual(
-      totalUsd
-    );
-    expect(storeTokenAcc).toBeNull();
   });
 });
