@@ -1,4 +1,0 @@
-{
-  "programs/splurge/src/**/*.rs": "cargo fmt --",
-  "tests/**/*.ts": "prettier -w"
-}
