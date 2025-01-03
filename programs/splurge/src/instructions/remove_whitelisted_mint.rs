@@ -11,6 +11,11 @@ pub fn remove_whitelisted_mint(
         }
     }
 
+    require!(
+        ctx.accounts.splurge_config.whitelisted_mints.len() > mints.len(),
+        ErrorCode::CannotRemoveAllWhitelistedMints
+    );
+
     ctx.accounts
         .splurge_config
         .whitelisted_mints

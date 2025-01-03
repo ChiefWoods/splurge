@@ -12,6 +12,8 @@ pub enum ErrorCode {
     MintAlreadyWhitelisted,
     #[msg("Mint is not whitelisted")]
     MintNotWhitelisted,
+    #[msg("Cannot remove all whitelisted mints")]
+    CannotRemoveAllWhitelistedMints,
     #[msg("Shopper name is required")]
     ShopperNameRequired = 100,
     #[msg("Shopper name exceeded maximum length")]

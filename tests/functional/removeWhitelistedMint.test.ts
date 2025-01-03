@@ -51,4 +51,16 @@ describe('removeWhitelistedMint', () => {
       expect(err.error.errorCode.number).toEqual(6004);
     }
   });
+
+  test('throws if removing all whitelisted mints', async () => {
+    try {
+      await removeWhitelistedMint(program, payer, whitelistedMints);
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+      expect(err.error.errorCode.code).toEqual(
+        'CannotRemoveAllWhitelistedMints'
+      );
+      expect(err.error.errorCode.number).toEqual(6005);
+    }
+  });
 });
