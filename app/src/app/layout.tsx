@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ReactNode } from 'react';
 import { SolanaProvider } from '@/components/SolanaProvider';
+import Header from '@/components/Header';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,9 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
       >
-        <SolanaProvider>{children}</SolanaProvider>
+        <SolanaProvider>
+          <Header />
+          <main className="flex flex-col">{children}</main>
+        </SolanaProvider>
       </body>
     </html>
   );
