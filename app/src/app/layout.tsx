@@ -4,6 +4,7 @@ import './globals.css';
 import { ReactNode } from 'react';
 import { SolanaProvider } from '@/components/SolanaProvider';
 import Header from '@/components/Header';
+import { SWRConfig } from 'swr';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,10 +31,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
       >
-        <SolanaProvider>
-          <Header />
-          <main className="flex flex-col">{children}</main>
-        </SolanaProvider>
+        <SWRConfig value={{ suspense: false, revalidateOnFocus: false }}>
+          <SolanaProvider>
+            <Header />
+            <main className="flex flex-col">{children}</main>
+          </SolanaProvider>
+        </SWRConfig>
       </body>
     </html>
   );
