@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -55,7 +55,7 @@ pub struct WithdrawEarnings<'info> {
     pub authority: Signer<'info>,
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(

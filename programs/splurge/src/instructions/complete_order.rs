@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -15,12 +15,12 @@ pub fn complete_order(ctx: Context<CompleteOrder>, timestamp: i64) -> Result<()>
 
     require!(
         order.status == OrderStatus::Shipping,
-        ErrorCode::OrderNotShipping
+        SplurgeError::OrderNotShipping
     );
 
     require!(
         order.status != OrderStatus::Completed,
-        ErrorCode::OrderAlreadyCompleted
+        SplurgeError::OrderAlreadyCompleted
     );
 
     let shopper_key = ctx.accounts.shopper.key();
@@ -72,7 +72,7 @@ pub fn complete_order(ctx: Context<CompleteOrder>, timestamp: i64) -> Result<()>
 pub struct CompleteOrder<'info> {
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(

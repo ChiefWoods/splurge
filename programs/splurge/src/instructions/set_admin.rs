@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
 pub fn set_admin(ctx: Context<SetAdmin>, new_admin: Pubkey) -> Result<()> {
@@ -12,8 +12,8 @@ pub fn set_admin(ctx: Context<SetAdmin>, new_admin: Pubkey) -> Result<()> {
 pub struct SetAdmin<'info> {
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
-        constraint = splurge_config.admin != new_admin @ ErrorCode::AdminAlreadyAssigned
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
+        constraint = splurge_config.admin != new_admin @ SplurgeError::AdminAlreadyAssigned
     )]
     pub authority: Signer<'info>,
     #[account(

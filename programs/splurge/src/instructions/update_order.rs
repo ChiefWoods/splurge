@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
 pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
@@ -6,7 +6,7 @@ pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()
 
     require!(
         order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping,
-        ErrorCode::OrderAlreadyFinalized
+        SplurgeError::OrderAlreadyFinalized
     );
 
     order.status = status;
@@ -18,7 +18,7 @@ pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()
 pub struct UpdateOrder<'info> {
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(

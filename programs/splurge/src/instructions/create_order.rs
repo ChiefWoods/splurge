@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES, Discriminator};
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -11,18 +11,18 @@ pub fn create_order(
     amount: i64,
     total_usd: f64,
 ) -> Result<()> {
-    require!(amount > 0, ErrorCode::OrderAmountInvalid);
-    require!(total_usd > 0.0, ErrorCode::OrderTotalInvalid);
+    require!(amount > 0, SplurgeError::OrderAmountInvalid);
+    require!(total_usd > 0.0, SplurgeError::OrderTotalInvalid);
 
     let store_item = &mut ctx.accounts.store_item;
 
     require!(
         store_item.price * amount as f64 == total_usd,
-        ErrorCode::OrderTotalIncorrect
+        SplurgeError::OrderTotalIncorrect
     );
     require!(
         store_item.inventory_count >= amount,
-        ErrorCode::InsufficientInventory
+        SplurgeError::InsufficientInventory
     );
 
     let payment_mint = &ctx.accounts.payment_mint;
@@ -68,7 +68,7 @@ pub struct CreateOrder<'info> {
     pub authority: Signer<'info>,
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(
@@ -97,7 +97,7 @@ pub struct CreateOrder<'info> {
     )]
     pub order: Box<Account<'info, Order>>,
     #[account(
-        constraint = splurge_config.whitelisted_mints.contains(&payment_mint.key()) @ ErrorCode::PaymentMintNotWhitelisted,
+        constraint = splurge_config.whitelisted_mints.contains(&payment_mint.key()) @ SplurgeError::PaymentMintNotWhitelisted,
     )]
     pub payment_mint: InterfaceAccount<'info, Mint>,
     #[account(

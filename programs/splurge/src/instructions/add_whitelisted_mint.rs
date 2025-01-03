@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn add_whitelisted_mint(ctx: Context<AddWhitelistedMint>, mints: Vec<Pubkey>) -> Result<()> {
@@ -6,7 +6,7 @@ pub fn add_whitelisted_mint(ctx: Context<AddWhitelistedMint>, mints: Vec<Pubkey>
 
     for mint in mints.iter() {
         if whitelisted_mints.contains(mint) {
-            return Err(ErrorCode::MintAlreadyWhitelisted.into());
+            return Err(SplurgeError::MintAlreadyWhitelisted.into());
         }
     }
 
@@ -20,7 +20,7 @@ pub fn add_whitelisted_mint(ctx: Context<AddWhitelistedMint>, mints: Vec<Pubkey>
 pub struct AddWhitelistedMint<'info> {
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(

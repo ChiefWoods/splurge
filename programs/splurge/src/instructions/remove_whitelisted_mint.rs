@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn remove_whitelisted_mint(
@@ -7,13 +7,13 @@ pub fn remove_whitelisted_mint(
 ) -> Result<()> {
     for mint in mints.iter() {
         if !ctx.accounts.splurge_config.whitelisted_mints.contains(mint) {
-            return Err(ErrorCode::MintNotWhitelisted.into());
+            return Err(SplurgeError::MintNotWhitelisted.into());
         }
     }
 
     require!(
         ctx.accounts.splurge_config.whitelisted_mints.len() > mints.len(),
-        ErrorCode::CannotRemoveAllWhitelistedMints
+        SplurgeError::CannotRemoveAllWhitelistedMints
     );
 
     ctx.accounts
@@ -29,7 +29,7 @@ pub fn remove_whitelisted_mint(
 pub struct RemoveWhitelistedMint<'info> {
     #[account(
         mut,
-        address = splurge_config.admin @ ErrorCode::UnauthorizedAdmin,
+        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
     )]
     pub admin: Signer<'info>,
     #[account(

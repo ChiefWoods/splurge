@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn create_item(
@@ -9,12 +9,12 @@ pub fn create_item(
     inventory_count: i64,
     price: f64,
 ) -> Result<()> {
-    require!(!name.is_empty(), ErrorCode::StoreItemNameRequired);
+    require!(!name.is_empty(), SplurgeError::StoreItemNameRequired);
     require!(
         name.len() <= MAX_STORE_ITEM_NAME_LEN,
-        ErrorCode::StoreItemNameTooLong
+        SplurgeError::StoreItemNameTooLong
     );
-    require!(!image.is_empty(), ErrorCode::StoreItemImageRequired);
+    require!(!image.is_empty(), SplurgeError::StoreItemImageRequired);
 
     let store_item = &mut ctx.accounts.store_item;
 

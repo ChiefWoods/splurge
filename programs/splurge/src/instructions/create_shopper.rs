@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
 pub fn create_shopper(
@@ -7,13 +7,13 @@ pub fn create_shopper(
     image: String,
     address: String,
 ) -> Result<()> {
-    require!(!name.is_empty(), ErrorCode::ShopperNameRequired);
+    require!(!name.is_empty(), SplurgeError::ShopperNameRequired);
     require!(
         name.len() <= MAX_SHOPPER_NAME_LEN,
-        ErrorCode::ShopperNameTooLong
+        SplurgeError::ShopperNameTooLong
     );
-    require!(!image.is_empty(), ErrorCode::ShopperImageRequired);
-    require!(!address.is_empty(), ErrorCode::ShopperAddressRequired);
+    require!(!image.is_empty(), SplurgeError::ShopperImageRequired);
+    require!(!address.is_empty(), SplurgeError::ShopperAddressRequired);
 
     let shopper = &mut ctx.accounts.shopper;
 

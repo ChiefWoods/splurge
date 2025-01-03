@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
 pub fn update_store(
@@ -7,12 +7,12 @@ pub fn update_store(
     image: String,
     about: String,
 ) -> Result<()> {
-    require!(!name.is_empty(), ErrorCode::StoreNameRequired);
+    require!(!name.is_empty(), SplurgeError::StoreNameRequired);
     require!(
         name.len() <= MAX_STORE_NAME_LEN,
-        ErrorCode::StoreNameTooLong
+        SplurgeError::StoreNameTooLong
     );
-    require!(!image.is_empty(), ErrorCode::StoreImageRequired);
+    require!(!image.is_empty(), SplurgeError::StoreImageRequired);
 
     let store = &mut ctx.accounts.store;
 

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum ErrorCode {
+pub enum SplurgeError {
     #[msg("Incorrect program data address")]
     IncorrectProgramDataAddress,
     #[msg("Signer not authorized")]

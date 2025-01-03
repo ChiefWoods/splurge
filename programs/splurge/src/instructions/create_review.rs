@@ -1,18 +1,21 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn create_review(ctx: Context<CreateReview>, text: String, rating: i8) -> Result<()> {
     require!(
         ctx.accounts.order.status == OrderStatus::Completed,
-        ErrorCode::OrderNotCompleted
+        SplurgeError::OrderNotCompleted
     );
-    require!(rating >= 1 && rating <= 5, ErrorCode::ReviewRatingInvalid);
+    require!(
+        rating >= 1 && rating <= 5,
+        SplurgeError::ReviewRatingInvalid
+    );
 
     let store_item = &mut ctx.accounts.store_item;
 
     require!(
         !store_item.reviews.contains(&ctx.accounts.review.key()),
-        ErrorCode::ReviewForOrderAlreadyExists
+        SplurgeError::ReviewForOrderAlreadyExists
     );
 
     let review = &mut ctx.accounts.review;

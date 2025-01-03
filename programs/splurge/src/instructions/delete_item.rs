@@ -1,4 +1,4 @@
-use crate::{constants::*, error::ErrorCode, state::*};
+use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
 pub fn delete_item(ctx: Context<DeleteItem>, _name: String) -> Result<()> {
@@ -7,7 +7,7 @@ pub fn delete_item(ctx: Context<DeleteItem>, _name: String) -> Result<()> {
 
     require!(
         store.items.contains(store_item),
-        ErrorCode::StoreItemNotFound
+        SplurgeError::StoreItemNotFound
     );
 
     store.items.retain(|item| item != store_item);
