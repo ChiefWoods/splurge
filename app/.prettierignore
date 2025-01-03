@@ -4,3 +4,5 @@ dist
 .next
 node_modules
 target
+splurge.json
+splurge.ts
