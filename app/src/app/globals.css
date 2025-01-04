@@ -91,3 +91,9 @@ body {
     @apply text-base;
   }
 }
+
+@layer components {
+  .main-section {
+    @apply flex flex-col items-center gap-y-8;
+  }
+}
