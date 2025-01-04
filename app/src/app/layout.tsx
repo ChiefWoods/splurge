@@ -5,6 +5,7 @@ import { ReactNode } from 'react';
 import { SolanaProvider } from '@/components/SolanaProvider';
 import Header from '@/components/Header';
 import { SWRConfig } from 'swr';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,6 +38,7 @@ export default function RootLayout({
             <main className="flex flex-col">{children}</main>
           </SolanaProvider>
         </SWRConfig>
+        <Toaster richColors closeButton />
       </body>
     </html>
   );
