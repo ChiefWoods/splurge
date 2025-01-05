@@ -30,12 +30,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
         <SWRConfig value={{ suspense: false, revalidateOnFocus: false }}>
           <SolanaProvider>
             <Header />
-            <main className="flex flex-col">{children}</main>
+            <main className="flex flex-1 flex-col justify-center">
+              {children}
+            </main>
           </SolanaProvider>
         </SWRConfig>
         <Toaster richColors closeButton />
