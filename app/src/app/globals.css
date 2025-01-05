@@ -33,6 +33,7 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --info-blue: hsl(217, 91%, 60%);
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -94,6 +95,10 @@ body {
 
 @layer components {
   .main-section {
-    @apply flex flex-col items-center gap-y-8;
+    @apply flex max-w-[762px] flex-col items-center gap-y-8;
+
+    h2 {
+      @apply text-center;
+    }
   }
 }

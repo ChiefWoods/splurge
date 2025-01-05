@@ -12,18 +12,24 @@ import { Avatar, AvatarImage } from './ui/avatar';
 export default function Header() {
   const { publicKey } = useWallet();
   const { getShopperAcc, getStoreAcc } = useAnchorProgram();
-  const shopper = useSWR(publicKey ?? null, async (publicKey) => {
-    const pda = getShopperPda(publicKey);
-    const acc = await getShopperAcc(pda);
+  const shopper = useSWR(
+    publicKey ? { url: '/api/shoppers', publicKey } : null,
+    async ({ publicKey }) => {
+      const pda = getShopperPda(publicKey);
+      const acc = await getShopperAcc(pda);
 
-    return { pda, acc };
-  });
-  const store = useSWR(publicKey ?? null, async (publicKey) => {
-    const pda = getStorePda(publicKey);
-    const acc = await getStoreAcc(pda);
+      return { pda, acc };
+    }
+  );
+  const store = useSWR(
+    publicKey ? { url: '/api/stores', publicKey } : null,
+    async ({ publicKey }) => {
+      const pda = getStorePda(publicKey);
+      const acc = await getStoreAcc(pda);
 
-    return { pda, acc };
-  });
+      return { pda, acc };
+    }
+  );
 
   const navLinks = [
     {
