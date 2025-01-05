@@ -1,13 +1,14 @@
 'use client';
 
-import { ShoppingCartIcon } from 'lucide-react';
+import { Loader2, ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
 import { WalletMultiButtonDynamic } from './SolanaProvider';
 import useSWR from 'swr';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { getShopperPda, getStorePda } from '@/lib/pda';
-import { Avatar, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import Image from 'next/image';
 
 export default function Header() {
   const { publicKey } = useWallet();
@@ -70,9 +71,19 @@ export default function Header() {
           }
         >
           <Avatar>
-            <AvatarImage
-              src={shopper.data?.acc?.image ?? '/default_shopper.svg'}
-            />
+            <AvatarImage src={shopper.data?.acc?.image} className="bg-white" />
+            <AvatarFallback>
+              {shopper.isLoading ? (
+                <Loader2 className="animate-spin text-muted-foreground" />
+              ) : (
+                <Image
+                  src="/default_shopper.svg"
+                  alt="Default Shopper Image"
+                  fill
+                  className="p-1"
+                />
+              )}
+            </AvatarFallback>
           </Avatar>
         </Link>
         <WalletMultiButtonDynamic />
