@@ -16,6 +16,11 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 
+const DicebearStyles: Map<string, string> = new Map([
+  ['shopper', 'personas'],
+  ['store', 'shapes'],
+]);
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -81,4 +86,22 @@ export async function getComputePriceIx(
 
 export function getTransactionLink(signature: string): string {
   return getExplorerLink('tx', signature, CLUSTER);
+}
+
+export async function getDicebearFile(
+  type: string,
+  seed: string = ''
+): Promise<File> {
+  const res = await fetch(
+    `https://api.dicebear.com/9.x/${DicebearStyles.get(type)}/svg?seed=${seed}`,
+    {
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+    }
+  );
+
+  const file = await res.blob();
+
+  return new File([file], file.name, { type: file.type });
 }

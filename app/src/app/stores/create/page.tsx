@@ -30,7 +30,11 @@ import { useIrysUploader } from '@/hooks/useIrysUploader';
 import useSWR from 'swr';
 import { getStorePda } from '@/lib/pda';
 import { TransactionToast } from '@/components/TransactionToast';
-import { getTransactionLink, setComputeUnitLimitAndPrice } from '@/lib/utils';
+import {
+  getDicebearFile,
+  getTransactionLink,
+  setComputeUnitLimitAndPrice,
+} from '@/lib/utils';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { Spinner } from '@/components/Spinner';
@@ -71,18 +75,22 @@ export default function Page() {
   function onSubmit(data: CreateStoreFormData) {
     toast.promise(
       async () => {
+        if (!publicKey) {
+          throw new Error('Wallet not connected.');
+        }
+
         setIsUploading(true);
-        return await upload(data.image);
+        const imageUri = await upload(
+          data.image ?? (await getDicebearFile('store', publicKey.toBase58()))
+        );
+
+        return { imageUri, publicKey };
       },
       {
         loading: 'Uploading image...',
-        success: (imageUri) => {
+        success: ({ imageUri, publicKey }) => {
           toast.promise(
             async () => {
-              if (!publicKey) {
-                throw new Error('Wallet not connected.');
-              }
-
               setIsSubmitting(true);
               const ix = await getCreateStoreIx(
                 data.name,

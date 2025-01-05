@@ -20,6 +20,20 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gateway.irys.xyz',
+        port: '',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        port: '',
+      },
+    ]
+  }
 };
 
 export default nextConfig;
