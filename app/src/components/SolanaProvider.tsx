@@ -15,7 +15,6 @@ import {
 import { ReactNode, useMemo } from 'react';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { CONNECTION } from '@/lib/constants';
-import { toast } from 'sonner';
 
 export const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -39,15 +38,7 @@ export function SolanaProvider({ children }: { children: ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider
-        wallets={wallets}
-        autoConnect
-        onError={() =>
-          toast.error('Unable to connect wallet', {
-            description: 'Please try again or use a different wallet.',
-          })
-        }
-      >
+      <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
