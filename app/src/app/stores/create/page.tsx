@@ -1,5 +1,6 @@
 'use client';
 
+import { CreateSection } from '@/components/CreateSection';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -166,8 +167,7 @@ export default function Page() {
   }
 
   return (
-    <section className="main-section">
-      <h2>Create your Store to start offering splurges!</h2>
+    <CreateSection header="Create your Store to start offering splurges!">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <WalletGuardButton setOpen={setIsOpen}>
@@ -253,6 +253,6 @@ export default function Page() {
           </Form>
         </DialogContent>
       </Dialog>
-    </section>
+    </CreateSection>
   );
 }

@@ -95,10 +95,6 @@ body {
 
 @layer components {
   .main-section {
-    @apply flex max-w-[762px] flex-col items-center gap-y-8;
-
-    h2 {
-      @apply text-center;
-    }
+    @apply flex max-w-[762px] flex-col items-center gap-y-8 p-8;
   }
 }
