@@ -14,7 +14,7 @@ export default function Error({
   const router = useRouter();
 
   return (
-    <section className="main-section">
+    <section className="main-section flex-1">
       <h2>{error.digest ?? error.name}</h2>
       <p>{error.message}</p>
       <Button onClick={reset}>

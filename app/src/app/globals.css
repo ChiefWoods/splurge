@@ -95,6 +95,19 @@ body {
 
 @layer components {
   .main-section {
-    @apply flex max-w-[762px] flex-col items-center gap-y-8 p-8;
+    @apply flex w-full max-w-[762px] flex-col items-center gap-y-8 py-8;
+  }
+}
+
+@layer utilities {
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
   }
 }

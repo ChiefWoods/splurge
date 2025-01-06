@@ -19,6 +19,7 @@ import {
 const DicebearStyles: Map<string, string> = new Map([
   ['shopper', 'personas'],
   ['store', 'shapes'],
+  ['item', 'icons'],
 ]);
 
 export function cn(...inputs: ClassValue[]) {
@@ -88,6 +89,10 @@ export function getTransactionLink(signature: string): string {
   return getExplorerLink('tx', signature, CLUSTER);
 }
 
+export function getAccountLink(address: string): string {
+  return getExplorerLink('address', address, CLUSTER);
+}
+
 export async function getDicebearFile(
   type: string,
   seed: string = ''
@@ -104,4 +109,8 @@ export async function getDicebearFile(
   const file = await res.blob();
 
   return new File([file], file.name, { type: file.type });
+}
+
+export function truncateAddress(address: string, length: number = 4): string {
+  return `${address.slice(0, length)}...${address.slice(-length)}`;
 }

@@ -8,7 +8,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <section className="main-section">
+    <section className="main-section flex-1">
       <h2>404</h2>
       <p>Page not found.</p>
       <Button onClick={router.back}>

@@ -6,9 +6,13 @@ import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { ReactNode } from 'react';
 
 export function WalletGuardButton({
+  variant = 'default',
+  size = 'default',
   setOpen,
   children,
 }: {
+  variant?: 'default' | 'secondary';
+  size?: 'default' | 'icon' | 'sm' | 'lg';
   setOpen: (open: boolean) => void;
   children: ReactNode;
 }) {
@@ -17,6 +21,8 @@ export function WalletGuardButton({
 
   return (
     <Button
+      variant={variant}
+      size={size}
       onClick={(e) => {
         if (!publicKey) {
           e.preventDefault();

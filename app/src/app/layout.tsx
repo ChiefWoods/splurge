@@ -35,7 +35,7 @@ export default function RootLayout({
         <SWRConfig value={{ suspense: false, revalidateOnFocus: false }}>
           <SolanaProvider>
             <Header />
-            <main className="flex flex-1 flex-col items-center justify-center">
+            <main className="flex flex-1 flex-col items-center">
               {children}
             </main>
           </SolanaProvider>
