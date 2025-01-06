@@ -11,7 +11,13 @@ export function WalletGuardButton({
   setOpen,
   children,
 }: {
-  variant?: 'default' | 'secondary';
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
   size?: 'default' | 'icon' | 'sm' | 'lg';
   setOpen: (open: boolean) => void;
   children: ReactNode;
@@ -24,8 +30,9 @@ export function WalletGuardButton({
       variant={variant}
       size={size}
       onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!publicKey) {
-          e.preventDefault();
           setVisible(true);
         } else {
           setOpen(true);
