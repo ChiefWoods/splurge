@@ -12,6 +12,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -105,7 +106,7 @@ export function DeleteItemDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-6">
-          <div className="flex justify-end gap-4">
+          <DialogFooter className="flex justify-end gap-4">
             <Button
               type="button"
               variant="outline"
@@ -127,7 +128,7 @@ export function DeleteItemDialog({
               )}
               Delete Item
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

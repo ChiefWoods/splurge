@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -226,7 +227,7 @@ export default function Page() {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end gap-4">
+              <DialogFooter className="flex justify-end gap-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -246,7 +247,7 @@ export default function Page() {
                   )}
                   Create Profile
                 </Button>
-              </div>
+              </DialogFooter>
             </form>
           </Form>
         </DialogContent>

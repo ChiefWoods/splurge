@@ -6,6 +6,7 @@ import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -204,7 +205,7 @@ export function UpdateItemDialog({
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-4">
               <Button
                 type="button"
                 variant="outline"
@@ -223,7 +224,7 @@ export function UpdateItemDialog({
                 )}
                 Update Item
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
