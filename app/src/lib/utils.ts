@@ -114,3 +114,7 @@ export async function getDicebearFile(
 export function truncateAddress(address: string, length: number = 4): string {
   return `${address.slice(0, length)}...${address.slice(-length)}`;
 }
+
+export function capitalizeFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
