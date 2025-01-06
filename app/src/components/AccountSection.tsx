@@ -45,7 +45,7 @@ export function AccountSection({
           <CardHeader className="flex flex-1 flex-col p-0">
             <CardTitle className="max-w-full truncate">{title}</CardTitle>
             <CardDescription className="flex items-center gap-x-2">
-              <p className="text-muted-foreground">
+              <p className="muted-text">
                 {prefix} {truncateAddress(address)}
               </p>
               <Button asChild size={'icon'} type="button" variant={'link'}>

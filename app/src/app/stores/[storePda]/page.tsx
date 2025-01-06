@@ -2,11 +2,11 @@
 
 import { AccountSection } from '@/components/AccountSection';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
-import { Divider } from '@/components/Divider';
 import { AddItemDialog } from '@/components/formDialogs/AddItemDialog';
 import { StoreItemCard } from '@/components/StoreItemCard';
 import { StoreItemCardSkeleton } from '@/components/StoreItemCardSkeleton';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { getStorePda } from '@/lib/pda';
 import { StoreItem } from '@/types/idlAccounts';
@@ -103,7 +103,7 @@ export default function Page() {
           />
         )
       )}
-      <Divider />
+      <Separator />
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
@@ -115,17 +115,18 @@ export default function Page() {
             </>
           ) : store.data && store.data.items.length ? (
             store.data.items.map(
-              (item) =>
+              ({ pda, name, image, description, inventoryCount, price }) =>
                 store.data && (
                   <StoreItemCard
-                    key={item.pda}
-                    pda={item.pda}
-                    name={item.name}
-                    image={item.image}
-                    description={item.description}
-                    inventoryCount={item.inventoryCount.toNumber()}
-                    price={item.price}
+                    key={pda}
+                    pda={pda}
+                    name={name}
+                    image={image}
+                    description={description}
+                    inventoryCount={inventoryCount.toNumber()}
+                    price={price}
                     isOwner={store.data.isOwner}
+                    mutate={store.mutate}
                   />
                 )
             )

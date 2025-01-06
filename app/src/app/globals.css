@@ -97,6 +97,10 @@ body {
   .main-section {
     @apply flex w-full max-w-[762px] flex-col items-center gap-y-8 py-8;
   }
+
+  p.muted-text {
+    @apply truncate text-muted-foreground;
+  }
 }
 
 @layer utilities {
