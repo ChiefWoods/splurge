@@ -3,51 +3,58 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Image from 'next/image';
 import { ImageIcon, Trash2 } from 'lucide-react';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useRef } from 'react';
+import { ControllerRenderProps } from 'react-hook-form';
 
 export function ImageInput({
-  form,
   field,
-  inputName,
   imagePreview,
   setImagePreview,
 }: {
-  form: any;
-  field: any;
-  inputName: string;
+  field: ControllerRenderProps<any, string>;
   imagePreview: string;
   setImagePreview: (image: string) => void;
 }) {
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const imageFileInput = useRef<HTMLInputElement>(null);
 
+  function handleImageChange(file: File) {
     if (file) {
       const reader = new FileReader();
+      reader.readAsDataURL(file);
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
-      reader.readAsDataURL(file);
-      form.setValue(inputName, file);
     }
-  };
+  }
 
-  const handleImageDelete = () => {
+  function handleImageDelete() {
     setImagePreview('');
-    form.setValue(inputName, undefined);
-  };
+  }
 
   return (
     <div className="relative flex justify-between gap-x-4">
       <Button
         type="button"
         className="relative flex h-32 w-32 items-center justify-center rounded-lg border bg-background p-0 hover:bg-background"
+        onClick={() => imageFileInput.current?.click()}
       >
         <Input
           type="file"
           accept={ACCEPTED_IMAGE_TYPES.join(',')}
-          className="absolute h-full w-full cursor-pointer opacity-0"
-          {...field}
-          onChange={handleImageChange}
+          className="pointer-events-none absolute h-full w-full cursor-pointer select-none opacity-0"
+          tabIndex={-1}
+          ref={(e) => {
+            field.ref(e);
+            imageFileInput.current = e;
+          }}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            field.onChange(file);
+            if (file) {
+              handleImageChange(file);
+            }
+          }}
+          onBlur={field.onBlur}
         />
         {imagePreview ? (
           <Image

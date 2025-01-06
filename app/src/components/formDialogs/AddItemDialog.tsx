@@ -178,14 +178,12 @@ export function AddItemDialog({ mutate }: { mutate: () => void }) {
             <FormField
               control={form.control}
               name="image"
-              render={({ field: { value, ...field } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Image</FormLabel>
                   <FormControl>
                     <ImageInput
-                      form={form}
                       field={field}
-                      inputName="image"
                       imagePreview={imagePreview}
                       setImagePreview={setImagePreview}
                     />
