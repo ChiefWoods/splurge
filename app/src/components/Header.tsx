@@ -48,7 +48,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 flex items-center justify-between bg-slate-200 px-9 py-6">
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-slate-200 px-9 py-6">
       <Link href={'/'} className="flex items-center gap-4">
         <ShoppingCartIcon size={48} />
         <h1>Splurge</h1>
