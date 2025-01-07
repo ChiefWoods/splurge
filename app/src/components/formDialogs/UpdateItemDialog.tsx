@@ -143,10 +143,11 @@ export function UpdateItemDialog({
         <section className="flex items-start gap-x-4">
           <Image
             src={image}
-            className="aspect-square rounded-lg border"
+            alt={name}
             width={100}
             height={100}
-            alt={name}
+            className="aspect-square rounded-lg border"
+            priority
           />
           <div className="flex flex-1 flex-col gap-y-1">
             <p className="truncate text-lg font-semibold">{name}</p>

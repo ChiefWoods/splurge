@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import {
   ACCEPTED_IMAGE_TYPES,
+  CONNECTION,
   MAX_SHOPPER_NAME_LENGTH,
   MAX_STORE_ITEM_NAME_LENGTH,
   MAX_STORE_NAME_LENGTH,
 } from './constants';
 import { capitalizeFirstLetter } from './utils';
+import { PublicKey } from '@solana/web3.js';
 
 const zCommonString = (field: string) => {
   return z
@@ -40,6 +42,30 @@ const zPrice = z
     'Price must have at most 2 decimal places'
   );
 
+export const zAmount = z.number().int().min(1, 'Amount must be at least 1');
+
+export const zPaymentMint = z
+  .string()
+  .length(44, {
+    message: 'Invalid payment mint public key.',
+  })
+  .refine(async (mintAddress) => {
+    try {
+      return Boolean(
+        await CONNECTION.getAccountInfo(new PublicKey(mintAddress))
+      );
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }, 'Payment mint does not exist.');
+
+const zRating = z
+  .number()
+  .int()
+  .min(1, 'Rating must be at least 1.')
+  .max(5, 'Rating must be at most 5.');
+
 export const createProfileSchema = z.object({
   name: zName(MAX_SHOPPER_NAME_LENGTH),
   image: zImage,
@@ -65,7 +91,13 @@ export const updateItemSchema = z.object({
   price: zPrice,
 });
 
+export const createReviewSchema = z.object({
+  rating: zRating,
+  text: zCommonString('text'),
+});
+
 export type CreateProfileFormData = z.infer<typeof createProfileSchema>;
 export type CreateStoreFormData = z.infer<typeof createStoreSchema>;
 export type CreateItemFormData = z.infer<typeof createItemSchema>;
 export type UpdateItemFormData = z.infer<typeof updateItemSchema>;
+export type CreateReviewFormData = z.infer<typeof createReviewSchema>;

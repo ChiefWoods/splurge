@@ -53,6 +53,9 @@ export default {
         info: {
           DEFAULT: 'var(--info-blue)',
         },
+        rating: {
+          DEFAULT: 'var(--rating-yellow)',
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',

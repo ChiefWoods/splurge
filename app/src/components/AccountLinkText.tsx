@@ -11,11 +11,17 @@ export function AccountLinkText({
   subject: string;
 }) {
   return (
-    <div className="flex items-center gap-x-2">
+    <div className="flex items-center gap-x-4">
       <p className="text-muted-foreground">
         {prefix} {truncateAddress(subject)}
       </p>
-      <Button asChild size={'icon'} type="button" variant={'ghost'}>
+      <Button
+        asChild
+        size={'icon'}
+        type="button"
+        variant={'ghost'}
+        className="h-fit w-fit"
+      >
         <Link href={getAccountLink(subject)} target="_blank">
           <SquareArrowOutUpRight />
         </Link>

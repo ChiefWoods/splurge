@@ -42,10 +42,10 @@ export function StoreItemCard({
         </Link>
         <CardTitle className="truncate">{name}</CardTitle>
       </CardHeader>
-      <CardContent className="flex items-end gap-x-4 p-0">
+      <CardContent className="flex w-full items-end gap-x-4 p-0">
         <div className="flex w-full flex-col gap-y-1 overflow-hidden">
           <p className="muted-text">{price.toFixed(2)} USD</p>
-          <p className="muted-text">Inventory - {inventoryCount}</p>
+          <p className="muted-text">{inventoryCount} left</p>
         </div>
         {isOwner && (
           <div className="flex gap-x-2">
