@@ -1,6 +1,7 @@
 'use client';
 
 import { AccountSection } from '@/components/AccountSection';
+import { AccountSectionButtonTab } from '@/components/AccountSectionButtonTab';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { AddItemDialog } from '@/components/formDialogs/AddItemDialog';
 import { StoreItemCard } from '@/components/StoreItemCard';
@@ -82,7 +83,7 @@ export default function Page() {
             content={<p className="text-primary">{store.data.acc.about}</p>}
             buttons={
               store.data.isOwner && (
-                <div className="flex gap-x-2">
+                <AccountSectionButtonTab>
                   <AddItemDialog mutate={store.mutate} />
                   {buttons.map(({ href, icon, text }) => (
                     <Button
@@ -97,7 +98,7 @@ export default function Page() {
                       </Link>
                     </Button>
                   ))}
-                </div>
+                </AccountSectionButtonTab>
               )
             }
           />
