@@ -4,6 +4,7 @@ import { AccountSection } from '@/components/AccountSection';
 import { AccountSectionButtonTab } from '@/components/AccountSectionButtonTab';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { AddItemDialog } from '@/components/formDialogs/AddItemDialog';
+import { NoResultText } from '@/components/NoResultText';
 import { StoreItemCard } from '@/components/StoreItemCard';
 import { StoreItemCardSkeleton } from '@/components/StoreItemCardSkeleton';
 import { Button } from '@/components/ui/button';
@@ -132,9 +133,7 @@ export default function Page() {
                 )
             )
           ) : (
-            <p className="my-auto w-full text-center text-muted-foreground">
-              No Items Listed.
-            </p>
+            <NoResultText text="No Items Listed." />
           )}
         </div>
       </section>
