@@ -79,7 +79,7 @@ export default function Page() {
             image={store.data.acc.image}
             prefix="Store ID:"
             address={storePda}
-            content={store.data.acc.about}
+            content={<p className="text-primary">{store.data.acc.about}</p>}
             buttons={
               store.data.isOwner && (
                 <div className="flex gap-x-2">

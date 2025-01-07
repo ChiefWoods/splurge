@@ -44,7 +44,7 @@ export default function Page() {
             image={shopper.data.acc.image}
             prefix="Shopper ID:"
             address={shopperPda}
-            content={shopper.data.acc.address}
+            content={<p className="text-primary">{shopper.data.acc.address}</p>}
             buttons={
               <Button asChild variant={'secondary'} size={'sm'}>
                 <Link href="/orders">

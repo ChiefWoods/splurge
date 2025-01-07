@@ -27,7 +27,7 @@ export function AccountSection({
   image: string;
   prefix: string;
   address: string;
-  content: string;
+  content: ReactNode;
   buttons?: ReactNode;
 }) {
   return (
@@ -54,8 +54,8 @@ export function AccountSection({
                 </Link>
               </Button>
             </CardDescription>
-            <CardContent className="flex-1 p-0">
-              <p className="text-primary">{content}</p>
+            <CardContent className="flex flex-1 flex-col gap-y-2 p-0">
+              {content}
             </CardContent>
           </CardHeader>
           <CardFooter className="flex justify-end p-0">{buttons}</CardFooter>
