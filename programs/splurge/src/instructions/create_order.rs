@@ -84,10 +84,10 @@ pub struct CreateOrder<'info> {
         seeds = [SHOPPER_SEED, authority.key().as_ref()],
         bump = shopper.bump,
     )]
-    pub shopper: Account<'info, Shopper>,
-    pub store: Account<'info, Store>,
+    pub shopper: Box<Account<'info, Shopper>>,
+    pub store: Box<Account<'info, Store>>,
     #[account(mut)]
-    pub store_item: Account<'info, StoreItem>,
+    pub store_item: Box<Account<'info, StoreItem>>,
     #[account(
         init,
         payer = authority,

@@ -40,6 +40,7 @@ import {
 } from '../ui/select';
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { z } from 'zod';
+import { SPLURGE_WALLET } from '@/lib/constants';
 
 export function CheckoutDialog({
   name,
@@ -125,7 +126,7 @@ export function CheckoutDialog({
         const ix = await getCreateOrderIx(
           Date.now(),
           data.amount,
-          data.amount * price,
+          orderTotal,
           new PublicKey(storePda),
           new PublicKey(storeItemPda),
           new PublicKey(data.paymentMint),
@@ -143,6 +144,8 @@ export function CheckoutDialog({
 
         tx.recentBlockhash = blockhash;
         tx.lastValidBlockHeight = lastValidBlockHeight;
+        tx.feePayer = publicKey;
+        tx.sign(SPLURGE_WALLET);
 
         const signature = await sendTransaction(tx, connection);
 
@@ -240,7 +243,6 @@ export function CheckoutDialog({
                           type="number"
                           {...field}
                           min={0}
-                          max={maxAmount}
                           step={1}
                           onChange={(e) => {
                             field.onChange(e);

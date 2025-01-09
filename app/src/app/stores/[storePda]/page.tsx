@@ -144,19 +144,21 @@ export default function Page() {
                         <DeleteItemDialog name={name} mutate={store.mutate} />
                       </div>
                     ) : (
-                      <CheckoutDialog
-                        name={name}
-                        image={image}
-                        price={price}
-                        maxAmount={inventoryCount.toNumber()}
-                        storePda={storePda}
-                        storeItemPda={storePda}
-                        btnVariant="default"
-                        btnSize="icon"
-                        mutate={store.mutate}
-                      >
-                        <ShoppingCart />
-                      </CheckoutDialog>
+                      inventoryCount.toNumber() > 0 && (
+                        <CheckoutDialog
+                          name={name}
+                          image={image}
+                          price={price}
+                          maxAmount={inventoryCount.toNumber()}
+                          storePda={storePda}
+                          storeItemPda={pda}
+                          btnVariant="default"
+                          btnSize="icon"
+                          mutate={store.mutate}
+                        >
+                          <ShoppingCart />
+                        </CheckoutDialog>
+                      )
                     )}
                   </StoreItemCard>
                 )
