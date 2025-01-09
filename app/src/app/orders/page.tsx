@@ -129,13 +129,13 @@ export default function Page() {
           if (tabValue === 'all') {
             return true;
           } else {
-            return (
-              order.status === tabValue &&
-              order.storeItem.name
-                .toLowerCase()
-                .includes(searchValue.toLowerCase())
-            );
+            return order.status === tabValue;
           }
+        })
+        .filter((order) => {
+          return order.storeItem.name
+            .toLowerCase()
+            .includes(searchValue.toLowerCase());
         })
         .sort((a, b) => {
           return showNameAsc
