@@ -48,6 +48,8 @@ export function CheckoutDialog({
   maxAmount,
   storePda,
   storeItemPda,
+  btnVariant = 'secondary',
+  btnSize = 'sm',
   mutate,
   children,
 }: {
@@ -57,6 +59,8 @@ export function CheckoutDialog({
   maxAmount: number;
   storePda: string;
   storeItemPda: string;
+  btnVariant?: 'default' | 'secondary';
+  btnSize?: 'sm' | 'icon';
   mutate: () => void;
   children: ReactNode;
 }) {
@@ -191,7 +195,11 @@ export function CheckoutDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="secondary" size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton
+          variant={btnVariant}
+          size={btnSize}
+          setOpen={setIsOpen}
+        >
           {children}
         </WalletGuardButton>
       </DialogTrigger>

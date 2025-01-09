@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from './ui/button';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 export function WalletGuardButton({
   variant = 'default',
@@ -29,6 +30,7 @@ export function WalletGuardButton({
     <Button
       variant={variant}
       size={size}
+      className={cn(size === 'icon' ? 'aspect-square' : '')}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

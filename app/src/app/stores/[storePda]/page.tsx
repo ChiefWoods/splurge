@@ -4,6 +4,9 @@ import { AccountSection } from '@/components/AccountSection';
 import { AccountSectionButtonTab } from '@/components/AccountSectionButtonTab';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { AddItemDialog } from '@/components/formDialogs/AddItemDialog';
+import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
+import { DeleteItemDialog } from '@/components/formDialogs/DeleteItemDialog';
+import { UpdateItemDialog } from '@/components/formDialogs/UpdateItemDialog';
 import { NoResultText } from '@/components/NoResultText';
 import { StoreItemCard } from '@/components/StoreItemCard';
 import { StoreItemCardSkeleton } from '@/components/StoreItemCardSkeleton';
@@ -14,7 +17,7 @@ import { getStorePda } from '@/lib/pda';
 import { StoreItem } from '@/types/idlAccounts';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import { CircleDollarSign, ClipboardList } from 'lucide-react';
+import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import useSWR from 'swr';
@@ -121,15 +124,41 @@ export default function Page() {
                 store.data && (
                   <StoreItemCard
                     key={pda}
-                    pda={pda}
-                    name={name}
-                    image={image}
-                    description={description}
+                    itemPda={pda}
+                    itemName={name}
+                    itemImage={image}
                     inventoryCount={inventoryCount.toNumber()}
                     price={price}
-                    isOwner={store.data.isOwner}
-                    mutate={store.mutate}
-                  />
+                    storePda={storePda}
+                  >
+                    {store.data.isOwner ? (
+                      <div className="flex items-end gap-x-2">
+                        <UpdateItemDialog
+                          name={name}
+                          image={image}
+                          description={description}
+                          inventoryCount={inventoryCount.toNumber()}
+                          price={price}
+                          mutate={store.mutate}
+                        />
+                        <DeleteItemDialog name={name} mutate={store.mutate} />
+                      </div>
+                    ) : (
+                      <CheckoutDialog
+                        name={name}
+                        image={image}
+                        price={price}
+                        maxAmount={inventoryCount.toNumber()}
+                        storePda={storePda}
+                        storeItemPda={storePda}
+                        btnVariant="default"
+                        btnSize="icon"
+                        mutate={store.mutate}
+                      >
+                        <ShoppingCart />
+                      </CheckoutDialog>
+                    )}
+                  </StoreItemCard>
                 )
             )
           ) : (
