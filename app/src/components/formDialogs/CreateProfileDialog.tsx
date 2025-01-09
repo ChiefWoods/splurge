@@ -28,7 +28,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useRouter } from 'next/navigation';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';
-import { SWRResponse } from 'swr';
+import { SWRResponse, mutate } from 'swr';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
@@ -117,6 +117,7 @@ export function CreateProfileDialog({
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
+                mutate({ url: '/api/shoppers', publicKey });
 
                 setTimeout(() => {
                   if (shopper.data) {

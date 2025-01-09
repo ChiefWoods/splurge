@@ -7,7 +7,7 @@ import useSWR from 'swr';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { getShopperPda, getStorePda } from '@/lib/pda';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 
 export default function Header() {

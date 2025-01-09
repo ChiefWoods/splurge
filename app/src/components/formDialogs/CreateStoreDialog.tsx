@@ -28,7 +28,7 @@ import { useRouter } from 'next/navigation';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
-import { SWRResponse } from 'swr';
+import { mutate, SWRResponse } from 'swr';
 import { TransactionToast } from '@/components/TransactionToast';
 import {
   getDicebearFile,
@@ -117,6 +117,7 @@ export function CreateStoreDialog({
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
+                mutate({ url: '/api/stores', publicKey });
 
                 setTimeout(() => {
                   if (store.data) {
