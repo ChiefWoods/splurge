@@ -169,11 +169,8 @@ export function UpdateItemDialog({
                       min={0}
                       step={1}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value);
+                        const value = parseInt(e.target.value);
                         field.onChange(isNaN(value) ? 0 : value);
-                      }}
-                      onBlur={() => {
-                        field.onChange(parseFloat(field.value.toFixed(2)));
                       }}
                     />
                   </FormControl>

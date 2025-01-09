@@ -226,9 +226,6 @@ export function AddItemDialog({ mutate }: { mutate: () => void }) {
                         const value = parseInt(e.target.value);
                         field.onChange(isNaN(value) ? 0 : value);
                       }}
-                      onBlur={() => {
-                        field.onChange(parseInt(field.value.toFixed(0)));
-                      }}
                     />
                   </FormControl>
                   <FormMessage />

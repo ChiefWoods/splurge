@@ -223,11 +223,15 @@ export function CheckoutDialog({
                         <Input
                           type="number"
                           {...field}
-                          min={0}
+                          min={1}
+                          max={maxAmount}
                           step={1}
                           onChange={(e) => {
-                            field.onChange(e);
-                            setOrderTotal(Number(e.target.value) * price);
+                            const value = parseInt(e.target.value);
+                            field.onChange(isNaN(value) ? 0 : value);
+                            if (!isNaN(value)) {
+                              setOrderTotal(price * value);
+                            }
                           }}
                         />
                       </FormControl>
