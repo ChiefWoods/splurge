@@ -6,6 +6,7 @@ import {
   PublicKey,
 } from '@solana/web3.js';
 import idl from '../idl/splurge.json';
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
 export const SPLURGE_WALLET = Keypair.fromSecretKey(
@@ -36,4 +37,22 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/jpg',
   'image/png',
   'image/svg+xml',
+];
+
+// Hardcoded because devnet USDC has no metadata to fetch
+export const WHITELISTED_PAYMENT_TOKENS = [
+  {
+    mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    name: 'USDC',
+    image: '/whitelisted_mint/usdc.png',
+    symbol: 'USDC',
+    owner: TOKEN_PROGRAM_ID,
+  },
+  {
+    mint: 'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
+    name: 'Paypal USD',
+    image: '/whitelisted_mint/pyusd.png',
+    symbol: 'PYUSD',
+    owner: TOKEN_2022_PROGRAM_ID,
+  },
 ];

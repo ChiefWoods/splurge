@@ -38,9 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { z } from 'zod';
-import { SPLURGE_WALLET } from '@/lib/constants';
+import { SPLURGE_WALLET, WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
 
 export function CheckoutDialog({
   name,
@@ -72,24 +71,6 @@ export function CheckoutDialog({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderTotal, setOrderTotal] = useState<number>(0);
 
-  // Hardcoded because devnet USDC has no metadata to fetch
-  const whitelistedPaymentTokens = [
-    {
-      mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-      name: 'USDC',
-      image: '/whitelisted_mint/usdc.png',
-      symbol: 'USDC',
-      owner: TOKEN_PROGRAM_ID,
-    },
-    {
-      mint: 'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
-      name: 'Paypal USD',
-      image: '/whitelisted_mint/pyusd.png',
-      symbol: 'PYUSD',
-      owner: TOKEN_2022_PROGRAM_ID,
-    },
-  ];
-
   // Dynamic schema
   const createOrderSchema = z.object({
     amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
@@ -102,7 +83,7 @@ export function CheckoutDialog({
     resolver: zodResolver(createOrderSchema),
     defaultValues: {
       amount: 1,
-      paymentMint: whitelistedPaymentTokens[0].mint,
+      paymentMint: WHITELISTED_PAYMENT_TOKENS[0].mint,
     },
   });
 
@@ -115,7 +96,7 @@ export function CheckoutDialog({
 
         setIsSubmitting(true);
 
-        const token = whitelistedPaymentTokens.find(
+        const token = WHITELISTED_PAYMENT_TOKENS.find(
           ({ mint }) => mint === data.paymentMint
         );
 
@@ -270,7 +251,7 @@ export function CheckoutDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {whitelistedPaymentTokens.map(
+                          {WHITELISTED_PAYMENT_TOKENS.map(
                             ({ mint, name, image, symbol }) => (
                               <SelectItem key={mint} value={mint}>
                                 <div className="flex items-center justify-start gap-x-2">

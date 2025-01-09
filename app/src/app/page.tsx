@@ -34,7 +34,7 @@ export default function Page() {
       ? { url: '/api/store-items', publicKey, allItems: allItems.data }
       : null,
     async ({ publicKey, allItems }) => {
-      const storeSet = new Set<string>();
+      const storeSet = new Set<PublicKey>();
 
       const filteredItems = allItems
         .filter(
@@ -42,9 +42,9 @@ export default function Page() {
             item.account.inventoryCount.toNumber() > 0
         )
         .map((item: ProgramAccount<StoreItem>) => {
-          const storePda = item.account.store.toBase58();
+          const storePda = item.account.store;
 
-          if (!publicKey || storePda !== getStorePda(publicKey).toBase58()) {
+          if (!publicKey || !storePda.equals(getStorePda(publicKey))) {
             storeSet.add(storePda);
           } else {
             return;
@@ -61,7 +61,7 @@ export default function Page() {
         })
         .filter((item) => item !== undefined);
 
-      const storeArr = Array.from(storeSet).map((pda) => new PublicKey(pda));
+      const storeArr = Array.from(storeSet);
       const allStores = await getMultipleStoreAcc(storeArr);
 
       const storeMap = new Map(
@@ -78,7 +78,7 @@ export default function Page() {
       );
 
       const itemsWithStore = filteredItems.map((item) => {
-        const store = storeMap.get(item.storePda);
+        const store = storeMap.get(item.storePda.toBase58());
 
         if (!store) {
           throw new Error(`Store not found for item: ${item.pda}`);

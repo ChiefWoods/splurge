@@ -43,7 +43,7 @@ export default function Header() {
     },
     {
       name: 'My Orders',
-      href: '/orders',
+      href: shopper.data?.acc ? `/orders` : '/shoppers/create',
     },
   ];
 

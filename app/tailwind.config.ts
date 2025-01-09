@@ -55,7 +55,19 @@ export default {
         },
         rating: {
           DEFAULT: 'var(--rating-yellow)',
-        }
+        },
+        pending: {
+          DEFAULT: 'var(--order-pending)',
+        },
+        shipping: {
+          DEFAULT: 'var(--order-shipping)',
+        },
+        completed: {
+          DEFAULT: 'var(--order-completed)',
+        },
+        cancelled: {
+          DEFAULT: 'var(--order-cancelled)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

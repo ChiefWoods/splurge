@@ -35,6 +35,10 @@ body {
     --radius: 0.5rem;
     --info-blue: hsl(217, 91%, 60%);
     --rating-yellow: hsl(48, 96%, 53%);
+    --order-pending: hsl(45, 93%, 47%);
+    --order-shipping: hsl(25, 95%, 53%);
+    --order-completed: hsl(142, 71%, 45%);
+    --order-cancelled: hsl(0, 84%, 60%);
   }
   .dark {
     --background: 0 0% 3.9%;
