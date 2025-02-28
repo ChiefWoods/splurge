@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-splurge = "SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7"
+splurge = "SPLGVMqZKru49vJQrB85vvztwSBriA7Fnw8sLHc5mEq"
 
 [registry]
 url = "https://api.apr.dev"

@@ -2,20 +2,20 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum SplurgeError {
-    #[msg("Incorrect program data address")]
-    IncorrectProgramDataAddress,
+    #[msg("Address cannot be default")]
+    InvalidAddress,
+    #[msg("Timestamp cannot be in the future")]
+    InvalidTimestamp,
+    #[msg("Whitelist cannot be empty")]
+    EmptyWhitelist = 100,
     #[msg("Signer not authorized")]
     UnauthorizedAdmin,
-    #[msg("Admin is already assigned")]
-    AdminAlreadyAssigned,
-    #[msg("Mint is already whitelisted")]
-    MintAlreadyWhitelisted,
-    #[msg("Mint is not whitelisted")]
+    #[msg("Platform locked, no new orders can be created")]
+    PlatformLocked,
+    #[msg("Payment mint is not whitelisted")]
     MintNotWhitelisted,
-    #[msg("Cannot remove all whitelisted mints")]
-    CannotRemoveAllWhitelistedMints,
     #[msg("Shopper name is required")]
-    ShopperNameRequired = 100,
+    ShopperNameRequired = 200,
     #[msg("Shopper name exceeded maximum length")]
     ShopperNameTooLong,
     #[msg("Shopper image is required")]
@@ -23,41 +23,29 @@ pub enum SplurgeError {
     #[msg("Shopper address is required")]
     ShopperAddressRequired,
     #[msg("Store name is required")]
-    StoreNameRequired = 200,
+    StoreNameRequired = 300,
     #[msg("Store name exceeded maximum length")]
     StoreNameTooLong,
     #[msg("Store image is required")]
     StoreImageRequired,
     #[msg("Store item name is required")]
-    StoreItemNameRequired = 300,
+    ItemNameRequired = 400,
     #[msg("Store item name exceeded maximum length")]
-    StoreItemNameTooLong,
+    ItemNameTooLong,
     #[msg("Store item image is required")]
-    StoreItemImageRequired,
-    #[msg("Store item price must be at least 0")]
-    StoreItemPriceIsNegative,
-    #[msg("Store item not found")]
-    StoreItemNotFound,
-    #[msg("Payment mint is not whitelisted")]
-    PaymentMintNotWhitelisted = 400,
-    #[msg("Order amount must be greater than 0")]
-    OrderAmountInvalid,
-    #[msg("Order total must be at least 0")]
-    OrderTotalInvalid,
-    #[msg("Order total is incorrect")]
-    OrderTotalIncorrect,
+    ItemImageRequired,
+    #[msg("Order total is does not match product of item price and amount")]
+    IncorrectOrderTotal = 500,
     #[msg("Store item has insufficient inventory to fulfill order")]
     InsufficientInventory,
     #[msg("Order already finalized")]
     OrderAlreadyFinalized,
     #[msg("Order is not in shipping status")]
-    OrderNotShipping,
+    OrderNotBeingShipped,
     #[msg("Order already completed")]
     OrderAlreadyCompleted,
     #[msg("Order not completed")]
-    OrderNotCompleted = 500,
+    OrderNotCompleted,
     #[msg("Rating must be between 1 and 5")]
-    ReviewRatingInvalid,
-    #[msg("Review for order already exists")]
-    ReviewForOrderAlreadyExists,
+    InvalidRating = 600,
 }

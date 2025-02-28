@@ -1,18 +1,31 @@
-use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES, Discriminator};
+use anchor_lang::{prelude::*, Discriminator};
+
+use crate::error::SplurgeError;
 
 #[account]
 pub struct Store {
-    pub bump: u8,           // 1
-    pub name: String,       // 4
-    pub image: String,      // 4
-    pub about: String,      // 4
-    pub items: Vec<Pubkey>, // 4
+    /// Bump used for seed derivation
+    pub bump: u8, // 1
+    /// Address that has authority over the account
+    pub authority: Pubkey, // 32
+    /// Display name
+    pub name: String, // 4
+    /// Display image
+    pub image: String, // 4
+    /// Store description
+    pub about: String, // 4
 }
 
 impl Store {
-    pub const MIN_SPACE: usize = Store::DISCRIMINATOR.len() + 1 + 4 + 4 + 4 + 4;
+    pub const MIN_SPACE: usize = Store::DISCRIMINATOR.len() + 1 + 32 + 4 + 4 + 4;
 
-    pub fn get_items_space(&self) -> usize {
-        self.items.len() * PUBKEY_BYTES
+    pub fn invariant(&self) -> Result<()> {
+        require_keys_neq!(
+            self.authority,
+            Pubkey::default(),
+            SplurgeError::InvalidAddress
+        );
+
+        Ok(())
     }
 }

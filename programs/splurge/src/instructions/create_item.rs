@@ -1,58 +1,61 @@
-use crate::{constants::*, error::SplurgeError, state::*};
-use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
+use anchor_lang::prelude::*;
 
-pub fn create_item(
-    ctx: Context<CreateItem>,
-    name: String,
-    image: String,
-    description: String,
-    inventory_count: i64,
-    price: f64,
-) -> Result<()> {
-    require!(!name.is_empty(), SplurgeError::StoreItemNameRequired);
-    require!(
-        name.len() <= MAX_STORE_ITEM_NAME_LEN,
-        SplurgeError::StoreItemNameTooLong
-    );
-    require!(!image.is_empty(), SplurgeError::StoreItemImageRequired);
+use crate::{
+    constants::{ITEM_SEED, MAX_STORE_ITEM_NAME_LEN, STORE_SEED},
+    error::SplurgeError,
+    state::{Item, Store},
+};
 
-    let store_item = &mut ctx.accounts.store_item;
-
-    store_item.bump = ctx.bumps.store_item;
-    store_item.inventory_count = inventory_count;
-    store_item.price = price;
-    store_item.store = ctx.accounts.store.key();
-    store_item.name = name;
-    store_item.image = image;
-    store_item.description = description;
-    store_item.reviews = Vec::new();
-
-    ctx.accounts.store.items.push(store_item.key());
-
-    Ok(())
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct CreateItemArgs {
+    pub price: u32,
+    pub inventory_count: u32,
+    pub name: String,
+    pub image: String,
+    pub description: String,
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, image: String, description: String)]
+#[instruction(args: CreateItemArgs)]
 pub struct CreateItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
         init,
         payer = authority,
-        space = StoreItem::MIN_SPACE + name.len() + image.len() + description.len(),
-        seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
+        space = Item::MIN_SPACE + args.name.len() + args.image.len() + args.description.len(),
+        seeds = [ITEM_SEED, store.key().as_ref(), args.name.as_bytes()],
         bump,
     )]
-    pub store_item: Account<'info, StoreItem>,
+    pub item: Account<'info, Item>,
     #[account(
-        mut,
-        realloc = store.to_account_info().data_len() + PUBKEY_BYTES,
-        realloc::payer = authority,
-        realloc::zero = false,
         seeds = [STORE_SEED, authority.key().as_ref()],
         bump = store.bump,
+        has_one = authority,
     )]
     pub store: Account<'info, Store>,
     pub system_program: Program<'info, System>,
+}
+
+impl CreateItem<'_> {
+    pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
+        require!(!args.name.is_empty(), SplurgeError::ItemNameRequired);
+        require!(
+            args.name.len() <= MAX_STORE_ITEM_NAME_LEN,
+            SplurgeError::ItemNameTooLong
+        );
+        require!(!args.image.is_empty(), SplurgeError::ItemImageRequired);
+
+        ctx.accounts.item.set_inner(Item {
+            bump: ctx.bumps.item,
+            store: ctx.accounts.store.key(),
+            price: args.price,
+            inventory_count: args.inventory_count,
+            name: args.name,
+            image: args.image,
+            description: args.description,
+        });
+
+        Item::invariant(&ctx.accounts.item)
+    }
 }

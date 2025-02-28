@@ -1,61 +1,62 @@
-use crate::{constants::*, error::SplurgeError, state::*};
-use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
+use anchor_lang::prelude::*;
 
-pub fn create_review(ctx: Context<CreateReview>, text: String, rating: i8) -> Result<()> {
-    require!(
-        ctx.accounts.order.status == OrderStatus::Completed,
-        SplurgeError::OrderNotCompleted
-    );
-    require!(
-        rating >= 1 && rating <= 5,
-        SplurgeError::ReviewRatingInvalid
-    );
+use crate::{
+    constants::{ORDER_SEED, REVIEW_SEED},
+    error::SplurgeError,
+    state::{Order, OrderStatus, Review, Shopper},
+};
 
-    let store_item = &mut ctx.accounts.store_item;
-
-    require!(
-        !store_item.reviews.contains(&ctx.accounts.review.key()),
-        SplurgeError::ReviewForOrderAlreadyExists
-    );
-
-    let review = &mut ctx.accounts.review;
-
-    review.bump = ctx.bumps.review;
-    review.rating = rating;
-    review.timestamp = Clock::get()?.unix_timestamp;
-    review.order = ctx.accounts.order.to_account_info().key();
-    review.text = text;
-
-    store_item.reviews.push(review.key());
-
-    Ok(())
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct CreateReviewArgs {
+    pub text: String,
+    pub rating: u8,
 }
 
 #[derive(Accounts)]
-#[instruction(text: String)]
+#[instruction(args: CreateReviewArgs)]
 pub struct CreateReview<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-        seeds = [SHOPPER_SEED, authority.key().as_ref()],
-        bump = shopper.bump,
+        has_one = authority,
     )]
     pub shopper: Account<'info, Shopper>,
     #[account(
-        mut,
-        realloc = store_item.to_account_info().data_len() + PUBKEY_BYTES,
-        realloc::payer = authority,
-        realloc::zero = false,
+        seeds = [ORDER_SEED, shopper.key().as_ref(), order.item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
+        bump = order.bump,
     )]
-    pub store_item: Account<'info, StoreItem>,
     pub order: Account<'info, Order>,
     #[account(
         init,
         payer = authority,
-        space = Review::MIN_SPACE + text.len(),
+        space = Review::MIN_SPACE + args.text.len(),
         seeds = [REVIEW_SEED, order.key().as_ref()],
         bump,
     )]
     pub review: Account<'info, Review>,
     pub system_program: Program<'info, System>,
+}
+
+impl CreateReview<'_> {
+    pub fn create_review(ctx: Context<CreateReview>, args: CreateReviewArgs) -> Result<()> {
+        require!(
+            ctx.accounts.order.status == OrderStatus::Completed,
+            SplurgeError::OrderNotCompleted
+        );
+
+        require!(
+            args.rating >= 1 && args.rating <= 5,
+            SplurgeError::InvalidRating
+        );
+
+        ctx.accounts.review.set_inner(Review {
+            bump: ctx.bumps.review,
+            order: ctx.accounts.order.key(),
+            rating: args.rating,
+            timestamp: Clock::get()?.unix_timestamp,
+            text: args.text,
+        });
+
+        Review::invariant(&ctx.accounts.review)
+    }
 }

@@ -2,11 +2,12 @@ pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod state;
+pub mod utils;
 
 use anchor_lang::prelude::*;
 use {instructions::*, state::*};
 
-declare_id!("SPLGqkZN8mAFsFjzMe6LZ4yeCzY6i6SGhegF9qQWaL7");
+declare_id!("SPLGVMqZKru49vJQrB85vvztwSBriA7Fnw8sLHc5mEq");
 
 #[program]
 pub mod splurge {
@@ -14,102 +15,52 @@ pub mod splurge {
 
     pub fn initialize_config(
         ctx: Context<InitializeConfig>,
-        whitelisted_mints: Vec<Pubkey>,
+        args: InitializeConfigArgs,
     ) -> Result<()> {
-        instructions::initialize_config(ctx, whitelisted_mints)
+        InitializeConfig::initialize_config(ctx, args)
     }
 
-    pub fn set_admin(ctx: Context<SetAdmin>, new_admin: Pubkey) -> Result<()> {
-        instructions::set_admin(ctx, new_admin)
+    pub fn update_config(ctx: Context<UpdateConfig>, args: UpdateConfigArgs) -> Result<()> {
+        UpdateConfig::update_config(ctx, args)
     }
 
-    pub fn add_whitelisted_mint(
-        ctx: Context<AddWhitelistedMint>,
-        mints: Vec<Pubkey>,
-    ) -> Result<()> {
-        instructions::add_whitelisted_mint(ctx, mints)
+    pub fn create_shopper(ctx: Context<CreateShopper>, args: CreateShopperArgs) -> Result<()> {
+        CreateShopper::create_shopper(ctx, args)
     }
 
-    pub fn remove_whitelisted_mint(
-        ctx: Context<RemoveWhitelistedMint>,
-        mints: Vec<Pubkey>,
-    ) -> Result<()> {
-        instructions::remove_whitelisted_mint(ctx, mints)
+    pub fn create_store(ctx: Context<CreateStore>, args: CreateStoreArgs) -> Result<()> {
+        CreateStore::create_store(ctx, args)
     }
 
-    pub fn create_shopper(
-        ctx: Context<CreateShopper>,
-        name: String,
-        image: String,
-        address: String,
-    ) -> Result<()> {
-        instructions::create_shopper(ctx, name, image, address)
+    pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
+        CreateItem::create_item(ctx, args)
     }
 
-    pub fn create_store(
-        ctx: Context<CreateStore>,
-        name: String,
-        image: String,
-        about: String,
-    ) -> Result<()> {
-        instructions::create_store(ctx, name, image, about)
+    pub fn update_item(ctx: Context<UpdateItem>, args: UpdateItemArgs) -> Result<()> {
+        UpdateItem::update_item(ctx, args)
     }
 
-    pub fn update_store(
-        ctx: Context<UpdateStore>,
-        name: String,
-        image: String,
-        about: String,
-    ) -> Result<()> {
-        instructions::update_store(ctx, name, image, about)
+    pub fn delete_item(ctx: Context<DeleteItem>) -> Result<()> {
+        DeleteItem::delete_item(ctx)
     }
 
-    pub fn create_item(
-        ctx: Context<CreateItem>,
-        name: String,
-        image: String,
-        description: String,
-        inventory_count: i64,
-        price: f64,
-    ) -> Result<()> {
-        instructions::create_item(ctx, name, image, description, inventory_count, price)
-    }
-
-    pub fn update_item(
-        ctx: Context<UpdateItem>,
-        name: String,
-        inventory_count: i64,
-        price: f64,
-    ) -> Result<()> {
-        instructions::update_item(ctx, name, inventory_count, price)
-    }
-
-    pub fn delete_item(ctx: Context<DeleteItem>, name: String) -> Result<()> {
-        instructions::delete_item(ctx, name)
-    }
-
-    pub fn create_order(
-        ctx: Context<CreateOrder>,
-        timestamp: i64,
-        amount: i64,
-        total_usd: f64,
-    ) -> Result<()> {
-        instructions::create_order(ctx, timestamp, amount, total_usd)
+    pub fn create_order(ctx: Context<CreateOrder>, args: CreateOrderArgs) -> Result<()> {
+        CreateOrder::create_order(ctx, args)
     }
 
     pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
-        instructions::update_order(ctx, status)
+        UpdateOrder::update_order(ctx, status)
     }
 
-    pub fn complete_order(ctx: Context<CompleteOrder>, timestamp: i64) -> Result<()> {
-        instructions::complete_order(ctx, timestamp)
+    pub fn complete_order(ctx: Context<CompleteOrder>) -> Result<()> {
+        CompleteOrder::complete_order(ctx)
     }
 
-    pub fn create_review(ctx: Context<CreateReview>, text: String, rating: i8) -> Result<()> {
-        instructions::create_review(ctx, text, rating)
+    pub fn create_review(ctx: Context<CreateReview>, args: CreateReviewArgs) -> Result<()> {
+        CreateReview::create_review(ctx, args)
     }
 
     pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>) -> Result<()> {
-        instructions::withdraw_earnings(ctx)
+        WithdrawEarnings::withdraw_earnings(ctx)
     }
 }

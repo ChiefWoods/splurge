@@ -1,40 +1,30 @@
-use crate::{constants::*, error::SplurgeError, state::*};
-use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
+use anchor_lang::prelude::*;
 
-pub fn delete_item(ctx: Context<DeleteItem>, _name: String) -> Result<()> {
-    let store = &mut ctx.accounts.store;
-    let store_item = &ctx.accounts.store_item.key();
-
-    require!(
-        store.items.contains(store_item),
-        SplurgeError::StoreItemNotFound
-    );
-
-    store.items.retain(|item| item != store_item);
-
-    Ok(())
-}
+use crate::{
+    constants::ITEM_SEED,
+    state::{Item, Store},
+};
 
 #[derive(Accounts)]
-#[instruction(name: String)]
 pub struct DeleteItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
         mut,
         close = authority,
-        seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
-        bump = store_item.bump,
+        seeds = [ITEM_SEED, store.key().as_ref(), item.name.as_bytes()],
+        bump = item.bump,
     )]
-    pub store_item: Account<'info, StoreItem>,
+    pub item: Account<'info, Item>,
     #[account(
-        mut,
-        realloc = store.to_account_info().data_len() - PUBKEY_BYTES,
-        realloc::payer = authority,
-        realloc::zero = false,
-        seeds = [STORE_SEED, authority.key().as_ref()],
-        bump = store.bump,
+        has_one = authority,
     )]
     pub store: Account<'info, Store>,
     pub system_program: Program<'info, System>,
+}
+
+impl DeleteItem<'_> {
+    pub fn delete_item(_ctx: Context<DeleteItem>) -> Result<()> {
+        Ok(())
+    }
 }

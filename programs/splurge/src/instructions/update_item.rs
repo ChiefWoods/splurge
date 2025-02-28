@@ -1,36 +1,41 @@
-use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
-pub fn update_item(
-    ctx: Context<UpdateItem>,
-    _name: String,
-    inventory_count: i64,
-    price: f64,
-) -> Result<()> {
-    require!(price >= 0.0, SplurgeError::StoreItemPriceIsNegative);
+use crate::{
+    constants::ITEM_SEED,
+    state::{Item, Store},
+};
 
-    let store_item = &mut ctx.accounts.store_item;
-
-    store_item.inventory_count = inventory_count;
-    store_item.price = price;
-
-    Ok(())
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct UpdateItemArgs {
+    pub price: Option<u32>,
+    pub inventory_count: Option<u32>,
 }
 
 #[derive(Accounts)]
-#[instruction(name: String)]
 pub struct UpdateItem<'info> {
-    #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
         mut,
-        seeds = [STORE_ITEM_SEED, store.key().as_ref(), name.as_bytes()],
-        bump = store_item.bump,
+        seeds = [ITEM_SEED, store.key().as_ref(), item.name.as_bytes()],
+        bump = item.bump,
     )]
-    pub store_item: Account<'info, StoreItem>,
+    pub item: Account<'info, Item>,
     #[account(
-        seeds = [STORE_SEED, authority.key().as_ref()],
-        bump = store.bump,
+        has_one = authority,
     )]
     pub store: Account<'info, Store>,
+}
+
+impl UpdateItem<'_> {
+    pub fn update_item(ctx: Context<UpdateItem>, args: UpdateItemArgs) -> Result<()> {
+        if let Some(price) = args.price {
+            ctx.accounts.item.price = price;
+        };
+
+        if let Some(inventory_count) = args.inventory_count {
+            ctx.accounts.item.inventory_count = inventory_count;
+        };
+
+        Ok(())
+    }
 }

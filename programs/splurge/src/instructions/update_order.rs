@@ -1,31 +1,39 @@
-use crate::{constants::*, error::SplurgeError, state::*};
 use anchor_lang::prelude::*;
 
-pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
-    let order = &mut ctx.accounts.order;
-
-    require!(
-        order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping,
-        SplurgeError::OrderAlreadyFinalized
-    );
-
-    order.status = status;
-
-    Ok(())
-}
+use crate::{
+    constants::{CONFIG_SEED, ORDER_SEED},
+    error::SplurgeError,
+    state::{Config, Order, OrderStatus},
+};
 
 #[derive(Accounts)]
 pub struct UpdateOrder<'info> {
-    #[account(
-        mut,
-        address = splurge_config.admin @ SplurgeError::UnauthorizedAdmin,
-    )]
     pub admin: Signer<'info>,
     #[account(
-        seeds = [SPLURGE_CONFIG_SEED],
-        bump = splurge_config.bump,
+        seeds = [CONFIG_SEED],
+        bump = config.bump,
+        has_one = admin @ SplurgeError::UnauthorizedAdmin,
     )]
-    pub splurge_config: Account<'info, SplurgeConfig>,
-    #[account(mut)]
+    pub config: Account<'info, Config>,
+    #[account(
+        mut,
+        seeds = [ORDER_SEED, order.shopper.key().as_ref(), order.item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
+        bump = order.bump,
+    )]
     pub order: Account<'info, Order>,
+}
+
+impl UpdateOrder<'_> {
+    pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
+        let order = &mut ctx.accounts.order;
+
+        require!(
+            order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping,
+            SplurgeError::OrderAlreadyFinalized
+        );
+
+        order.status = status;
+
+        Ok(())
+    }
 }
