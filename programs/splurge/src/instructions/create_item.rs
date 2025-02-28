@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::{ITEM_SEED, MAX_STORE_ITEM_NAME_LEN, STORE_SEED},
     error::SplurgeError,
+    events::ItemCreated,
     state::{Item, Store},
 };
 
@@ -59,6 +60,10 @@ impl CreateItem<'_> {
             name: args.name,
             image: args.image,
             description: args.description,
+        });
+
+        emit!(ItemCreated {
+            store: ctx.accounts.store.key(),
         });
 
         Item::invariant(&ctx.accounts.item)

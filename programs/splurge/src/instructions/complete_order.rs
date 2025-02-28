@@ -10,6 +10,7 @@ use anchor_spl::{
 use crate::{
     constants::{CONFIG_SEED, ITEM_SEED, ORDER_SEED, STORE_SEED},
     error::SplurgeError,
+    events::OrderCompleted,
     state::{Config, Item, Order, OrderStatus, Shopper, Store},
     utils::{get_order_fee_in_atomic, get_total_in_atomic},
 };
@@ -155,6 +156,13 @@ impl CompleteOrder<'_> {
                 },
             )
             .with_signer(signer_seeds),
-        )
+        )?;
+
+        emit!(OrderCompleted {
+            order: ctx.accounts.order.key(),
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        Ok(())
     }
 }

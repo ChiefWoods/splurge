@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::{CONFIG_SEED, ORDER_SEED},
     error::SplurgeError,
+    events::{OrderCancelled, OrderShipped},
     state::{Config, Order, OrderStatus},
 };
 
@@ -33,6 +34,23 @@ impl UpdateOrder<'_> {
         );
 
         order.status = status;
+        let timestamp = Clock::get()?.unix_timestamp;
+
+        match status {
+            OrderStatus::Shipping => {
+                emit!(OrderShipped {
+                    order: ctx.accounts.order.key(),
+                    timestamp,
+                });
+            }
+            OrderStatus::Cancelled => {
+                emit!(OrderCancelled {
+                    order: ctx.accounts.order.key(),
+                    timestamp,
+                });
+            }
+            _ => {}
+        }
 
         Ok(())
     }

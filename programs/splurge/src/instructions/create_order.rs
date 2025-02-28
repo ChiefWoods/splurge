@@ -7,6 +7,7 @@ use anchor_spl::{
 use crate::{
     constants::{CONFIG_SEED, ITEM_SEED, ORDER_SEED, SHOPPER_SEED, STORE_SEED},
     error::SplurgeError,
+    events::OrderCreated,
     state::{Config, Item, Order, OrderStatus, Shopper, Store},
     utils::{get_order_fee_in_atomic, get_total_in_atomic},
 };
@@ -125,6 +126,11 @@ impl CreateOrder<'_> {
                 .unwrap(),
             decimals,
         )?;
+
+        emit!(OrderCreated {
+            store: ctx.accounts.store.key(),
+            timestamp: args.timestamp,
+        });
 
         Order::invariant(&ctx.accounts.order)
     }
