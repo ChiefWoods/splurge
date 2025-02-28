@@ -38,12 +38,17 @@ pub struct CreateItem<'info> {
 }
 
 impl CreateItem<'_> {
-    pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
-        require!(!args.name.is_empty(), SplurgeError::ItemNameRequired);
+    pub fn validate_name(name: &str) -> Result<()> {
+        require!(!name.is_empty(), SplurgeError::ItemNameRequired);
         require!(
-            args.name.len() <= MAX_STORE_ITEM_NAME_LEN,
+            name.len() <= MAX_STORE_ITEM_NAME_LEN,
             SplurgeError::ItemNameTooLong
         );
+
+        Ok(())
+    }
+
+    pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
         require!(!args.image.is_empty(), SplurgeError::ItemImageRequired);
 
         ctx.accounts.item.set_inner(Item {

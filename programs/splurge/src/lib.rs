@@ -32,6 +32,7 @@ pub mod splurge {
         CreateStore::create_store(ctx, args)
     }
 
+    #[access_control(CreateItem::validate_name(&args.name))]
     pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
         CreateItem::create_item(ctx, args)
     }
