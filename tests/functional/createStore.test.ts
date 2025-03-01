@@ -1,102 +1,161 @@
 import { AnchorError, Program } from '@coral-xyz/anchor';
-import { Keypair, SystemProgram } from '@solana/web3.js';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+} from '@solana/web3.js';
 import { BankrunProvider } from 'anchor-bankrun';
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import { ProgramTestContext } from 'solana-bankrun';
 import { Splurge } from '../../target/types/splurge';
-import { createStore } from '../methods';
-import { getBankrunSetup } from '../utils';
+import { getBankrunSetup } from '../setup';
 import { getStorePdaAndBump } from '../pda';
 import { MAX_STORE_NAME_LEN } from '../constants';
+import usdc from '../fixtures/usdc_mint.json';
+import { getStoreAcc } from '../accounts';
 
 describe('createStore', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
+  const [treasury, store] = Array.from({ length: 2 }, Keypair.generate);
 
   beforeEach(async () => {
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    ({ context, provider, program } = await getBankrunSetup(
+      [treasury, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
-        },
-      ]
+        };
+      })
     ));
+
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
+
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
   });
 
-  test('creates a store account', async () => {
+  test('creates a store', async () => {
     const name = 'Store A';
     const image = 'https://example.com/image.png';
-    const about = 'This is a store';
+    const about = 'about';
 
-    const { storeAcc } = await createStore(
-      program,
-      name,
-      image,
-      about,
-      storeWallet
-    );
+    await program.methods
+      .createStore({
+        name,
+        image,
+        about,
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    const shopperBump = getStorePdaAndBump(storeWallet.publicKey)[1];
+    const [storePda, storeBump] = getStorePdaAndBump(store.publicKey);
+    const storeAcc = await getStoreAcc(program, storePda);
 
-    expect(storeAcc.bump).toEqual(shopperBump);
-    expect(storeAcc.name).toEqual(name);
-    expect(storeAcc.image).toEqual(image);
-    expect(storeAcc.about).toEqual(about);
-    expect(storeAcc.items).toEqual([]);
+    expect(storeAcc.bump).toBe(storeBump);
+    expect(storeAcc.name).toBe(name);
+    expect(storeAcc.image).toBe(image);
+    expect(storeAcc.about).toBe(about);
+    expect(storeAcc.authority).toStrictEqual(store.publicKey);
   });
 
   test('throws when name is empty', async () => {
+    const name = '';
+    const image = 'https://example.com/image.png';
+    const about = 'about';
+
     try {
-      await createStore(
-        program,
-        '',
-        'https://example.com/image.png',
-        'This is a store',
-        storeWallet
-      );
+      await program.methods
+        .createStore({
+          name,
+          image,
+          about,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreNameRequired');
-      expect(err.error.errorCode.number).toEqual(6200);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('StoreNameRequired');
     }
   });
 
   test('throws when name is too long', async () => {
+    const name = 'a'.repeat(MAX_STORE_NAME_LEN + 1);
+    const image = 'https://example.com/image.png';
+    const about = 'about';
+
     try {
-      await createStore(
-        program,
-        '_'.repeat(MAX_STORE_NAME_LEN + 1),
-        'https://example.com/image.png',
-        'This is a store',
-        storeWallet
-      );
+      await program.methods
+        .createStore({
+          name,
+          image,
+          about,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreNameTooLong');
-      expect(err.error.errorCode.number).toEqual(6201);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('StoreNameTooLong');
     }
   });
 
   test('throws when image is empty', async () => {
+    const name = 'Store A';
+    const image = '';
+    const about = 'about';
+
     try {
-      await createStore(program, 'Store A', '', 'This is a store', storeWallet);
+      await program.methods
+        .createStore({
+          name,
+          image,
+          about,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreImageRequired');
-      expect(err.error.errorCode.number).toEqual(6202);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('StoreImageRequired');
     }
   });
 });

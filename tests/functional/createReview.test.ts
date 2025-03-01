@@ -1,18 +1,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import {
-  completeOrder,
-  createItem,
-  createOrder,
-  createReview,
-  createShopper,
-  createStore,
-  initializeConfig,
-  updateOrder,
-} from '../methods';
-import {
-  clusterApiUrl,
-  Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
 } from '@solana/web3.js';
@@ -21,65 +10,70 @@ import {
   AccountLayout,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { AnchorError, BN, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
+import { getBankrunSetup } from '../setup';
 import {
   getOrderPdaAndBump,
   getReviewPdaAndBump,
   getShopperPdaAndBump,
-  getStoreItemPdaAndBump,
+  getItemPdaAndBump,
   getStorePdaAndBump,
 } from '../pda';
+import usdc from '../fixtures/usdc_mint.json';
+import { getReviewAcc } from '../accounts';
 
 describe('createReview', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
-  const shopperWallet = Keypair.generate();
-  const usdcMint = new PublicKey(
-    '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
+  const [treasury, shopper, store] = Array.from(
+    { length: 3 },
+    Keypair.generate
   );
-  const timestamp = Date.now();
-  const storeItemName = 'Store Item B';
-  const price = 5.55;
 
-  let shopperUsdcAta: PublicKey;
-  let usdcMintOwner: PublicKey;
-  let totalUsd: number;
-  let storePda: PublicKey;
-  let storeItemPda: PublicKey;
-  let shopperPda: PublicKey;
+  const itemName = 'Item A';
+  const itemPrice = 1000; // $10
+  const initInventoryCount = 10;
+
+  const usdcMint = new PublicKey(usdc.pubkey);
+  const usdcMintOwner = new PublicKey(usdc.account.owner);
+
+  const [shopperPda] = getShopperPdaAndBump(shopper.publicKey);
+  const [storePda] = getStorePdaAndBump(store.publicKey);
+  const [itemPda] = getItemPdaAndBump(storePda, itemName);
   let orderPda: PublicKey;
 
+  const treasuryUsdcAta = getAssociatedTokenAddressSync(
+    usdcMint,
+    treasury.publicKey,
+    false,
+    usdcMintOwner
+  );
+  const shopperUsdcAta = getAssociatedTokenAddressSync(
+    usdcMint,
+    shopper.publicKey,
+    false,
+    usdcMintOwner
+  );
+  const initShopperUsdcAtaBal = 100_000_000n;
+
   beforeEach(async () => {
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-
-    const usdcAccInfo = await connection.getAccountInfo(usdcMint);
-    usdcMintOwner = usdcAccInfo.owner;
-
-    shopperUsdcAta = getAssociatedTokenAddressSync(
-      usdcMint,
-      shopperWallet.publicKey,
-      true,
-      usdcMintOwner
+    const [treasuryUsdcAtaData, shopperUsdcAtaData] = Array.from(
+      { length: 2 },
+      () => Buffer.alloc(ACCOUNT_SIZE)
     );
-
-    const usdcAtaData = Buffer.alloc(ACCOUNT_SIZE);
 
     AccountLayout.encode(
       {
         mint: usdcMint,
-        owner: shopperWallet.publicKey,
-        amount: 100_000_000n,
+        owner: treasury.publicKey,
+        amount: 0n,
         delegateOption: 0,
         delegate: PublicKey.default,
         delegatedAmount: 0n,
@@ -89,229 +83,291 @@ describe('createReview', () => {
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
       },
-      usdcAtaData
+      treasuryUsdcAtaData
     );
 
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    AccountLayout.encode(
+      {
+        mint: usdcMint,
+        owner: shopper.publicKey,
+        amount: initShopperUsdcAtaBal,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        delegatedAmount: 0n,
+        state: 1,
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+      },
+      shopperUsdcAtaData
+    );
+
+    ({ context, provider, program } = await getBankrunSetup([
+      ...[treasury, shopper, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
+        };
+      }),
+      {
+        address: treasuryUsdcAta,
+        info: {
+          data: treasuryUsdcAtaData,
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: usdcMintOwner,
         },
-        {
-          address: shopperWallet.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: 5_000_000_000,
-            owner: SystemProgram.programId,
-          },
+      },
+      {
+        address: shopperUsdcAta,
+        info: {
+          data: shopperUsdcAtaData,
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: usdcMintOwner,
         },
-        {
-          address: usdcMint,
-          info: usdcAccInfo,
-        },
-        {
-          address: shopperUsdcAta,
-          info: {
-            lamports: 1_000_000_000,
-            data: usdcAtaData,
-            owner: usdcMintOwner,
-            executable: false,
-          },
-        },
-      ]
-    ));
+      },
+    ]));
 
-    await initializeConfig(program, payer, [usdcMint]);
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
 
-    await createStore(
-      program,
-      'Store A',
-      'https://example.com/image.png',
-      'This is a description',
-      storeWallet
-    );
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
 
-    await createItem(
-      program,
-      storeItemName,
-      'https://example.com/item.png',
-      'This is a description',
-      10,
-      price,
-      storeWallet
-    );
+    await program.methods
+      .createShopper({
+        name: 'Shopper A',
+        image: 'https://example.com/image.png',
+        address: 'address',
+      })
+      .accounts({
+        authority: shopper.publicKey,
+      })
+      .signers([shopper])
+      .rpc();
 
-    await createShopper(
-      program,
-      'Shopper A',
-      'https://example.com/image.png',
-      'This is an address',
-      shopperWallet
-    );
+    await program.methods
+      .createStore({
+        name: 'Store A',
+        image: 'https://example.com/image.png',
+        about: 'about',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    const amount = 2;
-    totalUsd = price * amount;
-    [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    await program.methods
+      .createItem({
+        price: itemPrice,
+        inventoryCount: initInventoryCount,
+        name: itemName,
+        image: 'https://example.com/item.png',
+        description: 'description',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    await createOrder(
-      program,
-      timestamp,
-      amount,
-      totalUsd,
-      storePda,
-      storeItemPda,
-      usdcMint,
-      usdcMintOwner,
-      shopperWallet,
-      payer
-    );
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
 
-    [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
-    [orderPda] = getOrderPdaAndBump(
-      shopperPda,
-      storeItemPda,
-      new BN(timestamp)
-    );
+    orderPda = getOrderPdaAndBump(shopperPda, itemPda, timestamp)[0];
 
-    await updateOrder(program, { shipping: {} }, orderPda, payer);
+    await program.methods
+      .createOrder({
+        amount: 1,
+        timestamp,
+      })
+      .accountsPartial({
+        authority: shopper.publicKey,
+        store: storePda,
+        item: itemPda,
+        paymentMint: usdcMint,
+        tokenProgram: usdcMintOwner,
+      })
+      .signers([shopper])
+      .rpc();
 
-    await completeOrder(
-      program,
-      timestamp,
-      payer,
-      shopperPda,
-      storePda,
-      storeItemPda,
-      usdcMint,
-      usdcMintOwner
-    );
+    await program.methods
+      .updateOrder({ shipping: {} })
+      .accountsPartial({
+        admin: context.payer.publicKey,
+        order: orderPda,
+      })
+      .signers([context.payer])
+      .rpc();
   });
 
   test('create review', async () => {
-    const text = 'This is a review';
+    await program.methods
+      .completeOrder()
+      .accountsPartial({
+        shopper: shopperPda,
+        store: storePda,
+        item: itemPda,
+        order: orderPda,
+        tokenProgram: usdcMintOwner,
+      })
+      .signers([context.payer])
+      .rpc();
+
+    const { unixTimestamp } = await context.banksClient.getClock();
+
+    const text = 'review';
     const rating = 3;
 
-    const { reviewAcc, storeItemAcc } = await createReview(
-      program,
-      text,
-      rating,
-      shopperWallet,
-      storeItemPda,
-      orderPda
-    );
+    await program.methods
+      .createReview({
+        text,
+        rating,
+      })
+      .accountsPartial({
+        authority: shopper.publicKey,
+        shopper: shopperPda,
+        order: orderPda,
+      })
+      .signers([shopper])
+      .rpc();
 
     const [reviewPda, reviewBump] = getReviewPdaAndBump(orderPda);
+    const reviewAcc = await getReviewAcc(program, reviewPda);
 
-    expect(reviewAcc.bump).toEqual(reviewBump);
-    expect(reviewAcc.rating).toEqual(rating);
-    expect(reviewAcc.order).toEqual(orderPda);
-    expect(reviewAcc.text).toEqual(text);
-    expect(storeItemAcc.reviews[0]).toEqual(reviewPda);
+    expect(reviewAcc.bump).toBe(reviewBump);
+    expect(reviewAcc.order).toStrictEqual(orderPda);
+    expect(reviewAcc.rating).toBe(rating);
+    expect(reviewAcc.timestamp.toNumber()).toBe(Number(unixTimestamp));
+    expect(reviewAcc.text).toBe(text);
   });
 
   test('throws if order is not completed', async () => {
-    const timestamp = Date.now();
-    const amount = 2;
-    const paymentMint = usdcMint;
-    const totalUsd = price * amount;
-
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
-
-    await createOrder(
-      program,
-      timestamp,
-      amount,
-      totalUsd,
-      storePda,
-      storeItemPda,
-      paymentMint,
-      usdcMintOwner,
-      shopperWallet,
-      payer
-    );
-
-    const [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
-    const [orderPda] = getOrderPdaAndBump(
-      shopperPda,
-      storeItemPda,
-      new BN(timestamp)
-    );
-
-    await updateOrder(program, { shipping: {} }, orderPda, payer);
-
-    const text = 'This is a review';
+    const text = 'review';
     const rating = 3;
 
     try {
-      await createReview(
-        program,
-        text,
-        rating,
-        shopperWallet,
-        storeItemPda,
-        orderPda
-      );
+      await program.methods
+        .createReview({
+          text,
+          rating,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          shopper: shopperPda,
+          order: orderPda,
+        })
+        .signers([shopper])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('OrderNotCompleted');
-      expect(err.error.errorCode.number).toEqual(6500);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('OrderNotCompleted');
     }
   });
 
   test('throws if rating is invalid', async () => {
+    await program.methods
+      .completeOrder()
+      .accountsPartial({
+        shopper: shopperPda,
+        store: storePda,
+        item: itemPda,
+        order: orderPda,
+        tokenProgram: usdcMintOwner,
+      })
+      .signers([context.payer])
+      .rpc();
+
     const text = 'This is a review';
     const rating = 0;
 
     try {
-      await createReview(
-        program,
-        text,
-        rating,
-        shopperWallet,
-        storeItemPda,
-        orderPda
-      );
+      await program.methods
+        .createReview({
+          text,
+          rating,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          shopper: shopperPda,
+          order: orderPda,
+        })
+        .signers([shopper])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('ReviewRatingInvalid');
-      expect(err.error.errorCode.number).toEqual(6501);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('InvalidRating');
     }
   });
 
   test('throws if review for order already exists', async () => {
+    await program.methods
+      .completeOrder()
+      .accountsPartial({
+        shopper: shopperPda,
+        store: storePda,
+        item: itemPda,
+        order: orderPda,
+        tokenProgram: usdcMintOwner,
+      })
+      .signers([context.payer])
+      .rpc();
+
     const text = 'This is a review';
     const rating = 3;
 
-    await createReview(
-      program,
-      text,
-      rating,
-      shopperWallet,
-      storeItemPda,
-      orderPda
-    );
+    await program.methods
+      .createReview({
+        text,
+        rating,
+      })
+      .accountsPartial({
+        authority: shopper.publicKey,
+        shopper: shopperPda,
+        order: orderPda,
+      })
+      .signers([shopper])
+      .rpc();
 
     const newText = 'This is another review';
     const newRating = 4;
 
     expect(async () => {
-      await createReview(
-        program,
-        newText,
-        newRating,
-        shopperWallet,
-        storeItemPda,
-        orderPda
-      );
+      await program.methods
+        .createReview({
+          text: newText,
+          rating: newRating,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          shopper: shopperPda,
+          order: orderPda,
+        })
+        .signers([shopper])
+        .rpc();
     }).toThrow();
   });
 });

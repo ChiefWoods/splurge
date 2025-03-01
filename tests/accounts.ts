@@ -2,11 +2,11 @@ import { Program } from '@coral-xyz/anchor';
 import { Splurge } from '../target/types/splurge';
 import { PublicKey } from '@solana/web3.js';
 
-export async function getSplurgeConfigAcc(
+export async function getConfigAcc(
   program: Program<Splurge>,
-  splurgeConfigPda: PublicKey
+  configPda: PublicKey
 ) {
-  return await program.account.splurgeConfig.fetchNullable(splurgeConfigPda);
+  return await program.account.config.fetchNullable(configPda);
 }
 
 export async function getShopperAcc(
@@ -23,11 +23,11 @@ export async function getStoreAcc(
   return await program.account.store.fetchNullable(storePda);
 }
 
-export async function getStoreItemAcc(
+export async function getItemAcc(
   program: Program<Splurge>,
-  storeItemPda: PublicKey
+  itemPda: PublicKey
 ) {
-  return await program.account.storeItem.fetchNullable(storeItemPda);
+  return await program.account.item.fetchNullable(itemPda);
 }
 
 export async function getOrderAcc(

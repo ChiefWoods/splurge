@@ -1,130 +1,191 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { createItem, createStore } from '../methods';
-import { Keypair, SystemProgram } from '@solana/web3.js';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+} from '@solana/web3.js';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { AnchorError, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
-import { getStoreItemPdaAndBump, getStorePdaAndBump } from '../pda';
+import { getBankrunSetup } from '../setup';
+import { getItemPdaAndBump, getStorePdaAndBump } from '../pda';
 import { MAX_STORE_ITEM_NAME_LEN } from '../constants';
+import usdc from '../fixtures/usdc_mint.json';
+import { getItemAcc } from '../accounts';
 
 describe('createItem', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
+  const [treasury, store] = Array.from({ length: 2 }, Keypair.generate);
 
   beforeEach(async () => {
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    ({ context, provider, program } = await getBankrunSetup(
+      [treasury, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
-        },
-      ]
+        };
+      })
     ));
 
-    await createStore(
-      program,
-      'Store A',
-      'https://example.com/image.png',
-      'This is a store',
-      storeWallet
-    );
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
+
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
+
+    const name = 'Store A';
+    const image = 'https://example.com/image.png';
+    const about = 'about';
+
+    await program.methods
+      .createStore({
+        name,
+        image,
+        about,
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
   });
 
-  test('add item', async () => {
-    const name = 'Store Item A';
-    const image = 'https://example.com/item.png';
-    const description = 'This is a description';
+  test('creates an item', async () => {
+    const price = 1000; // $10
     const inventoryCount = 10;
-    const price = 5.55;
+    const name = 'Item A';
+    const image = 'https://example.com/item.png';
+    const description = 'description';
 
-    const { storeItemAcc, storeAcc } = await createItem(
-      program,
-      name,
-      image,
-      description,
-      inventoryCount,
-      price,
-      storeWallet
-    );
+    await program.methods
+      .createItem({
+        price,
+        inventoryCount,
+        name,
+        image,
+        description,
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda, storeItemBump] = getStoreItemPdaAndBump(
-      storePda,
-      name
-    );
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda, itemBump] = getItemPdaAndBump(storePda, name);
+    const itemAcc = await getItemAcc(program, itemPda);
 
-    expect(storeItemAcc.bump).toEqual(storeItemBump);
-    expect(storeItemAcc.inventoryCount.toNumber()).toEqual(inventoryCount);
-    expect(storeItemAcc.price).toEqual(price);
-    expect(storeItemAcc.store).toEqual(storePda);
-    expect(storeItemAcc.name).toEqual(name);
-    expect(storeItemAcc.image).toEqual(image);
-    expect(storeItemAcc.description).toEqual(description);
-    expect(storeItemAcc.reviews).toEqual([]);
-    expect(storeAcc.items[0]).toEqual(storeItemPda);
+    expect(itemAcc.bump).toBe(itemBump);
+    expect(itemAcc.store).toStrictEqual(storePda);
+    expect(itemAcc.price).toBe(price);
+    expect(itemAcc.inventoryCount).toBe(inventoryCount);
+    expect(itemAcc.name).toBe(name);
+    expect(itemAcc.image).toBe(image);
+    expect(itemAcc.description).toBe(description);
   });
 
   test('throws if item name is empty', async () => {
+    const price = 1000; // $10
+    const inventoryCount = 10;
+    const name = '';
+    const image = 'https://example.com/item.png';
+    const description = 'description';
+
     try {
-      await createItem(
-        program,
-        '',
-        'https://example.com/item.png',
-        'This is a description',
-        10,
-        5.55,
-        storeWallet
-      );
+      await program.methods
+        .createItem({
+          price,
+          inventoryCount,
+          name,
+          image,
+          description,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreItemNameRequired');
-      expect(err.error.errorCode.number).toEqual(6300);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('ItemNameRequired');
     }
   });
 
   test('throws if item name is too long', async () => {
+    const price = 1000; // $10
+    const inventoryCount = 10;
+    const name = '_'.repeat(MAX_STORE_ITEM_NAME_LEN + 1);
+    const image = 'https://example.com/item.png';
+    const description = 'description';
+
     expect(async () => {
-      await createItem(
-        program,
-        '_'.repeat(MAX_STORE_ITEM_NAME_LEN + 1),
-        'https://example.com/item.png',
-        'This is a description',
-        10,
-        5.55,
-        storeWallet
-      );
+      await program.methods
+        .createItem({
+          price,
+          inventoryCount,
+          name,
+          image,
+          description,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     }).toThrow();
   });
 
   test('throws if item image is empty', async () => {
+    const price = 1000; // $10
+    const inventoryCount = 10;
+    const name = 'Item A';
+    const image = '';
+    const description = 'description';
+
     try {
-      await createItem(
-        program,
-        'Store Item B',
-        '',
-        'This is a description',
-        10,
-        5.55,
-        storeWallet
-      );
+      await program.methods
+        .createItem({
+          price,
+          inventoryCount,
+          name,
+          image,
+          description,
+        })
+        .accounts({
+          authority: store.publicKey,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreItemImageRequired');
-      expect(err.error.errorCode.number).toEqual(6302);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('ItemImageRequired');
     }
   });
 });

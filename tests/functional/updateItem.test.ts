@@ -1,81 +1,112 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { createItem, createStore, updateItem } from '../methods';
-import { Keypair, SystemProgram } from '@solana/web3.js';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+} from '@solana/web3.js';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
-import { AnchorError, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
+import { Program } from '@coral-xyz/anchor';
+import { getBankrunSetup } from '../setup';
+import usdc from '../fixtures/usdc_mint.json';
+import { getItemPdaAndBump, getStorePdaAndBump } from '../pda';
+import { getItemAcc } from '../accounts';
 
 describe('updateItem', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
-  const storeItemName = 'Store Item A';
+  const [treasury, store] = Array.from({ length: 2 }, Keypair.generate);
+
+  const itemName = 'Item A';
 
   beforeEach(async () => {
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    ({ context, provider, program } = await getBankrunSetup(
+      [treasury, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
-        },
-      ]
+        };
+      })
     ));
 
-    await createStore(
-      program,
-      'Store A',
-      'https://example.com/image.png',
-      'This is a store',
-      storeWallet
-    );
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
 
-    await createItem(
-      program,
-      storeItemName,
-      'https://example.com/item.png',
-      'This is a description',
-      10,
-      5.55,
-      storeWallet
-    );
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
+
+    await program.methods
+      .createStore({
+        name: 'Store A',
+        image: 'https://example.com/image.png',
+        about: 'about',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
+
+    await program.methods
+      .createItem({
+        price: 1000, // $10
+        inventoryCount: 10,
+        name: itemName,
+        image: 'https://example.com/item.png',
+        description: 'description',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
   });
 
-  test('update item', async () => {
+  test('updates an item', async () => {
+    const price = 20;
     const inventoryCount = 5;
-    const price = 8.95;
 
-    const { storeItemAcc } = await updateItem(
-      program,
-      storeItemName,
-      inventoryCount,
-      price,
-      storeWallet
-    );
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda] = getItemPdaAndBump(storePda, itemName);
 
-    expect(storeItemAcc.inventoryCount.toNumber()).toEqual(inventoryCount);
-    expect(storeItemAcc.price).toEqual(price);
-  });
+    await program.methods
+      .updateItem({
+        price,
+        inventoryCount,
+      })
+      .accountsPartial({
+        authority: store.publicKey,
+        store: storePda,
+        item: itemPda,
+      })
+      .signers([store])
+      .rpc();
 
-  test('throws if store item price is negative', async () => {
-    try {
-      await updateItem(program, storeItemName, 5, -0.5, storeWallet);
-    } catch (err) {
-      expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('StoreItemPriceIsNegative');
-      expect(err.error.errorCode.number).toEqual(6303);
-    }
+    const itemAcc = await getItemAcc(program, itemPda);
+
+    expect(itemAcc.price).toBe(price);
+    expect(itemAcc.inventoryCount).toBe(inventoryCount);
   });
 });

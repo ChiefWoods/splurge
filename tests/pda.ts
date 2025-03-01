@@ -1,18 +1,12 @@
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
-import {
-  ORDER_SEED,
-  REVIEW_SEED,
-  SHOPPER_SEED,
-  SPLURGE_CONFIG_SEED,
-  SPLURGE_PROGRAM_ID,
-  STORE_ITEM_SEED,
-  STORE_SEED,
-} from './constants';
+import idl from '../target/idl/splurge.json';
 
-export function getSplurgeConfigPdaAndBump(): [PublicKey, number] {
+const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
+
+export function getConfigPdaAndBump(): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(SPLURGE_CONFIG_SEED)],
+    [Buffer.from('config')],
     SPLURGE_PROGRAM_ID
   );
 }
@@ -21,38 +15,38 @@ export function getShopperPdaAndBump(
   authority: PublicKey
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(SHOPPER_SEED), authority.toBuffer()],
+    [Buffer.from('shopper'), authority.toBuffer()],
     SPLURGE_PROGRAM_ID
   );
 }
 
 export function getStorePdaAndBump(authority: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(STORE_SEED), authority.toBuffer()],
+    [Buffer.from('store'), authority.toBuffer()],
     SPLURGE_PROGRAM_ID
   );
 }
 
-export function getStoreItemPdaAndBump(
+export function getItemPdaAndBump(
   storePda: PublicKey,
   name: string
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(STORE_ITEM_SEED), storePda.toBuffer(), Buffer.from(name)],
+    [Buffer.from('item'), storePda.toBuffer(), Buffer.from(name)],
     SPLURGE_PROGRAM_ID
   );
 }
 
 export function getOrderPdaAndBump(
   shopperPda: PublicKey,
-  storeItemPda: PublicKey,
+  itemPda: PublicKey,
   timestamp: BN
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [
-      Buffer.from(ORDER_SEED),
+      Buffer.from('order'),
       shopperPda.toBuffer(),
-      storeItemPda.toBuffer(),
+      itemPda.toBuffer(),
       timestamp.toArrayLike(Buffer, 'le', 8),
     ],
     SPLURGE_PROGRAM_ID
@@ -61,7 +55,7 @@ export function getOrderPdaAndBump(
 
 export function getReviewPdaAndBump(orderPda: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(REVIEW_SEED), orderPda.toBuffer()],
+    [Buffer.from('review'), orderPda.toBuffer()],
     SPLURGE_PROGRAM_ID
   );
 }

@@ -10,23 +10,32 @@ import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { Program } from '@coral-xyz/anchor';
 import { getBankrunSetup } from '../setup';
+import { getConfigPdaAndBump } from '../pda';
 import usdc from '../fixtures/usdc_mint.json';
-import { getItemPdaAndBump, getStorePdaAndBump } from '../pda';
+import usdt from '../fixtures/usdt_mint.json';
+import pyusd from '../fixtures/pyusd_mint.json';
+import { getConfigAcc } from '../accounts';
 
-describe('deleteItem', () => {
+describe('updateConfig', () => {
   let { context, provider, program } = {} as {
     context: ProgramTestContext;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const [treasury, store] = Array.from({ length: 2 }, Keypair.generate);
+  const [treasury, newAdmin, newTreasury] = Array.from(
+    { length: 3 },
+    Keypair.generate
+  );
 
-  const itemName = 'Item A';
+  const whitelistedMints = [
+    new PublicKey(usdc.pubkey),
+    new PublicKey(usdt.pubkey),
+  ];
 
   beforeEach(async () => {
     ({ context, provider, program } = await getBankrunSetup(
-      [treasury, store].map((kp) => {
+      [treasury, newAdmin, newTreasury].map((kp) => {
         return {
           address: kp.publicKey,
           info: {
@@ -40,7 +49,6 @@ describe('deleteItem', () => {
     ));
 
     const admin = context.payer;
-    const whitelistedMints = [new PublicKey(usdc.pubkey)];
     const orderFeeBps = 250;
 
     await program.methods
@@ -55,50 +63,32 @@ describe('deleteItem', () => {
       })
       .signers([admin])
       .rpc();
-
-    await program.methods
-      .createStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
-      })
-      .accounts({
-        authority: store.publicKey,
-      })
-      .signers([store])
-      .rpc();
-
-    await program.methods
-      .createItem({
-        price: 1000, // $10
-        inventoryCount: 10,
-        name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
-      })
-      .accounts({
-        authority: store.publicKey,
-      })
-      .signers([store])
-      .rpc();
   });
 
-  test('deletes an item', async () => {
-    const [storePda] = getStorePdaAndBump(store.publicKey);
-    const [itemPda] = getItemPdaAndBump(storePda, itemName);
+  test('updates a config', async () => {
+    const orderFeeBps = 500;
+    whitelistedMints.push(new PublicKey(pyusd.pubkey));
 
     await program.methods
-      .deleteItem()
-      .accountsPartial({
-        authority: store.publicKey,
-        store: storePda,
-        item: itemPda,
+      .updateConfig({
+        newAdmin: newAdmin.publicKey,
+        treasury: newTreasury.publicKey,
+        locked: true,
+        orderFeeBps,
+        whitelistedMints,
       })
-      .signers([store])
+      .accounts({
+        admin: context.payer.publicKey,
+      })
+      .signers([context.payer])
       .rpc();
 
-    const itemAcc = await context.banksClient.getAccount(itemPda);
+    const [configPda] = getConfigPdaAndBump();
+    const configAcc = await getConfigAcc(program, configPda);
 
-    expect(itemAcc).toBeNull();
+    expect(configAcc.admin).toStrictEqual(newAdmin.publicKey);
+    expect(configAcc.treasury).toStrictEqual(newTreasury.publicKey);
+    expect(configAcc.orderFeeBps).toBe(orderFeeBps);
+    expect(configAcc.whitelistedMints).toStrictEqual(whitelistedMints);
   });
 });

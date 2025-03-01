@@ -1,16 +1,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import {
-  createItem,
-  createOrder,
-  createShopper,
-  createStore,
-  initializeConfig,
-  updateOrder,
-} from '../methods';
-import {
-  clusterApiUrl,
-  Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
 } from '@solana/web3.js';
@@ -19,62 +10,60 @@ import {
   AccountLayout,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { AnchorError, BN, Program } from '@coral-xyz/anchor';
 import {
   getOrderPdaAndBump,
   getShopperPdaAndBump,
-  getStoreItemPdaAndBump,
+  getItemPdaAndBump,
   getStorePdaAndBump,
 } from '../pda';
-import { getBankrunSetup } from '../utils';
+import { getBankrunSetup } from '../setup';
+import usdc from '../fixtures/usdc_mint.json';
+import { getOrderAcc } from '../accounts';
 
 describe('updateOrder', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
-  const shopperWallet = Keypair.generate();
-  const usdcMint = new PublicKey(
-    '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
+  const [treasury, shopper, store] = Array.from(
+    { length: 3 },
+    Keypair.generate
   );
-  const [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
-  const storeItemName = 'Store Item A';
-  const price = 5.55;
-  const timestamp = Date.now();
 
-  let shopperUsdcAta: PublicKey;
-  let usdcMintOwner: PublicKey;
-  let storePda: PublicKey;
-  let storeItemPda: PublicKey;
+  const itemName = 'Item A';
+  const itemPrice = 1000; // $10
+  const initInventoryCount = 10;
+
+  const usdcMint = new PublicKey(usdc.pubkey);
+  const usdcMintOwner = new PublicKey(usdc.account.owner);
+
+  const [shopperPda] = getShopperPdaAndBump(shopper.publicKey);
+  const [storePda] = getStorePdaAndBump(store.publicKey);
+  const [itemPda] = getItemPdaAndBump(storePda, itemName);
+  let orderPda: PublicKey;
+
+  const shopperUsdcAta = getAssociatedTokenAddressSync(
+    usdcMint,
+    shopper.publicKey,
+    false,
+    usdcMintOwner
+  );
+  const initShopperUsdcAtaBal = 100_000_000n;
 
   beforeEach(async () => {
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-
-    const usdcAccInfo = await connection.getAccountInfo(usdcMint);
-    usdcMintOwner = usdcAccInfo.owner;
-
-    shopperUsdcAta = getAssociatedTokenAddressSync(
-      usdcMint,
-      shopperWallet.publicKey,
-      true,
-      usdcMintOwner
-    );
-
-    const usdcAtaData = Buffer.alloc(ACCOUNT_SIZE);
+    const shopperUsdcAtaData = Buffer.alloc(ACCOUNT_SIZE);
 
     AccountLayout.encode(
       {
         mint: usdcMint,
-        owner: shopperWallet.publicKey,
-        amount: 100_000_000n,
+        owner: shopper.publicKey,
+        amount: initShopperUsdcAtaBal,
         delegateOption: 0,
         delegate: PublicKey.default,
         delegatedAmount: 0n,
@@ -84,144 +73,167 @@ describe('updateOrder', () => {
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
       },
-      usdcAtaData
+      shopperUsdcAtaData
     );
 
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    ({ context, provider, program } = await getBankrunSetup([
+      ...[treasury, shopper, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
+        };
+      }),
+      {
+        address: shopperUsdcAta,
+        info: {
+          data: shopperUsdcAtaData,
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: usdcMintOwner,
         },
-        {
-          address: shopperWallet.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: 5_000_000_000,
-            owner: SystemProgram.programId,
-          },
-        },
-        {
-          address: usdcMint,
-          info: usdcAccInfo,
-        },
-        {
-          address: shopperUsdcAta,
-          info: {
-            lamports: 1_000_000_000,
-            data: usdcAtaData,
-            owner: usdcMintOwner,
-            executable: false,
-          },
-        },
-      ]
-    ));
+      },
+    ]));
 
-    [storePda] = getStorePdaAndBump(storeWallet.publicKey);
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
 
-    await initializeConfig(program, payer, [usdcMint]);
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
 
-    await createStore(
-      program,
-      'Store A',
-      'https://example.com/image.png',
-      'This is a description',
-      storeWallet
-    );
+    await program.methods
+      .createShopper({
+        name: 'Shopper A',
+        image: 'https://example.com/image.png',
+        address: 'address',
+      })
+      .accounts({
+        authority: shopper.publicKey,
+      })
+      .signers([shopper])
+      .rpc();
 
-    await createItem(
-      program,
-      storeItemName,
-      'https://example.com/item.png',
-      'This is a description',
-      10,
-      price,
-      storeWallet
-    );
+    await program.methods
+      .createStore({
+        name: 'Store A',
+        image: 'https://example.com/image.png',
+        about: 'about',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    await createShopper(
-      program,
-      'Shopper A',
-      'https://example.com/image.png',
-      'This is an address',
-      shopperWallet
-    );
+    await program.methods
+      .createItem({
+        price: itemPrice,
+        inventoryCount: initInventoryCount,
+        name: itemName,
+        image: 'https://example.com/item.png',
+        description: 'description',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    const amount = 2;
-    const totalUsd = price * amount;
-    [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
 
-    await createOrder(
-      program,
-      timestamp,
-      amount,
-      totalUsd,
-      storePda,
-      storeItemPda,
-      usdcMint,
-      usdcMintOwner,
-      shopperWallet,
-      payer
-    );
+    orderPda = getOrderPdaAndBump(shopperPda, itemPda, timestamp)[0];
+
+    await program.methods
+      .createOrder({
+        amount: 1,
+        timestamp,
+      })
+      .accountsPartial({
+        authority: shopper.publicKey,
+        store: storePda,
+        item: itemPda,
+        paymentMint: usdcMint,
+        tokenProgram: usdcMintOwner,
+      })
+      .signers([shopper])
+      .rpc();
   });
 
-  test('update order', async () => {
+  test('updates an order', async () => {
     const status = { shipping: {} };
-    const [orderPda] = getOrderPdaAndBump(
-      shopperPda,
-      storeItemPda,
-      new BN(timestamp)
-    );
 
-    const { orderAcc } = await updateOrder(program, status, orderPda, payer);
+    await program.methods
+      .updateOrder(status)
+      .accountsPartial({
+        order: orderPda,
+      })
+      .signers([context.payer])
+      .rpc();
 
-    expect(orderAcc.status).toEqual(status);
+    const orderAcc = await getOrderAcc(program, orderPda);
+
+    expect(orderAcc.status).toStrictEqual(status);
   });
 
   test('throws if updating finalized order', async () => {
-    const [orderPda] = getOrderPdaAndBump(
-      shopperPda,
-      storeItemPda,
-      new BN(timestamp)
-    );
-
-    await updateOrder(program, { shipping: {} }, orderPda, payer);
-
-    await updateOrder(program, { cancelled: {} }, orderPda, payer);
+    await program.methods
+      .updateOrder({ cancelled: {} })
+      .accountsPartial({
+        admin: context.payer.publicKey,
+        order: orderPda,
+      })
+      .signers([context.payer])
+      .rpc();
 
     try {
-      await updateOrder(
-        program,
-        { completed: {} },
-        getOrderPdaAndBump(shopperPda, storeItemPda, new BN(timestamp))[0],
-        payer
-      );
+      await program.methods
+        .updateOrder({ shipping: {} })
+        .accountsPartial({
+          order: orderPda,
+        })
+        .signers([context.payer])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('OrderAlreadyFinalized');
-      expect(err.error.errorCode.number).toEqual(6405);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('OrderAlreadyFinalized');
     }
   });
 
   test('throws if updating as unauthorized admin', async () => {
-    const [orderPda] = getOrderPdaAndBump(
-      shopperPda,
-      storeItemPda,
-      new BN(timestamp)
-    );
+    const status = { shipping: {} };
 
     try {
-      await updateOrder(program, { shipping: {} }, orderPda, shopperWallet);
+      await program.methods
+        .updateOrder(status)
+        .accountsPartial({
+          admin: store.publicKey,
+          order: orderPda,
+        })
+        .signers([store])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('UnauthorizedAdmin');
-      expect(err.error.errorCode.number).toEqual(6001);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('UnauthorizedAdmin');
     }
   });
 });

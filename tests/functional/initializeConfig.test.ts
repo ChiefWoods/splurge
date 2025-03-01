@@ -1,43 +1,124 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { initializeConfig } from '../methods';
-import { Keypair, PublicKey } from '@solana/web3.js';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+} from '@solana/web3.js';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
-import { Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
-import { getSplurgeConfigPdaAndBump } from '../pda';
+import { AnchorError, Program } from '@coral-xyz/anchor';
+import { getBankrunSetup } from '../setup';
+import { getConfigPdaAndBump } from '../pda';
+import usdc from '../fixtures/usdc_mint.json';
+import usdt from '../fixtures/usdt_mint.json';
+import { getConfigAcc } from '../accounts';
 
 describe('initializeConfig', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
+  const treasury = Keypair.generate();
+
   beforeEach(async () => {
-    ({ context, banksClient, payer, provider, program } =
-      await getBankrunSetup());
+    ({ context, provider, program } = await getBankrunSetup([
+      {
+        address: treasury.publicKey,
+        info: {
+          data: Buffer.alloc(0),
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: SystemProgram.programId,
+        },
+      },
+    ]));
   });
 
   test('initializes a config', async () => {
+    const admin = context.payer;
     const whitelistedMints = [
-      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-      new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'),
+      new PublicKey(usdc.pubkey),
+      new PublicKey(usdt.pubkey),
     ];
+    const orderFeeBps = 250;
 
-    const { splurgeConfigAcc } = await initializeConfig(
-      program,
-      payer,
-      whitelistedMints
-    );
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
 
-    const splurgeConfigBump = getSplurgeConfigPdaAndBump()[1];
+    const [configPda, configBump] = getConfigPdaAndBump();
+    const configAcc = await getConfigAcc(program, configPda);
 
-    expect(splurgeConfigAcc.bump).toEqual(splurgeConfigBump);
-    expect(splurgeConfigAcc.admin).toEqual(payer.publicKey);
-    expect(splurgeConfigAcc.whitelistedMints).toEqual(whitelistedMints);
+    expect(configAcc.bump).toBe(configBump);
+    expect(configAcc.admin).toStrictEqual(admin.publicKey);
+    expect(configAcc.treasury).toStrictEqual(treasury.publicKey);
+    expect(configAcc.platformLocked).toBe(false);
+    expect(configAcc.orderFeeBps).toBe(orderFeeBps);
+    expect(configAcc.whitelistedMints).toStrictEqual(whitelistedMints);
+  });
+
+  test('throws if a mint is default PublicKey', async () => {
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey), PublicKey.default];
+    const orderFeeBps = 250;
+
+    try {
+      await program.methods
+        .initializeConfig({
+          admin: admin.publicKey,
+          treasury: treasury.publicKey,
+          whitelistedMints,
+          orderFeeBps,
+        })
+        .accounts({
+          authority: admin.publicKey,
+        })
+        .signers([admin])
+        .rpc();
+    } catch (err) {
+      expect(err).toBeInstanceOf(AnchorError);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('InvalidAddress');
+    }
+  });
+
+  test('throws if whitelist is empty', async () => {
+    const admin = context.payer;
+    const whitelistedMints = [];
+    const orderFeeBps = 250;
+
+    try {
+      await program.methods
+        .initializeConfig({
+          admin: admin.publicKey,
+          treasury: treasury.publicKey,
+          whitelistedMints,
+          orderFeeBps,
+        })
+        .accounts({
+          authority: admin.publicKey,
+        })
+        .signers([admin])
+        .rpc();
+    } catch (err) {
+      expect(err).toBeInstanceOf(AnchorError);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('EmptyWhitelist');
+    }
   });
 });

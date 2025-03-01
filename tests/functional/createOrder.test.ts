@@ -1,15 +1,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import {
-  createItem,
-  createOrder,
-  createShopper,
-  createStore,
-  initializeConfig,
-} from '../methods';
-import {
-  clusterApiUrl,
-  Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
 } from '@solana/web3.js';
@@ -18,70 +10,71 @@ import {
   AccountLayout,
   getAccount,
   getAssociatedTokenAddressSync,
-  getMint,
 } from '@solana/spl-token';
-import { BanksClient, ProgramTestContext } from 'solana-bankrun';
+import { ProgramTestContext } from 'solana-bankrun';
 import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { AnchorError, BN, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../utils';
+import { getBankrunSetup } from '../setup';
 import {
   getOrderPdaAndBump,
   getShopperPdaAndBump,
-  getStoreItemPdaAndBump,
+  getItemPdaAndBump,
   getStorePdaAndBump,
+  getConfigPdaAndBump,
 } from '../pda';
+import usdc from '../fixtures/usdc_mint.json';
+import usdt from '../fixtures/usdt_mint.json';
+import { getConfigAcc, getItemAcc, getOrderAcc } from '../accounts';
 
 describe('createOrder', () => {
-  let { context, banksClient, payer, provider, program } = {} as {
+  let { context, provider, program } = {} as {
     context: ProgramTestContext;
-    banksClient: BanksClient;
-    payer: Keypair;
     provider: BankrunProvider;
     program: Program<Splurge>;
   };
 
-  const storeWallet = Keypair.generate();
-  const shopperWallet = Keypair.generate();
-  const shopperUsdcInitBal = 100_000_000n;
-  const usdcMint = new PublicKey(
-    '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
+  const [treasury, shopper, store] = Array.from(
+    { length: 3 },
+    Keypair.generate
   );
-  const pyusdMint = new PublicKey(
-    'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM'
-  );
-  const storeItemName = 'Store Item A';
-  const inventoryCountInit = 10;
-  const price = 5.55;
 
-  let shopperUsdcAta: PublicKey;
-  let shopperPyusdAta: PublicKey;
-  let usdcDecimals: number;
-  let usdcMintOwner: PublicKey;
-  let pyusdMintOwner: PublicKey;
+  const itemName = 'Item A';
+  const itemPrice = 1000; // $10
+  const initInventoryCount = 10;
+
+  const usdcMint = new PublicKey(usdc.pubkey);
+  const usdcMintOwner = new PublicKey(usdc.account.owner);
+  const usdtMint = new PublicKey(usdt.pubkey);
+  const usdtMintOwner = new PublicKey(usdt.account.owner);
+
+  const shopperUsdcAta = getAssociatedTokenAddressSync(
+    usdcMint,
+    shopper.publicKey,
+    false,
+    usdcMintOwner
+  );
+  const initShopperUsdcAtaBal = 100_000_000n;
+
+  const shopperUsdtAta = getAssociatedTokenAddressSync(
+    usdtMint,
+    shopper.publicKey,
+    false,
+    usdtMintOwner
+  );
+  const initShopperUsdtAtaBal = 100_000_000n;
 
   beforeEach(async () => {
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-
-    const usdcAccInfo = await connection.getAccountInfo(usdcMint);
-    const pyusdAccInfo = await connection.getAccountInfo(pyusdMint);
-    usdcMintOwner = usdcAccInfo.owner;
-    pyusdMintOwner = pyusdAccInfo.owner;
-
-    shopperUsdcAta = getAssociatedTokenAddressSync(
-      usdcMint,
-      shopperWallet.publicKey,
-      true,
-      usdcMintOwner
+    const [shopperUsdcAtaData, shopperUsdtAtaData] = Array.from(
+      { length: 2 },
+      () => Buffer.alloc(ACCOUNT_SIZE)
     );
-
-    const usdcAtaData = Buffer.alloc(ACCOUNT_SIZE);
 
     AccountLayout.encode(
       {
         mint: usdcMint,
-        owner: shopperWallet.publicKey,
-        amount: shopperUsdcInitBal,
+        owner: shopper.publicKey,
+        amount: initShopperUsdcAtaBal,
         delegateOption: 0,
         delegate: PublicKey.default,
         delegatedAmount: 0n,
@@ -91,23 +84,14 @@ describe('createOrder', () => {
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
       },
-      usdcAtaData
+      shopperUsdcAtaData
     );
-
-    shopperPyusdAta = getAssociatedTokenAddressSync(
-      pyusdMint,
-      shopperWallet.publicKey,
-      true,
-      pyusdMintOwner
-    );
-
-    const pyusdAtaData = Buffer.alloc(ACCOUNT_SIZE);
 
     AccountLayout.encode(
       {
-        mint: pyusdMint,
-        owner: shopperWallet.publicKey,
-        amount: 100_000_000n,
+        mint: usdtMint,
+        owner: shopper.publicKey,
+        amount: initShopperUsdtAtaBal,
         delegateOption: 0,
         delegate: PublicKey.default,
         delegatedAmount: 0n,
@@ -117,310 +101,293 @@ describe('createOrder', () => {
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
       },
-      pyusdAtaData
+      shopperUsdtAtaData
     );
 
-    ({ context, banksClient, payer, provider, program } = await getBankrunSetup(
-      [
-        {
-          address: storeWallet.publicKey,
+    ({ context, provider, program } = await getBankrunSetup([
+      ...[treasury, shopper, store].map((kp) => {
+        return {
+          address: kp.publicKey,
           info: {
             data: Buffer.alloc(0),
             executable: false,
-            lamports: 5_000_000_000,
+            lamports: LAMPORTS_PER_SOL,
             owner: SystemProgram.programId,
           },
+        };
+      }),
+      {
+        address: shopperUsdcAta,
+        info: {
+          data: shopperUsdcAtaData,
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: usdcMintOwner,
         },
-        {
-          address: shopperWallet.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: 5_000_000_000,
-            owner: SystemProgram.programId,
-          },
+      },
+      {
+        address: shopperUsdtAta,
+        info: {
+          data: shopperUsdtAtaData,
+          executable: false,
+          lamports: LAMPORTS_PER_SOL,
+          owner: usdtMintOwner,
         },
-        {
-          address: usdcMint,
-          info: usdcAccInfo,
-        },
-        {
-          address: pyusdMint,
-          info: pyusdAccInfo,
-        },
-        {
-          address: shopperUsdcAta,
-          info: {
-            lamports: 1_000_000_000,
-            data: usdcAtaData,
-            owner: usdcMintOwner,
-            executable: false,
-          },
-        },
-        {
-          address: shopperPyusdAta,
-          info: {
-            lamports: 1_000_000_000,
-            data: pyusdAtaData,
-            owner: pyusdMintOwner,
-            executable: false,
-          },
-        },
-      ]
-    ));
+      },
+    ]));
 
-    usdcDecimals = await getMint(provider.connection, usdcMint).then(
-      (mint) => mint.decimals
-    );
+    const admin = context.payer;
+    const whitelistedMints = [new PublicKey(usdc.pubkey)];
+    const orderFeeBps = 250;
 
-    await initializeConfig(program, payer, [usdcMint]);
+    await program.methods
+      .initializeConfig({
+        admin: admin.publicKey,
+        treasury: treasury.publicKey,
+        whitelistedMints,
+        orderFeeBps,
+      })
+      .accounts({
+        authority: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
 
-    await createStore(
-      program,
-      'Store A',
-      'https://example.com/image.png',
-      'This is a description',
-      storeWallet
-    );
+    await program.methods
+      .createShopper({
+        name: 'Shopper A',
+        image: 'https://example.com/image.png',
+        address: 'address',
+      })
+      .accounts({
+        authority: shopper.publicKey,
+      })
+      .signers([shopper])
+      .rpc();
 
-    await createItem(
-      program,
-      storeItemName,
-      'https://example.com/item.png',
-      'This is a description',
-      inventoryCountInit,
-      price,
-      storeWallet
-    );
+    await program.methods
+      .createStore({
+        name: 'Store A',
+        image: 'https://example.com/image.png',
+        about: 'about',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
 
-    await createShopper(
-      program,
-      'Shopper A',
-      'https://example.com/image.png',
-      'This is an address',
-      shopperWallet
-    );
+    await program.methods
+      .createItem({
+        price: itemPrice,
+        inventoryCount: initInventoryCount,
+        name: itemName,
+        image: 'https://example.com/item.png',
+        description: 'description',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
   });
 
-  test('create order', async () => {
-    const timestamp = Date.now();
-    const amount = 2;
-    const totalUsd = price * amount;
+  test('creates an order', async () => {
+    const amount = 1;
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
     const paymentMint = usdcMint;
     const paymentMintOwner = usdcMintOwner;
 
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda] = getItemPdaAndBump(storePda, itemName);
 
-    const { shopperAcc, storeItemAcc, orderAcc } = await createOrder(
-      program,
-      timestamp,
-      amount,
-      totalUsd,
-      storePda,
-      storeItemPda,
-      paymentMint,
-      paymentMintOwner,
-      shopperWallet,
-      payer
-    );
+    let itemAcc = await getItemAcc(program, itemPda);
 
-    const [shopperPda] = getShopperPdaAndBump(shopperWallet.publicKey);
+    await program.methods
+      .createOrder({
+        amount,
+        timestamp,
+      })
+      .accountsPartial({
+        authority: shopper.publicKey,
+        store: storePda,
+        item: itemPda,
+        paymentMint,
+        tokenProgram: paymentMintOwner,
+      })
+      .signers([shopper])
+      .rpc();
+
+    const [shopperPda] = getShopperPdaAndBump(shopper.publicKey);
     const [orderPda, orderBump] = getOrderPdaAndBump(
       shopperPda,
-      storeItemPda,
-      new BN(timestamp)
+      itemPda,
+      timestamp
     );
 
-    const walletAUsdcPostBal = await getAccount(
-      provider.connection,
-      shopperUsdcAta
-    ).then((acc) => acc.amount);
+    const orderAcc = await getOrderAcc(program, orderPda);
 
-    const orderTokenAcc = await getAccount(
-      provider.connection,
-      getAssociatedTokenAddressSync(paymentMint, orderPda, true, usdcMintOwner)
+    expect(orderAcc.bump).toBe(orderBump);
+    expect(orderAcc.shopper).toStrictEqual(shopperPda);
+    expect(orderAcc.item).toStrictEqual(itemPda);
+    expect(orderAcc.timestamp.toNumber()).toBe(timestamp.toNumber());
+    expect(orderAcc.status).toStrictEqual({ pending: {} });
+    expect(orderAcc.amount).toBe(amount);
+    expect(orderAcc.total).toBe(itemPrice * amount);
+    expect(orderAcc.paymentMint).toStrictEqual(paymentMint);
+
+    const postShopperUsdcAtaBal = (
+      await getAccount(provider.connection, shopperUsdcAta)
+    ).amount;
+
+    const orderAta = getAssociatedTokenAddressSync(
+      paymentMint,
+      orderPda,
+      true,
+      usdcMintOwner
+    );
+    const orderAtaBal = (await getAccount(provider.connection, orderAta))
+      .amount;
+
+    expect(Number(orderAtaBal)).toBe(
+      Number(initShopperUsdcAtaBal - postShopperUsdcAtaBal)
     );
 
-    expect(orderAcc.bump).toEqual(orderBump);
-    expect(orderAcc.status).toEqual({ pending: {} });
-    expect(orderAcc.timestamp.toNumber()).toEqual(timestamp);
-    expect(orderAcc.amount.toNumber()).toEqual(amount);
-    expect(orderAcc.totalUsd).toEqual(totalUsd);
-    expect(orderAcc.paymentMint).toEqual(paymentMint);
-    expect(orderAcc.shopper).toEqual(shopperPda);
-    expect(orderAcc.storeItem).toEqual(storeItemPda);
-    expect(shopperAcc.orders[0]).toEqual(orderPda);
+    itemAcc = await getItemAcc(program, itemPda);
 
-    expect(storeItemAcc.inventoryCount.toNumber()).toEqual(
-      inventoryCountInit - amount
-    );
-    expect(Number(orderTokenAcc.amount) / 10 ** usdcDecimals).toEqual(totalUsd);
-    expect(Number(walletAUsdcPostBal)).toEqual(
-      Number(shopperUsdcInitBal) - Number(orderTokenAcc.amount)
-    );
+    expect(itemAcc.inventoryCount).toBe(initInventoryCount - amount);
   });
 
   test('throws if payment mint is not whitelisted', async () => {
-    const timestamp = Date.now();
-    const amount = 2;
-    const totalUsd = price * amount;
-    const paymentMint = pyusdMint;
-    const paymentMintOwner = pyusdMintOwner;
+    const amount = 1;
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
+    const paymentMint = usdtMint;
+    const paymentMintOwner = usdtMintOwner;
 
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda] = getItemPdaAndBump(storePda, itemName);
 
     try {
-      await createOrder(
-        program,
-        timestamp,
-        amount,
-        totalUsd,
-        storePda,
-        storeItemPda,
-        paymentMint,
-        paymentMintOwner,
-        shopperWallet,
-        payer
-      );
+      await program.methods
+        .createOrder({
+          amount,
+          timestamp,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          store: storePda,
+          item: itemPda,
+          paymentMint,
+          tokenProgram: paymentMintOwner,
+        })
+        .signers([shopper])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('PaymentMintNotWhitelisted');
-      expect(err.error.errorCode.number).toEqual(6400);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('MintNotWhitelisted');
     }
   });
 
-  test('throws if amount is less than 0', async () => {
-    const timestamp = Date.now();
-    const amount = -1;
-    const totalUsd = price * amount;
+  test('throws if platform is locked', async () => {
+    const [configPda] = getConfigPdaAndBump();
+    const configAcc = await getConfigAcc(program, configPda);
+
+    await program.methods
+      .updateConfig({
+        newAdmin: null,
+        treasury: null,
+        locked: true,
+        orderFeeBps: null,
+        whitelistedMints: configAcc.whitelistedMints,
+      })
+      .accounts({
+        admin: context.payer.publicKey,
+      })
+      .signers([context.payer])
+      .rpc();
+
+    const amount = 1;
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
     const paymentMint = usdcMint;
     const paymentMintOwner = usdcMintOwner;
 
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda] = getItemPdaAndBump(storePda, itemName);
 
     try {
-      await createOrder(
-        program,
-        timestamp,
-        amount,
-        totalUsd,
-        storePda,
-        storeItemPda,
-        paymentMint,
-        paymentMintOwner,
-        shopperWallet,
-        payer
-      );
+      await program.methods
+        .createOrder({
+          amount,
+          timestamp,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          store: storePda,
+          item: itemPda,
+          paymentMint,
+          tokenProgram: paymentMintOwner,
+        })
+        .signers([shopper])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('OrderAmountInvalid');
-      expect(err.error.errorCode.number).toEqual(6401);
+
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('PlatformLocked');
     }
   });
 
-  test('throws if total USD is less than 0', async () => {
-    const timestamp = Date.now();
-    const amount = 2;
-    const totalUsd = -1;
+  test('throws if item has insufficient inventory', async () => {
+    const itemName = 'Item B';
+
+    await program.methods
+      .createItem({
+        price: itemPrice,
+        inventoryCount: 0,
+        name: itemName,
+        image: 'https://example.com/item.png',
+        description: 'description',
+      })
+      .accounts({
+        authority: store.publicKey,
+      })
+      .signers([store])
+      .rpc();
+
+    const amount = 1;
+    const { unixTimestamp } = await context.banksClient.getClock();
+    const timestamp = new BN(Number(unixTimestamp));
     const paymentMint = usdcMint;
     const paymentMintOwner = usdcMintOwner;
 
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
+    const [storePda] = getStorePdaAndBump(store.publicKey);
+    const [itemPda] = getItemPdaAndBump(storePda, itemName);
 
     try {
-      await createOrder(
-        program,
-        timestamp,
-        amount,
-        totalUsd,
-        storePda,
-        storeItemPda,
-        paymentMint,
-        paymentMintOwner,
-        shopperWallet,
-        payer
-      );
+      await program.methods
+        .createOrder({
+          amount,
+          timestamp,
+        })
+        .accountsPartial({
+          authority: shopper.publicKey,
+          store: storePda,
+          item: itemPda,
+          paymentMint,
+          tokenProgram: paymentMintOwner,
+        })
+        .signers([shopper])
+        .rpc();
     } catch (err) {
       expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('OrderTotalInvalid');
-      expect(err.error.errorCode.number).toEqual(6402);
-    }
-  });
 
-  test('throws if total USD is incorrect', async () => {
-    const timestamp = Date.now();
-    const amount = 2;
-    const totalUsd = price * (amount + 1);
-    const paymentMint = usdcMint;
-    const paymentMintOwner = usdcMintOwner;
-
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
-
-    try {
-      await createOrder(
-        program,
-        timestamp,
-        amount,
-        totalUsd,
-        storePda,
-        storeItemPda,
-        paymentMint,
-        paymentMintOwner,
-        shopperWallet,
-        payer
-      );
-    } catch (err) {
-      expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('OrderTotalIncorrect');
-      expect(err.error.errorCode.number).toEqual(6403);
-    }
-  });
-
-  test('throws if store item has insufficient inventory', async () => {
-    const storeItemName = 'Store Item B';
-    const price = 5.55;
-
-    await createItem(
-      program,
-      storeItemName,
-      'https://example.com/item.png',
-      'This is a description',
-      0,
-      price,
-      storeWallet
-    );
-
-    const timestamp = Date.now();
-    const amount = 2;
-    const totalUsd = price * amount;
-    const paymentMint = usdcMint;
-    const paymentMintOwner = usdcMintOwner;
-
-    const [storePda] = getStorePdaAndBump(storeWallet.publicKey);
-    const [storeItemPda] = getStoreItemPdaAndBump(storePda, storeItemName);
-
-    try {
-      await createOrder(
-        program,
-        timestamp,
-        amount,
-        totalUsd,
-        storePda,
-        storeItemPda,
-        paymentMint,
-        paymentMintOwner,
-        shopperWallet,
-        payer
-      );
-    } catch (err) {
-      expect(err).toBeInstanceOf(AnchorError);
-      expect(err.error.errorCode.code).toEqual('InsufficientInventory');
-      expect(err.error.errorCode.number).toEqual(6404);
+      const { errorCode } = (err as AnchorError).error;
+      expect(errorCode.code).toBe('InsufficientInventory');
     }
   });
 });
