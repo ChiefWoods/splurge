@@ -8,7 +8,7 @@ pub mod utils;
 use anchor_lang::prelude::*;
 use {instructions::*, state::*};
 
-declare_id!("SPLGVMqZKru49vJQrB85vvztwSBriA7Fnw8sLHc5mEq");
+declare_id!("4Vgt9GWkVtW5Pf8MNfGQYEVYRiAyen4QWnCXH5jeXnft");
 
 #[program]
 pub mod splurge {

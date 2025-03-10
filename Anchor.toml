@@ -1,13 +1,13 @@
 [toolchain]
-anchor_version = "0.30.1"
-solana_version = "1.18.17"
+anchor_version = "0.31.0"
+solana_version = "2.1.0"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-splurge = "SPLGVMqZKru49vJQrB85vvztwSBriA7Fnw8sLHc5mEq"
+splurge = "4Vgt9GWkVtW5Pf8MNfGQYEVYRiAyen4QWnCXH5jeXnft"
 
 [registry]
 url = "https://api.apr.dev"
