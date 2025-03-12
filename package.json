@@ -8,7 +8,8 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "idl": "cp target/idl/splurge.json app/src/idl/splurge.json; cp target/types/splurge.ts app/src/types/splurge.ts"
+    "idl": "cp target/idl/splurge.json app/src/idl/splurge.json; cp target/types/splurge.ts app/src/types/splurge.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0"
