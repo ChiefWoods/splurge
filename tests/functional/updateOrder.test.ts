@@ -180,7 +180,7 @@ describe('updateOrder', () => {
 
     await program.methods
       .updateOrder(status)
-      .accountsPartial({
+      .accounts({
         order: orderPda,
       })
       .signers([context.payer])
@@ -194,8 +194,7 @@ describe('updateOrder', () => {
   test('throws if updating finalized order', async () => {
     await program.methods
       .updateOrder({ cancelled: {} })
-      .accountsPartial({
-        admin: context.payer.publicKey,
+      .accounts({
         order: orderPda,
       })
       .signers([context.payer])
@@ -204,7 +203,7 @@ describe('updateOrder', () => {
     try {
       await program.methods
         .updateOrder({ shipping: {} })
-        .accountsPartial({
+        .accounts({
           order: orderPda,
         })
         .signers([context.payer])

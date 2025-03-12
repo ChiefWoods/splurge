@@ -217,8 +217,7 @@ describe('completeOrder', () => {
   test('complete order', async () => {
     await program.methods
       .updateOrder({ shipping: {} })
-      .accountsPartial({
-        admin: context.payer.publicKey,
+      .accounts({
         order: orderPda,
       })
       .signers([context.payer])
@@ -313,8 +312,7 @@ describe('completeOrder', () => {
   test('throws if order is already completed', async () => {
     await program.methods
       .updateOrder({ shipping: {} })
-      .accountsPartial({
-        admin: context.payer.publicKey,
+      .accounts({
         order: orderPda,
       })
       .signers([context.payer])
@@ -355,8 +353,7 @@ describe('completeOrder', () => {
   test('throws if signed by unauthorized admin', async () => {
     await program.methods
       .updateOrder({ shipping: {} })
-      .accountsPartial({
-        admin: context.payer.publicKey,
+      .accounts({
         order: orderPda,
       })
       .signers([context.payer])
