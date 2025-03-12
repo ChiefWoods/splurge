@@ -3,16 +3,30 @@ import {
   parseItem,
   SPLURGE_PROGRAM,
 } from '@/lib/accounts';
+import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
+  const storePda = searchParams.get('store');
 
   try {
     if (!pdas.length) {
-      const allItemAcc = await SPLURGE_PROGRAM.account.item.all();
+      const filters: GetProgramAccountsFilter[] = storePda
+        ? [
+            {
+              memcmp: {
+                offset: 1,
+                bytes: storePda,
+                encoding: 'base58',
+              },
+            },
+          ]
+        : [];
+
+      const allItemAcc = await SPLURGE_PROGRAM.account.item.all(filters);
 
       return NextResponse.json(
         {

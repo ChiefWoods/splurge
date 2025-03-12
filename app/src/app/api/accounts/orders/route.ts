@@ -3,16 +3,57 @@ import {
   parseOrder,
   SPLURGE_PROGRAM,
 } from '@/lib/accounts';
+import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
+  const shopperPda = searchParams.get('shopper');
+  const storePda = searchParams.get('store');
 
   try {
     if (!pdas.length) {
-      const allOrderAcc = await SPLURGE_PROGRAM.account.order.all();
+      const filters: GetProgramAccountsFilter[] = [];
+
+      if (shopperPda) {
+        filters.push({
+          memcmp: {
+            offset: 1,
+            bytes: shopperPda,
+            encoding: 'base58',
+          },
+        });
+      }
+
+      if (storePda) {
+        const itemAccs = await SPLURGE_PROGRAM.account.item.all([
+          {
+            memcmp: {
+              offset: 1,
+              bytes: storePda,
+              encoding: 'base58',
+            },
+          },
+        ]);
+
+        const itemPdas = itemAccs.map((item) => item.publicKey.toBase58());
+
+        filters.push(
+          ...(itemPdas.map((itemPda) => {
+            return {
+              memcmp: {
+                offset: 33,
+                bytes: itemPda,
+                encoding: 'base58',
+              },
+            };
+          }) as GetProgramAccountsFilter[])
+        );
+      }
+
+      const allOrderAcc = await SPLURGE_PROGRAM.account.order.all(filters);
 
       return NextResponse.json(
         {

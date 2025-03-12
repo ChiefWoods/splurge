@@ -94,8 +94,24 @@ export async function fetchStore(publicKey: string) {
   return data.store as ParsedProgramAccount<ParsedStore>;
 }
 
-export async function fetchAllItems() {
-  const res = await fetch('/api/accounts/items');
+export async function fetchAllItems({
+  pdas,
+  storePda,
+}: {
+  pdas?: string[];
+  storePda?: string;
+}) {
+  const url = `/api/accounts/items`;
+
+  if (pdas) {
+    url.concat(`?pda=${pdas.join(',')}`);
+  }
+
+  if (storePda) {
+    url.concat(`?store=${storePda}`);
+  }
+
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!res.ok) {
@@ -116,8 +132,30 @@ export async function fetchItem(publicKey: string) {
   return data.item as ParsedProgramAccount<ParsedItem>;
 }
 
-export async function fetchAllOrders() {
-  const res = await fetch('/api/accounts/orders');
+export async function fetchAllOrders({
+  pdas,
+  shopper,
+  store,
+}: {
+  pdas?: string[];
+  shopper?: string;
+  store?: string;
+}) {
+  const url = '/api/accounts/orders';
+
+  if (pdas) {
+    url.concat(`?pda=${pdas.join(',')}`);
+  }
+
+  if (shopper) {
+    url.concat(`?shopper=${shopper}`);
+  }
+
+  if (store) {
+    url.concat(`?store=${store}`);
+  }
+
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!res.ok) {
@@ -138,8 +176,24 @@ export async function fetchOrder(publicKey: string) {
   return data.order as ParsedProgramAccount<ParsedOrder>;
 }
 
-export async function fetchAllReviews() {
-  const res = await fetch('/api/accounts/reviews');
+export async function fetchAllReviews({
+  pdas,
+  item,
+}: {
+  pdas?: string[];
+  item?: string;
+}) {
+  const url = '/api/accounts/reviews';
+
+  if (pdas) {
+    url.concat(`?pda=${pdas.join(',')}`);
+  }
+
+  if (item) {
+    url.concat(`?item=${item}`);
+  }
+
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!res.ok) {
