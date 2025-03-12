@@ -14,7 +14,7 @@ import {
 } from '@solana/wallet-adapter-wallets';
 import { ReactNode, useMemo } from 'react';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { CONNECTION } from '@/lib/constants';
+import { CLIENT_CONNECTION } from '@/lib/constants';
 
 export const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -25,7 +25,7 @@ export const WalletMultiButtonDynamic = dynamic(
 );
 
 export function SolanaProvider({ children }: { children: ReactNode }) {
-  const endpoint = useMemo(() => CONNECTION.rpcEndpoint, []);
+  const endpoint = useMemo(() => CLIENT_CONNECTION.rpcEndpoint, []);
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import {
   ACCEPTED_IMAGE_TYPES,
-  CONNECTION,
+  CLIENT_CONNECTION,
   MAX_SHOPPER_NAME_LENGTH,
-  MAX_STORE_ITEM_NAME_LENGTH,
+  MAX_ITEM_NAME_LENGTH,
   MAX_STORE_NAME_LENGTH,
 } from './constants';
 import { capitalizeFirstLetter } from './utils';
@@ -52,7 +52,7 @@ export const zPaymentMint = z
   .refine(async (mintAddress) => {
     try {
       return Boolean(
-        await CONNECTION.getAccountInfo(new PublicKey(mintAddress))
+        await CLIENT_CONNECTION.getAccountInfo(new PublicKey(mintAddress))
       );
     } catch (err) {
       console.error(err);
@@ -79,7 +79,7 @@ export const createStoreSchema = z.object({
 });
 
 export const createItemSchema = z.object({
-  name: zName(MAX_STORE_ITEM_NAME_LENGTH),
+  name: zName(MAX_ITEM_NAME_LENGTH),
   image: zImage,
   description: zCommonString('description'),
   inventoryCount: zInventoryCount,

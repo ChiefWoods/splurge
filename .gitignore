@@ -5,5 +5,5 @@ target
 node_modules
 test-ledger
 .yarn
-splurge-wallet.json
-.env
+*-wallet.json
+*-keypair.json

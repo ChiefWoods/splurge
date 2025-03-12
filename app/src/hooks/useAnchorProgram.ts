@@ -9,7 +9,7 @@ import {
 } from '@solana/wallet-adapter-react';
 import { useCallback, useMemo, useState } from 'react';
 import idl from '../idl/splurge.json';
-import { getSplurgeConfigPda } from '@/lib/pda';
+import { getConfigPda } from '@/lib/pda';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { BN } from 'bn.js';
 import { SPLURGE_WALLET } from '@/lib/constants';
@@ -213,9 +213,7 @@ export function useAnchorProgram() {
   }
 
   const getSplurgeConfigAcc = useCallback(async () => {
-    return await program.account.splurgeConfig.fetchNullable(
-      getSplurgeConfigPda()
-    );
+    return await program.account.splurgeConfig.fetchNullable(getConfigPda());
   }, [program]);
 
   const getAllShopperAcc = useCallback(async () => {
