@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::{ITEM_SEED, MAX_STORE_ITEM_NAME_LEN, STORE_SEED},
+    constants::{ITEM_SEED, MAX_ITEM_NAME_LEN, STORE_SEED},
     error::SplurgeError,
     events::ItemCreated,
     state::{Item, Store},
@@ -42,7 +42,7 @@ impl CreateItem<'_> {
     pub fn validate_name(name: &str) -> Result<()> {
         require!(!name.is_empty(), SplurgeError::ItemNameRequired);
         require!(
-            name.len() <= MAX_STORE_ITEM_NAME_LEN,
+            name.len() <= MAX_ITEM_NAME_LEN,
             SplurgeError::ItemNameTooLong
         );
 

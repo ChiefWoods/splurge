@@ -11,4 +11,4 @@ pub const MAX_BASIS_POINTS: u16 = 10000;
 pub const PRICE_SCALE_FACTOR: u8 = 100;
 pub const MAX_SHOPPER_NAME_LEN: usize = 64;
 pub const MAX_STORE_NAME_LEN: usize = 64;
-pub const MAX_STORE_ITEM_NAME_LEN: usize = 32;
+pub const MAX_ITEM_NAME_LEN: usize = 32;
