@@ -5,30 +5,30 @@ import {
   REVIEW_SEED,
   SHOPPER_SEED,
   CONFIG_SEED,
-  SPLURGE_PROGRAM_ID,
   ITEM_SEED,
   STORE_SEED,
+  SPLURGE_PROGRAM,
 } from './constants';
 import { BN } from '@coral-xyz/anchor';
 
 export function getConfigPda(): PublicKey {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(CONFIG_SEED)],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }
 
 export function getShopperPda(authority: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(SHOPPER_SEED), authority.toBuffer()],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }
 
 export function getStorePda(authority: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(STORE_SEED), authority.toBuffer()],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }
 
@@ -39,7 +39,7 @@ export function getItemPda(storePda: PublicKey, name: string): PublicKey {
 
   return PublicKey.findProgramAddressSync(
     [Buffer.from(ITEM_SEED), storePda.toBuffer(), Buffer.from(name)],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }
 
@@ -55,13 +55,13 @@ export function getOrderPda(
       itemPda.toBuffer(),
       timestamp.toArrayLike(Buffer, 'le', 8),
     ],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }
 
 export function getReviewPda(orderPda: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(REVIEW_SEED), orderPda.toBuffer()],
-    SPLURGE_PROGRAM_ID
+    SPLURGE_PROGRAM.programId
   )[0];
 }

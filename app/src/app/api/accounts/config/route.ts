@@ -1,8 +1,5 @@
-import {
-  parseProgramAccount,
-  parseConfig,
-  SPLURGE_PROGRAM,
-} from '@/lib/accounts';
+import { parseProgramAccount, parseConfig } from '@/lib/accounts';
+import { SPLURGE_PROGRAM } from '@/lib/constants';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {

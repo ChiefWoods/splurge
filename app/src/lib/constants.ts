@@ -1,8 +1,8 @@
 import { Cluster, clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import idl from '../idl/splurge.json';
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-
-export const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
+import { Program } from '@coral-xyz/anchor';
+import { Splurge } from '@/types/splurge';
 
 export const CLUSTER: Cluster | 'localnet' =
   process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER === 'localnet'
@@ -23,6 +23,10 @@ export const ADDRESS_LOOKUP_TABLE = process.env.NEXT_PUBLIC_ADDRESS_LOOKUP_TABLE
       )
     ).value
   : undefined;
+
+export const SPLURGE_PROGRAM = new Program(idl as Splurge, {
+  connection: SERVER_CONNECTION,
+});
 
 export const CONFIG_SEED = 'config';
 export const SHOPPER_SEED = 'shopper';

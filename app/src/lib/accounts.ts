@@ -1,12 +1,5 @@
-import {
-  IdlAccounts,
-  IdlTypes,
-  Program,
-  ProgramAccount,
-} from '@coral-xyz/anchor';
+import { IdlAccounts, IdlTypes, ProgramAccount } from '@coral-xyz/anchor';
 import { Splurge } from '../types/splurge';
-import idl from '../idl/splurge.json';
-import { SERVER_CONNECTION } from './constants';
 
 export type Config = IdlAccounts<Splurge>['config'];
 export type Shopper = IdlAccounts<Splurge>['shopper'];
@@ -67,10 +60,6 @@ export interface ParsedReview {
   timestamp: number;
   text: string;
 }
-
-export const SPLURGE_PROGRAM = new Program(idl as Splurge, {
-  connection: SERVER_CONNECTION,
-});
 
 export function parseProgramAccount<A, P>(
   programAccount: ProgramAccount,

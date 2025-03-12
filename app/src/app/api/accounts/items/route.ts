@@ -1,8 +1,5 @@
-import {
-  parseProgramAccount,
-  parseItem,
-  SPLURGE_PROGRAM,
-} from '@/lib/accounts';
+import { parseProgramAccount, parseItem } from '@/lib/accounts';
+import { SPLURGE_PROGRAM } from '@/lib/constants';
 import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
 
