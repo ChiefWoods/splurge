@@ -2,7 +2,7 @@
 
 import { ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
-import { WalletMultiButtonDynamic } from './SolanaProvider';
+import { WalletMultiButtonDynamic } from '@/providers/SolanaProvider';
 import useSWR from 'swr';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '@/hooks/useAnchorProgram';

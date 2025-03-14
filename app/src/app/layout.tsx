@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ReactNode } from 'react';
-import { SolanaProvider } from '@/components/SolanaProvider';
+import { SolanaProvider } from '@/providers/SolanaProvider';
 import Header from '@/components/Header';
 import { SWRConfig } from 'swr';
 import { Toaster } from '@/components/ui/sonner';
