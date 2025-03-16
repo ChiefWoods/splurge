@@ -26,22 +26,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import {
-  getDicebearFile,
-  getTransactionLink,
-  setComputeUnitLimitAndPrice,
-} from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { getDicebearFile } from '@/lib/api';
+import { getCreateItemIx } from '@/lib/instructions';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { useStore } from '@/providers/StoreProvider';
+import { useItem } from '@/providers/ItemProvider';
+import { getItemPda } from '@/lib/pda';
+import { PublicKey } from '@solana/web3.js';
 
-export function AddItemDialog({ mutate }: { mutate: () => void }) {
+export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getCreateItemIx } = useAnchorProgram();
   const { upload } = useIrysUploader();
+  const { triggerAllItems } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -81,40 +83,56 @@ export function AddItemDialog({ mutate }: { mutate: () => void }) {
           toast.promise(
             async () => {
               setIsSubmitting(true);
-              const ix = await getCreateItemIx(
-                data.name,
-                imageUri,
-                data.description,
-                data.inventoryCount,
-                data.price,
+
+              const tx = await buildTx(
+                [
+                  await getCreateItemIx({
+                    price: data.price,
+                    inventoryCount: data.inventoryCount,
+                    name: data.name,
+                    image: imageUri,
+                    description: data.description,
+                    authority: publicKey,
+                  }),
+                ],
                 publicKey
               );
-              const tx = await setComputeUnitLimitAndPrice(
-                connection,
-                [ix],
-                publicKey,
-                []
-              );
-              const { blockhash, lastValidBlockHeight } =
-                await connection.getLatestBlockhash();
-
-              tx.recentBlockhash = blockhash;
-              tx.lastValidBlockHeight = lastValidBlockHeight;
 
               const signature = await sendTransaction(tx, connection);
 
-              await connection.confirmTransaction({
-                blockhash,
-                lastValidBlockHeight,
-                signature,
-              });
+              await confirmTransaction(connection, signature);
 
               return signature;
             },
             {
               loading: 'Waiting for signature...',
               success: (signature) => {
-                mutate();
+                triggerAllItems(
+                  { storePda },
+                  {
+                    optimisticData: (prev) => {
+                      if (prev) {
+                        return [
+                          ...prev,
+                          {
+                            publicKey: getItemPda(
+                              new PublicKey(storePda),
+                              data.name
+                            ).toBase58(),
+                            store: storePda,
+                            price: data.price,
+                            inventoryCount: data.inventoryCount,
+                            name: data.name,
+                            image: imageUri,
+                            description: data.description,
+                          },
+                        ];
+                      } else {
+                        return [];
+                      }
+                    },
+                  }
+                );
                 form.reset();
                 setIsSubmitting(false);
                 setIsOpen(false);

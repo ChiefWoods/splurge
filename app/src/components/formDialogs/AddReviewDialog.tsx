@@ -1,13 +1,12 @@
 'use client';
 
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { CreateReviewFormData, createReviewSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { getTransactionLink, setComputeUnitLimitAndPrice } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Button } from '../ui/button';
@@ -31,19 +30,21 @@ import {
 } from '../ui/form';
 import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
+import { getCreateReviewIx } from '@/lib/instructions';
+import { getReviewPda, getShopperPda } from '@/lib/pda';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { useReview } from '@/providers/ReviewProvider';
 
 export function AddReviewDialog({
-  storeItemPda,
+  itemPda,
   orderPda,
-  mutate,
 }: {
-  storeItemPda: string;
+  itemPda: string;
   orderPda: string;
-  mutate: () => void;
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getCreateReviewIx } = useAnchorProgram();
+  const { triggerAllReviews } = useReview();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,39 +64,52 @@ export function AddReviewDialog({
         }
 
         setIsSubmitting(true);
-        const ix = await getCreateReviewIx(
-          data.text,
-          data.rating,
-          publicKey,
-          new PublicKey(storeItemPda),
-          new PublicKey(orderPda)
-        );
-        const tx = await setComputeUnitLimitAndPrice(
-          connection,
-          [ix],
-          publicKey,
-          []
-        );
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
 
-        tx.recentBlockhash = blockhash;
-        tx.lastValidBlockHeight = lastValidBlockHeight;
+        const tx = await buildTx(
+          [
+            await getCreateReviewIx({
+              text: data.text,
+              rating: data.rating,
+              authority: publicKey,
+              shopperPda: getShopperPda(publicKey),
+              orderPda: new PublicKey(orderPda),
+            }),
+          ],
+          publicKey
+        );
 
         const signature = await sendTransaction(tx, connection);
 
-        await connection.confirmTransaction({
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        });
+        await confirmTransaction(connection, signature);
 
         return signature;
       },
       {
         loading: 'Waiting for signature...',
         success: (signature) => {
-          mutate();
+          triggerAllReviews(
+            { itemPda },
+            {
+              optimisticData: (prev) => {
+                if (prev) {
+                  return [
+                    ...prev,
+                    {
+                      publicKey: getReviewPda(
+                        new PublicKey(orderPda)
+                      ).toBase58(),
+                      order: orderPda,
+                      rating: data.rating,
+                      timestamp: Date.now(),
+                      text: data.text,
+                    },
+                  ];
+                } else {
+                  return [];
+                }
+              },
+            }
+          );
           form.reset();
           setIsSubmitting(false);
           setIsOpen(false);

@@ -12,18 +12,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
+import { ParsedOrder, ParsedProgramAccount } from '@/lib/accounts';
 import { WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
 import { capitalizeFirstLetter, getAccountLink } from '@/lib/utils';
+import { useItem } from '@/providers/ItemProvider';
+import { useOrder } from '@/providers/OrderProvider';
 import { Tabs } from '@radix-ui/react-tabs';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
 import { ArrowDown, ArrowUp, SquareArrowOutUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
-import useSWR from 'swr';
+import { useEffect, useState } from 'react';
 
 type SortedOrders = {
   pda: string;
@@ -49,107 +49,63 @@ const tabs = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
 
 export default function Page() {
   const { publicKey } = useWallet();
-  const { getShopperAcc, getMultipleStoreItemAcc, getMultipleOrderAcc } =
-    useAnchorProgram();
+  const { allOrders, triggerAllOrders } = useOrder();
+  const { allItems, triggerAllItems } = useItem();
+  const [sortedOrders, setSortedOrders] = useState<
+    ParsedProgramAccount<ParsedOrder>[]
+  >([]);
   const [tabValue, setTabValue] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
   const [showNameAsc, setShowNameAsc] = useState<boolean>(true);
-  const orders = useSWR(
-    publicKey ? { url: '/api/orders', publicKey } : null,
-    async ({ publicKey }) => {
-      const shopper = await getShopperAcc(getShopperPda(publicKey));
 
-      if (!shopper) {
-        throw new Error('Shopper account not found.');
-      }
+  triggerAllOrders({
+    shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
+  });
+  triggerAllItems({});
 
-      const storeItemSet = new Set<PublicKey>();
-      const orders = (await getMultipleOrderAcc(shopper.orders))
-        .map((order, i) => {
-          if (!order) return;
-
-          storeItemSet.add(order.storeItem);
-
-          return {
-            pda: shopper.orders[i].toBase58(),
-            status: Object.keys(order.status)[0],
-            itemPda: order.storeItem.toBase58(),
-            amount: order.amount.toNumber(),
-            totalUsd: order.totalUsd,
-            paymentMint: order.paymentMint.toBase58(),
-          };
-        })
-        .filter((orderAcc) => orderAcc !== null && orderAcc !== undefined);
-
-      const storeItemArr = Array.from(storeItemSet);
-      const storeItems = (await getMultipleStoreItemAcc(storeItemArr)).filter(
-        (item) => item !== null
-      );
-
-      const storeItemMap = new Map(
-        storeItems.map((item, i) => {
-          return [
-            storeItemArr[i].toBase58(),
-            {
-              pda: storeItemArr[i].toBase58(),
-              name: item.name,
-              image: item.image,
-            },
-          ];
-        })
-      );
-
-      const ordersWithItems = orders
-        .map(({ pda, status, itemPda, amount, totalUsd, paymentMint }) => {
-          const storeItem = storeItemMap.get(itemPda);
-
-          if (!storeItem) {
-            throw new Error('Store item not found.');
-          }
-
-          return {
-            pda,
-            status,
-            amount,
-            totalUsd,
-            storeItem,
-            paymentMint,
-          };
-        })
-        .filter((order) => order !== undefined);
-
-      return ordersWithItems;
-    }
-  );
-  const sortedOrders = useSWR(
-    orders.data ? { orders: orders.data, tabValue, searchValue } : null,
-    ({ orders, tabValue, searchValue }) => {
-      return orders
+  useEffect(() => {
+    if (allOrders && allItems) {
+      const sortedOrders = allOrders
         .filter((order) => {
           if (tabValue === 'all') {
             return true;
           } else {
-            return order.status === tabValue;
+            return Object.keys(order.status)[0] === tabValue;
           }
         })
         .filter((order) => {
-          return order.storeItem.name
-            .toLowerCase()
-            .includes(searchValue.toLowerCase());
+          const item = allItems.find(
+            ({ publicKey }) => publicKey === order.item
+          );
+
+          if (!item) {
+            throw new Error('Matching item not found for order.');
+          }
+
+          return item.name.toLowerCase().includes(searchValue.toLowerCase());
         })
         .sort((a, b) => {
+          const itemA = allItems.find(({ publicKey }) => publicKey === a.item);
+          const itemB = allItems.find(({ publicKey }) => publicKey === b.item);
+
+          if (!itemA || !itemB) {
+            throw new Error('Matching item not found for order.');
+          }
+
           return showNameAsc
-            ? a.storeItem.name.localeCompare(b.storeItem.name)
-            : b.storeItem.name.localeCompare(a.storeItem.name);
+            ? itemA.name.localeCompare(itemB.name)
+            : itemB.name.localeCompare(itemA.name);
         });
+
+      setSortedOrders(sortedOrders);
     }
-  );
+  }, [allOrders, allItems, tabValue, searchValue, showNameAsc]);
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full text-start">My Orders</h2>
       {publicKey ? (
-        orders.data && (
+        allOrders?.length && (
           <Tabs
             defaultValue="all"
             value={tabValue}
@@ -188,65 +144,74 @@ export default function Page() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedOrders.data?.length ? (
-                  sortedOrders.data.map((order: SortedOrders) => (
-                    <TableRow key={order.pda}>
-                      <TableCell>
-                        <Badge className={`${statusColors[order.status]}`}>
-                          {order.status.charAt(0).toUpperCase() +
-                            order.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-x-4">
-                          <div className="h-12 w-12 rounded-lg border bg-[#f4f4f5] p-1">
+                {allItems && sortedOrders.length ? (
+                  sortedOrders.map((order) => {
+                    const status = Object.keys(order.status)[0];
+
+                    const item = allItems.find(
+                      ({ publicKey }) => publicKey === order.item
+                    );
+
+                    if (!item) {
+                      throw new Error('Matching item not found for order.');
+                    }
+
+                    return (
+                      <TableRow key={order.publicKey}>
+                        <TableCell>
+                          <Badge className={`${statusColors[status]}`}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-x-4">
+                            <div className="h-12 w-12 rounded-lg border bg-[#f4f4f5] p-1">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                width={40}
+                                height={40}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <span className="text-md">{item.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{order.amount}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-x-2">
+                            <span>{order.total.toFixed(2)}</span>
                             <Image
-                              src={order.storeItem.image}
-                              alt={order.storeItem.name}
-                              width={40}
-                              height={40}
-                              className="h-full w-full object-cover"
+                              src={
+                                WHITELISTED_PAYMENT_TOKENS.find(
+                                  (token) => token.mint === order.paymentMint
+                                )!.image
+                              }
+                              alt="payment token"
+                              width={20}
+                              height={20}
                             />
                           </div>
-                          <span className="text-md">
-                            {order.storeItem.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{order.amount}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-x-2">
-                          <span>{order.totalUsd.toFixed(2)}</span>
-                          <Image
-                            src={
-                              WHITELISTED_PAYMENT_TOKENS.find(
-                                (token) => token.mint === order.paymentMint
-                              )!.image
-                            }
-                            alt="payment token"
-                            width={20}
-                            height={20}
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          asChild
-                          size={'icon'}
-                          type="button"
-                          variant={'ghost'}
-                          className="h-fit w-fit"
-                        >
-                          <Link
-                            href={getAccountLink(order.pda)}
-                            target="_blank"
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            asChild
+                            size={'icon'}
+                            type="button"
+                            variant={'ghost'}
+                            className="h-fit w-fit"
                           >
-                            <SquareArrowOutUpRight />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            <Link
+                              href={getAccountLink(order.publicKey)}
+                              target="_blank"
+                            >
+                              <SquareArrowOutUpRight />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
@@ -256,15 +221,15 @@ export default function Page() {
                 )}
               </TableBody>
             </Table>
-            {sortedOrders.data && (
+            {sortedOrders && (
               <p className="muted-text text-sm">
-                {sortedOrders.data.length} item(s) found.
+                {sortedOrders.length} item(s) found.
               </p>
             )}
           </Tabs>
         )
       ) : (
-        <p className="my-auto">Connect your Wallet</p>
+        <p className="my-auto">Connect your wallet</p>
       )}
     </section>
   );

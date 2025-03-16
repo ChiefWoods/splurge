@@ -25,30 +25,35 @@ import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
-import { getTransactionLink, setComputeUnitLimitAndPrice } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import Image from 'next/image';
+import { getUpdateItemIx } from '@/lib/instructions';
+import { PublicKey } from '@solana/web3.js';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { useItem } from '@/providers/ItemProvider';
 
 export function UpdateItemDialog({
   name,
   image,
   description,
-  inventoryCount,
   price,
-  mutate,
+  inventoryCount,
+  itemPda,
+  storePda,
 }: {
   name: string;
   image: string;
   description: string;
-  inventoryCount: number;
   price: number;
-  mutate: () => void;
+  inventoryCount: number;
+  itemPda: string;
+  storePda: string;
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getUpdateItemIx } = useAnchorProgram();
+  const { triggerAllItems } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,31 +73,23 @@ export function UpdateItemDialog({
         }
 
         setIsSubmitting(true);
-        const ix = await getUpdateItemIx(
-          name,
-          data.inventoryCount,
-          data.price,
+
+        const tx = await buildTx(
+          [
+            await getUpdateItemIx({
+              price: data.price,
+              inventoryCount: data.inventoryCount,
+              authority: publicKey,
+              itemPda: new PublicKey(itemPda),
+              storePda: new PublicKey(storePda),
+            }),
+          ],
           publicKey
         );
-        const tx = await setComputeUnitLimitAndPrice(
-          connection,
-          [ix],
-          publicKey,
-          []
-        );
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
-
-        tx.recentBlockhash = blockhash;
-        tx.lastValidBlockHeight = lastValidBlockHeight;
 
         const signature = await sendTransaction(tx, connection);
 
-        await connection.confirmTransaction({
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        });
+        await confirmTransaction(connection, signature);
 
         return {
           signature,
@@ -103,7 +100,28 @@ export function UpdateItemDialog({
       {
         loading: 'Waiting for signature...',
         success: ({ signature, inventoryCount, price }) => {
-          mutate();
+          triggerAllItems(
+            { storePda },
+            {
+              optimisticData: (prev) => {
+                if (prev) {
+                  return prev.map((item) => {
+                    if (item.publicKey === itemPda) {
+                      return {
+                        ...item,
+                        price: data.price,
+                        inventoryCount:
+                          item.inventoryCount - data.inventoryCount,
+                      };
+                    }
+                    return item;
+                  });
+                } else {
+                  return [];
+                }
+              },
+            }
+          );
           form.reset({
             inventoryCount,
             price,

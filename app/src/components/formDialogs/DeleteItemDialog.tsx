@@ -1,7 +1,6 @@
 'use client';
 
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
-import { getTransactionLink, setComputeUnitLimitAndPrice } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,17 +17,23 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
+import { useItem } from '@/providers/ItemProvider';
+import { getDeleteItemIx } from '@/lib/instructions';
+import { PublicKey } from '@solana/web3.js';
+import { confirmTransaction } from '@solana-developers/helpers';
 
 export function DeleteItemDialog({
   name,
-  mutate,
+  itemPda,
+  storePda,
 }: {
   name: string;
-  mutate: () => void;
+  itemPda: string;
+  storePda: string;
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getDeleteItemIx } = useAnchorProgram();
+  const { triggerAllItems } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,33 +47,41 @@ export function DeleteItemDialog({
         }
 
         setIsSubmitting(true);
-        const ix = await getDeleteItemIx(name, publicKey);
-        const tx = await setComputeUnitLimitAndPrice(
-          connection,
-          [ix],
-          publicKey,
-          []
-        );
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
 
-        tx.recentBlockhash = blockhash;
-        tx.lastValidBlockHeight = lastValidBlockHeight;
+        const tx = await buildTx(
+          [
+            await getDeleteItemIx({
+              authority: publicKey,
+              itemPda: new PublicKey(itemPda),
+              storePda: new PublicKey(storePda),
+            }),
+          ],
+          publicKey
+        );
 
         const signature = await sendTransaction(tx, connection);
 
-        await connection.confirmTransaction({
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        });
+        await confirmTransaction(connection, signature);
 
         return signature;
       },
       {
         loading: 'Waiting for signature...',
         success: (signature) => {
-          mutate();
+          triggerAllItems(
+            { storePda },
+            {
+              optimisticData: (prev) => {
+                if (prev) {
+                  return prev.filter((item) => {
+                    return item.publicKey !== itemPda;
+                  });
+                } else {
+                  return [];
+                }
+              },
+            }
+          );
           setIsSubmitting(false);
           setIsOpen(false);
 

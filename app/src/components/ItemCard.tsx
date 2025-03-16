@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
-export function StoreItemCard({
+export function ItemCard({
   itemPda,
   itemName,
   itemImage,

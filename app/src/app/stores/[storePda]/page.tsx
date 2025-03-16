@@ -8,53 +8,28 @@ import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { DeleteItemDialog } from '@/components/formDialogs/DeleteItemDialog';
 import { UpdateItemDialog } from '@/components/formDialogs/UpdateItemDialog';
 import { NoResultText } from '@/components/NoResultText';
-import { StoreItemCard } from '@/components/StoreItemCard';
-import { StoreItemCardSkeleton } from '@/components/StoreItemCardSkeleton';
+import { ItemCard } from '@/components/ItemCard';
+import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { getStorePda } from '@/lib/pda';
-import { StoreItem } from '@/types/idlAccounts';
+import { useItem } from '@/providers/ItemProvider';
+import { useStore } from '@/providers/StoreProvider';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
 import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
-import useSWR from 'swr';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useWallet();
-  const { getStoreAcc, getMultipleStoreItemAcc } = useAnchorProgram();
+  const { store, storeMutating, triggerStore } = useStore();
+  const { allItems, itemMutating, triggerAllItems } = useItem();
 
-  const store = useSWR(
-    { url: `/api/stores/${storePda}`, publicKey },
-    async ({ publicKey }) => {
-      const acc = await getStoreAcc(new PublicKey(storePda));
+  triggerStore({ publicKey: storePda });
+  triggerAllItems({ storePda });
 
-      let isOwner = false;
-      let items: (StoreItem & { pda: string })[] = [];
-
-      if (acc) {
-        if (publicKey) {
-          isOwner = getStorePda(publicKey).toBase58() === storePda;
-        }
-
-        items = (await getMultipleStoreItemAcc(acc.items))
-          .filter((item) => item !== null)
-          .map((item: StoreItem, i) => {
-            return {
-              ...item,
-              pda: acc.items[i].toBase58(),
-            };
-          });
-      }
-
-      return { acc, isOwner, items };
-    }
-  );
-
-  if (store.data && !store.data.acc) {
+  if (!storeMutating && !itemMutating && !store) {
     notFound();
   }
 
@@ -73,22 +48,22 @@ export default function Page() {
 
   return (
     <section className="main-section flex-1">
-      {store.isLoading ? (
+      {storeMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        store.data &&
-        store.data.acc && (
+        store && (
           <AccountSection
             key={storePda}
-            title={store.data.acc.name}
-            image={store.data.acc.image}
+            title={store.name}
+            image={store.image}
             prefix="Store ID:"
             address={storePda}
-            content={<p className="text-primary">{store.data.acc.about}</p>}
+            content={<p className="text-primary">{store.about}</p>}
             buttons={
-              store.data.isOwner && (
+              publicKey &&
+              store.publicKey === getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
-                  <AddItemDialog mutate={store.mutate} />
+                  <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, icon, text }) => (
                     <Button
                       key={href}
@@ -112,59 +87,71 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
-          {store.isLoading ? (
+          {itemMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
-                <StoreItemCardSkeleton key={i} />
+                <ItemCardSkeleton key={i} />
               ))}
             </>
-          ) : store.data && store.data.items.length ? (
-            store.data.items.map(
-              ({ pda, name, image, description, inventoryCount, price }) =>
-                store.data && (
-                  <StoreItemCard
+          ) : allItems?.length ? (
+            allItems.map(
+              ({
+                publicKey: pda,
+                name,
+                image,
+                description,
+                inventoryCount,
+                price,
+              }) =>
+                store && (
+                  <ItemCard
                     key={pda}
                     itemPda={pda}
                     itemName={name}
                     itemImage={image}
-                    inventoryCount={inventoryCount.toNumber()}
+                    inventoryCount={inventoryCount}
                     price={price}
                     storePda={storePda}
                   >
-                    {store.data.isOwner ? (
+                    {publicKey &&
+                    store.publicKey === getStorePda(publicKey).toBase58() ? (
                       <div className="flex items-end gap-x-2">
                         <UpdateItemDialog
                           name={name}
                           image={image}
                           description={description}
-                          inventoryCount={inventoryCount.toNumber()}
                           price={price}
-                          mutate={store.mutate}
+                          inventoryCount={inventoryCount}
+                          itemPda={pda}
+                          storePda={storePda}
                         />
-                        <DeleteItemDialog name={name} mutate={store.mutate} />
+                        <DeleteItemDialog
+                          name={name}
+                          itemPda={pda}
+                          storePda={storePda}
+                        />
                       </div>
                     ) : (
-                      inventoryCount.toNumber() > 0 && (
+                      inventoryCount > 0 && (
                         <CheckoutDialog
                           name={name}
                           image={image}
                           price={price}
-                          maxAmount={inventoryCount.toNumber()}
+                          maxAmount={inventoryCount}
                           storePda={storePda}
-                          storeItemPda={pda}
+                          itemPda={pda}
                           btnVariant="default"
                           btnSize="icon"
-                          mutate={store.mutate}
                         >
                           <ShoppingCart />
                         </CheckoutDialog>
                       )
                     )}
-                  </StoreItemCard>
+                  </ItemCard>
                 )
             )
           ) : (
-            <NoResultText text="No Items Listed." />
+            <NoResultText text="No items listed." />
           )}
         </div>
       </section>

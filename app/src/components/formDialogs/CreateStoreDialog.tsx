@@ -26,28 +26,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
 import { useRouter } from 'next/navigation';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
-import { mutate, SWRResponse } from 'swr';
 import { TransactionToast } from '@/components/TransactionToast';
-import {
-  getDicebearFile,
-  getTransactionLink,
-  setComputeUnitLimitAndPrice,
-} from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { PublicKey } from '@solana/web3.js';
+import { getCreateStoreIx } from '@/lib/instructions';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { getDicebearFile } from '@/lib/api';
+import { getStorePda } from '@/lib/pda';
 
-export function CreateStoreDialog({
-  store,
-}: {
-  store: SWRResponse<{ pda: PublicKey }>;
-}) {
+export function CreateStoreDialog() {
   const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getCreateStoreIx, getStoreAcc } = useAnchorProgram();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -82,31 +74,22 @@ export function CreateStoreDialog({
           toast.promise(
             async () => {
               setIsSubmitting(true);
-              const ix = await getCreateStoreIx(
-                data.name,
-                imageUri,
-                data.about,
+
+              const tx = await buildTx(
+                [
+                  await getCreateStoreIx({
+                    name: data.name,
+                    image: imageUri,
+                    about: data.about,
+                    authority: publicKey,
+                  }),
+                ],
                 publicKey
               );
-              const tx = await setComputeUnitLimitAndPrice(
-                connection,
-                [ix],
-                publicKey,
-                []
-              );
-              const { blockhash, lastValidBlockHeight } =
-                await connection.getLatestBlockhash();
-
-              tx.recentBlockhash = blockhash;
-              tx.lastValidBlockHeight = lastValidBlockHeight;
 
               const signature = await sendTransaction(tx, connection);
 
-              await connection.confirmTransaction({
-                blockhash,
-                lastValidBlockHeight,
-                signature,
-              });
+              await confirmTransaction(connection, signature);
 
               return signature;
             },
@@ -117,12 +100,11 @@ export function CreateStoreDialog({
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
-                mutate({ url: '/api/stores', publicKey });
 
                 setTimeout(() => {
-                  if (store.data) {
-                    router.push(`/stores/${store.data.pda.toBase58()}`);
-                  }
+                  // if (store.data) {
+                  router.push(`/stores/${getStorePda(publicKey).toBase58()}`);
+                  // }
                 }, 1000);
 
                 return (

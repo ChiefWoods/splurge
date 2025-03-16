@@ -1,13 +1,12 @@
 'use client';
 
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { ReactNode, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { getTransactionLink, setComputeUnitLimitAndPrice } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import {
@@ -39,7 +38,10 @@ import {
   SelectValue,
 } from '../ui/select';
 import { z } from 'zod';
-import { SPLURGE_WALLET, WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
+import { WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
+import { getCreateOrderIx } from '@/lib/instructions';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { useItem } from '@/providers/ItemProvider';
 
 export function CheckoutDialog({
   name,
@@ -47,10 +49,9 @@ export function CheckoutDialog({
   price,
   maxAmount,
   storePda,
-  storeItemPda,
+  itemPda,
   btnVariant = 'secondary',
   btnSize = 'sm',
-  mutate,
   children,
 }: {
   name: string;
@@ -58,20 +59,18 @@ export function CheckoutDialog({
   price: number;
   maxAmount: number;
   storePda: string;
-  storeItemPda: string;
+  itemPda: string;
   btnVariant?: 'default' | 'secondary';
   btnSize?: 'sm' | 'icon';
-  mutate: () => void;
   children: ReactNode;
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getCreateOrderIx } = useAnchorProgram();
+  const { triggerAllItems } = useItem();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderTotal, setOrderTotal] = useState<number>(0);
 
-  // Dynamic schema
   const createOrderSchema = z.object({
     amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
     paymentMint: zPaymentMint,
@@ -104,44 +103,50 @@ export function CheckoutDialog({
           throw new Error('Payment mint not whitelisted.');
         }
 
-        const ix = await getCreateOrderIx(
-          Date.now(),
-          data.amount,
-          orderTotal,
-          new PublicKey(storePda),
-          new PublicKey(storeItemPda),
-          new PublicKey(data.paymentMint),
-          token.owner,
+        const tx = await buildTx(
+          [
+            await getCreateOrderIx({
+              amount: data.amount,
+              timestamp: Date.now(),
+              authority: publicKey,
+              storePda: new PublicKey(storePda),
+              itemPda: new PublicKey(itemPda),
+              paymentMint: new PublicKey(data.paymentMint),
+              tokenProgram: token.owner,
+            }),
+          ],
           publicKey
         );
-        const tx = await setComputeUnitLimitAndPrice(
-          connection,
-          [ix],
-          publicKey,
-          []
-        );
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
-
-        tx.recentBlockhash = blockhash;
-        tx.lastValidBlockHeight = lastValidBlockHeight;
-        tx.feePayer = publicKey;
-        tx.sign(SPLURGE_WALLET);
 
         const signature = await sendTransaction(tx, connection);
 
-        await connection.confirmTransaction({
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        });
+        await confirmTransaction(connection, signature);
 
         return signature;
       },
       {
         loading: 'Waiting for signature...',
         success: (signature) => {
-          mutate();
+          triggerAllItems(
+            {},
+            {
+              optimisticData: (prev) => {
+                if (prev) {
+                  return prev.map((item) => {
+                    if (item.publicKey === itemPda) {
+                      return {
+                        ...item,
+                        inventoryCount: item.inventoryCount - data.amount,
+                      };
+                    }
+                    return item;
+                  });
+                } else {
+                  return [];
+                }
+              },
+            }
+          );
           form.reset();
           setIsSubmitting(false);
           setIsOpen(false);

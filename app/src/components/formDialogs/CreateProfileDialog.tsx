@@ -27,27 +27,21 @@ import { ImageInput } from '@/components/ImageInput';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useRouter } from 'next/navigation';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
 import { SWRResponse, mutate } from 'swr';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import {
-  getDicebearFile,
-  getTransactionLink,
-  setComputeUnitLimitAndPrice,
-} from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/utils';
 import { PublicKey } from '@solana/web3.js';
+import { getCreateShopperIx } from '@/lib/instructions';
+import { getDicebearFile } from '@/lib/api';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { getShopperPda } from '@/lib/pda';
 
-export function CreateProfileDialog({
-  shopper,
-}: {
-  shopper: SWRResponse<{ pda: PublicKey }>;
-}) {
+export function CreateProfileDialog() {
   const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { getCreateShopperIx } = useAnchorProgram();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -82,31 +76,22 @@ export function CreateProfileDialog({
           toast.promise(
             async () => {
               setIsSubmitting(true);
-              const ix = await getCreateShopperIx(
-                data.name,
-                imageUri,
-                data.address,
+
+              const tx = await buildTx(
+                [
+                  await getCreateShopperIx({
+                    name: data.name,
+                    image: imageUri,
+                    address: data.address,
+                    authority: publicKey,
+                  }),
+                ],
                 publicKey
               );
-              const tx = await setComputeUnitLimitAndPrice(
-                connection,
-                [ix],
-                publicKey,
-                []
-              );
-              const { blockhash, lastValidBlockHeight } =
-                await connection.getLatestBlockhash();
-
-              tx.recentBlockhash = blockhash;
-              tx.lastValidBlockHeight = lastValidBlockHeight;
 
               const signature = await sendTransaction(tx, connection);
 
-              await connection.confirmTransaction({
-                blockhash,
-                lastValidBlockHeight,
-                signature,
-              });
+              await confirmTransaction(connection, signature);
 
               return signature;
             },
@@ -117,12 +102,11 @@ export function CreateProfileDialog({
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
-                mutate({ url: '/api/shoppers', publicKey });
 
                 setTimeout(() => {
-                  if (shopper.data) {
-                    router.push(`/shoppers/${shopper.data.pda.toBase58()}`);
-                  }
+                  router.push(
+                    `/shoppers/${getShopperPda(publicKey).toBase58()}`
+                  );
                 }, 1000);
 
                 return (

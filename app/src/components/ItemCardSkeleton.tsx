@@ -1,6 +1,6 @@
 import { Skeleton } from './ui/skeleton';
 
-export function StoreItemCardSkeleton() {
+export function ItemCardSkeleton() {
   return (
     <div className="box-content flex w-[200px] flex-col gap-y-2 rounded-lg p-4">
       <div className="flex flex-col gap-y-2 p-0">

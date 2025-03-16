@@ -39,6 +39,17 @@ export async function getDicebearFile(
   return new File([file], file.name, { type: file.type });
 }
 
+export async function defaultFetcher(url: string) {
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
+
 export async function fetchConfig() {
   const res = await fetch('/api/accounts/config');
   const data = await res.json();
@@ -50,8 +61,14 @@ export async function fetchConfig() {
   return data.config as ParsedProgramAccount<ParsedConfig>;
 }
 
-export async function fetchAllShoppers() {
-  const res = await fetch('/api/accounts/shoppers');
+export async function fetchShoppers({ pdas }: { pdas?: string[] }) {
+  const url = new URL('/api/accounts/shoppers');
+
+  if (pdas?.length) {
+    pdas.forEach((pda) => url.searchParams.append('pda', pda));
+  }
+
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!res.ok) {
@@ -61,19 +78,14 @@ export async function fetchAllShoppers() {
   return data.shoppers as ParsedProgramAccount<ParsedShopper>[];
 }
 
-export async function fetchShopper(publicKey: string) {
-  const res = await fetch(`/api/accounts/shoppers?pda=${publicKey}`);
-  const data = await res.json();
+export async function fetchStores({ pdas }: { pdas?: string[] }) {
+  const url = new URL('/api/accounts/stores');
 
-  if (!res.ok) {
-    throw new Error(data.error);
+  if (pdas?.length) {
+    pdas.forEach((pda) => url.searchParams.append('pda', pda));
   }
 
-  return data.shopper as ParsedProgramAccount<ParsedShopper>;
-}
-
-export async function fetchAllStores() {
-  const res = await fetch('/api/accounts/stores');
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!res.ok) {
@@ -83,32 +95,21 @@ export async function fetchAllStores() {
   return data.stores as ParsedProgramAccount<ParsedStore>[];
 }
 
-export async function fetchStore(publicKey: string) {
-  const res = await fetch(`/api/accounts/stores?pda=${publicKey}`);
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
-
-  return data.store as ParsedProgramAccount<ParsedStore>;
-}
-
-export async function fetchAllItems({
+export async function fetchItems({
   pdas,
   storePda,
 }: {
   pdas?: string[];
   storePda?: string;
 }) {
-  const url = `/api/accounts/items`;
+  const url = new URL('/api/accounts/items');
 
-  if (pdas) {
-    url.concat(`?pda=${pdas.join(',')}`);
+  if (pdas?.length) {
+    pdas.forEach((pda) => url.searchParams.append('pda', pda));
   }
 
   if (storePda) {
-    url.concat(`?store=${storePda}`);
+    url.searchParams.append('store', storePda);
   }
 
   const res = await fetch(url);
@@ -121,38 +122,27 @@ export async function fetchAllItems({
   return data.items as ParsedProgramAccount<ParsedItem>[];
 }
 
-export async function fetchItem(publicKey: string) {
-  const res = await fetch(`/api/accounts/items?pda=${publicKey}`);
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
-
-  return data.item as ParsedProgramAccount<ParsedItem>;
-}
-
-export async function fetchAllOrders({
+export async function fetchOrders({
   pdas,
-  shopper,
-  store,
+  shopperPda,
+  storePda,
 }: {
   pdas?: string[];
-  shopper?: string;
-  store?: string;
+  shopperPda?: string;
+  storePda?: string;
 }) {
-  const url = '/api/accounts/orders';
+  const url = new URL('/api/accounts/orders');
 
-  if (pdas) {
-    url.concat(`?pda=${pdas.join(',')}`);
+  if (pdas?.length) {
+    pdas.forEach((pda) => url.searchParams.append('pda', pda));
   }
 
-  if (shopper) {
-    url.concat(`?shopper=${shopper}`);
+  if (shopperPda) {
+    url.searchParams.append('shopper', shopperPda);
   }
 
-  if (store) {
-    url.concat(`?store=${store}`);
+  if (storePda) {
+    url.searchParams.append('store', storePda);
   }
 
   const res = await fetch(url);
@@ -165,32 +155,21 @@ export async function fetchAllOrders({
   return data.orders as ParsedProgramAccount<ParsedOrder>[];
 }
 
-export async function fetchOrder(publicKey: string) {
-  const res = await fetch(`/api/accounts/orders?pda=${publicKey}`);
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
-
-  return data.order as ParsedProgramAccount<ParsedOrder>;
-}
-
-export async function fetchAllReviews({
+export async function fetchReviews({
   pdas,
-  item,
+  itemPda,
 }: {
   pdas?: string[];
-  item?: string;
+  itemPda?: string;
 }) {
-  const url = '/api/accounts/reviews';
+  const url = new URL('/api/accounts/reviews');
 
-  if (pdas) {
-    url.concat(`?pda=${pdas.join(',')}`);
+  if (pdas?.length) {
+    pdas.forEach((pda) => url.searchParams.append('pda', pda));
   }
 
-  if (item) {
-    url.concat(`?item=${item}`);
+  if (itemPda) {
+    url.searchParams.append('item', itemPda);
   }
 
   const res = await fetch(url);
@@ -201,17 +180,6 @@ export async function fetchAllReviews({
   }
 
   return data.reviews as ParsedProgramAccount<ParsedReview>[];
-}
-
-export async function fetchReview(publicKey: string) {
-  const res = await fetch(`/api/accounts/reviews?pda=${publicKey}`);
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
-
-  return data.review as ParsedProgramAccount<ParsedReview>;
 }
 
 export async function sendTransaction(
