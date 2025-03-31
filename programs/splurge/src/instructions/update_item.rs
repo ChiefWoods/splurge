@@ -27,12 +27,17 @@ pub struct UpdateItem<'info> {
 }
 
 impl UpdateItem<'_> {
-    pub fn update_item(ctx: Context<UpdateItem>, args: UpdateItemArgs) -> Result<()> {
-        if let Some(price) = args.price {
+    pub fn handler(ctx: Context<UpdateItem>, args: UpdateItemArgs) -> Result<()> {
+        let UpdateItemArgs {
+            price,
+            inventory_count,
+        } = args;
+
+        if let Some(price) = price {
             ctx.accounts.item.price = price;
         };
 
-        if let Some(inventory_count) = args.inventory_count {
+        if let Some(inventory_count) = inventory_count {
             ctx.accounts.item.inventory_count = inventory_count;
         };
 

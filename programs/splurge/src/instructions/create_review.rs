@@ -38,23 +38,22 @@ pub struct CreateReview<'info> {
 }
 
 impl CreateReview<'_> {
-    pub fn create_review(ctx: Context<CreateReview>, args: CreateReviewArgs) -> Result<()> {
+    pub fn handler(ctx: Context<CreateReview>, args: CreateReviewArgs) -> Result<()> {
         require!(
             ctx.accounts.order.status == OrderStatus::Completed,
             SplurgeError::OrderNotCompleted
         );
 
-        require!(
-            args.rating >= 1 && args.rating <= 5,
-            SplurgeError::InvalidRating
-        );
+        let CreateReviewArgs { text, rating } = args;
+
+        require!(rating >= 1 && rating <= 5, SplurgeError::InvalidRating);
 
         ctx.accounts.review.set_inner(Review {
             bump: ctx.bumps.review,
             order: ctx.accounts.order.key(),
-            rating: args.rating,
+            rating,
             timestamp: Clock::get()?.unix_timestamp,
-            text: args.text,
+            text,
         });
 
         Review::invariant(&ctx.accounts.review)

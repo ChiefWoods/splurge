@@ -84,7 +84,7 @@ pub struct CompleteOrder<'info> {
 }
 
 impl CompleteOrder<'_> {
-    pub fn complete_order(ctx: Context<CompleteOrder>) -> Result<()> {
+    pub fn handler(ctx: Context<CompleteOrder>) -> Result<()> {
         let order = &mut ctx.accounts.order;
         let order_ata = &ctx.accounts.order_ata;
         let payment_mint = &ctx.accounts.payment_mint;

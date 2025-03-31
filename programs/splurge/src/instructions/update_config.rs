@@ -30,24 +30,32 @@ pub struct UpdateConfig<'info> {
 }
 
 impl UpdateConfig<'_> {
-    pub fn update_config(ctx: Context<UpdateConfig>, args: UpdateConfigArgs) -> Result<()> {
-        if let Some(new_admin) = args.new_admin {
+    pub fn handler(ctx: Context<UpdateConfig>, args: UpdateConfigArgs) -> Result<()> {
+        let UpdateConfigArgs {
+            new_admin,
+            treasury,
+            locked,
+            order_fee_bps,
+            whitelisted_mints,
+        } = args;
+
+        if let Some(new_admin) = new_admin {
             ctx.accounts.config.admin = new_admin;
         }
 
-        if let Some(treasury) = args.treasury {
+        if let Some(treasury) = treasury {
             ctx.accounts.config.treasury = treasury;
         }
 
-        if let Some(locked) = args.locked {
+        if let Some(locked) = locked {
             ctx.accounts.config.platform_locked = locked;
         }
 
-        if let Some(order_fee_bps) = args.order_fee_bps {
+        if let Some(order_fee_bps) = order_fee_bps {
             ctx.accounts.config.order_fee_bps = order_fee_bps;
         }
 
-        if let Some(whitelisted_mints) = args.whitelisted_mints {
+        if let Some(whitelisted_mints) = whitelisted_mints {
             ctx.accounts.config.whitelisted_mints = whitelisted_mints;
         }
 

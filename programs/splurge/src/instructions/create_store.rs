@@ -30,20 +30,22 @@ pub struct CreateStore<'info> {
 }
 
 impl CreateStore<'_> {
-    pub fn create_store(ctx: Context<CreateStore>, args: CreateStoreArgs) -> Result<()> {
-        require!(!args.name.is_empty(), SplurgeError::StoreNameRequired);
+    pub fn handler(ctx: Context<CreateStore>, args: CreateStoreArgs) -> Result<()> {
+        let CreateStoreArgs { name, image, about } = args;
+
+        require!(!name.is_empty(), SplurgeError::StoreNameRequired);
         require!(
-            args.name.len() <= MAX_STORE_NAME_LEN,
+            name.len() <= MAX_STORE_NAME_LEN,
             SplurgeError::StoreNameTooLong
         );
-        require!(!args.image.is_empty(), SplurgeError::StoreImageRequired);
+        require!(!image.is_empty(), SplurgeError::StoreImageRequired);
 
         ctx.accounts.store.set_inner(Store {
             bump: ctx.bumps.store,
             authority: ctx.accounts.authority.key(),
-            name: args.name,
-            image: args.image,
-            about: args.about,
+            name,
+            image,
+            about,
         });
 
         Store::invariant(&ctx.accounts.store)

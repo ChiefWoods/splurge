@@ -39,27 +39,30 @@ pub struct CreateItem<'info> {
 }
 
 impl CreateItem<'_> {
-    pub fn validate_name(name: &str) -> Result<()> {
+    pub fn handler(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
+        let CreateItemArgs {
+            price,
+            inventory_count,
+            name,
+            image,
+            description,
+        } = args;
+
         require!(!name.is_empty(), SplurgeError::ItemNameRequired);
         require!(
             name.len() <= MAX_ITEM_NAME_LEN,
             SplurgeError::ItemNameTooLong
         );
-
-        Ok(())
-    }
-
-    pub fn create_item(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
-        require!(!args.image.is_empty(), SplurgeError::ItemImageRequired);
+        require!(!image.is_empty(), SplurgeError::ItemImageRequired);
 
         ctx.accounts.item.set_inner(Item {
             bump: ctx.bumps.item,
             store: ctx.accounts.store.key(),
-            price: args.price,
-            inventory_count: args.inventory_count,
-            name: args.name,
-            image: args.image,
-            description: args.description,
+            price,
+            inventory_count,
+            name,
+            image,
+            description,
         });
 
         emit!(ItemCreated {

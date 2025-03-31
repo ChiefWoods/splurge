@@ -27,17 +27,21 @@ pub struct InitializeConfig<'info> {
 }
 
 impl InitializeConfig<'_> {
-    pub fn initialize_config(
-        ctx: Context<InitializeConfig>,
-        args: InitializeConfigArgs,
-    ) -> Result<()> {
+    pub fn handler(ctx: Context<InitializeConfig>, args: InitializeConfigArgs) -> Result<()> {
+        let InitializeConfigArgs {
+            admin,
+            treasury,
+            order_fee_bps,
+            whitelisted_mints,
+        } = args;
+
         ctx.accounts.config.set_inner(Config {
             bump: ctx.bumps.config,
-            admin: args.admin,
-            treasury: args.treasury,
+            admin,
+            treasury,
             platform_locked: false,
-            order_fee_bps: args.order_fee_bps,
-            whitelisted_mints: args.whitelisted_mints,
+            order_fee_bps,
+            whitelisted_mints,
             reserved: [0; 64],
         });
 

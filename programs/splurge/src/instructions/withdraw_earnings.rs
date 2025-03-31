@@ -55,7 +55,7 @@ pub struct WithdrawEarnings<'info> {
 }
 
 impl WithdrawEarnings<'_> {
-    pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>) -> Result<()> {
+    pub fn handler(ctx: Context<WithdrawEarnings>) -> Result<()> {
         let store_ata = &ctx.accounts.store_ata;
         let payment_mint = &ctx.accounts.payment_mint;
         let store = &ctx.accounts.store;

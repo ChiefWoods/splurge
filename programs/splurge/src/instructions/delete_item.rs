@@ -24,7 +24,7 @@ pub struct DeleteItem<'info> {
 }
 
 impl DeleteItem<'_> {
-    pub fn delete_item(_ctx: Context<DeleteItem>) -> Result<()> {
+    pub fn handler(_ctx: Context<DeleteItem>) -> Result<()> {
         Ok(())
     }
 }

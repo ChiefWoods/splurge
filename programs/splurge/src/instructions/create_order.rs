@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
@@ -78,29 +78,31 @@ pub struct CreateOrder<'info> {
 }
 
 impl CreateOrder<'_> {
-    pub fn create_order(ctx: Context<CreateOrder>, args: CreateOrderArgs) -> Result<()> {
+    pub fn handler(ctx: Context<CreateOrder>, args: CreateOrderArgs) -> Result<()> {
         require_eq!(
             ctx.accounts.config.platform_locked,
             false,
             SplurgeError::PlatformLocked
         );
 
+        let CreateOrderArgs { amount, timestamp } = args;
+
         let item = &mut ctx.accounts.item;
 
         item.inventory_count = item
             .inventory_count
-            .checked_sub(args.amount)
+            .checked_sub(amount)
             .ok_or(SplurgeError::InsufficientInventory)?;
 
-        let total_in_usd = args.amount * item.price;
+        let total_in_usd = amount * item.price;
 
         ctx.accounts.order.set_inner(Order {
             bump: ctx.bumps.order,
             shopper: ctx.accounts.shopper.key(),
             item: ctx.accounts.item.key(),
-            timestamp: args.timestamp,
+            timestamp: timestamp,
             status: OrderStatus::default(),
-            amount: args.amount,
+            amount: amount,
             total: total_in_usd,
             payment_mint: ctx.accounts.payment_mint.key(),
         });
@@ -129,7 +131,7 @@ impl CreateOrder<'_> {
 
         emit!(OrderCreated {
             store: ctx.accounts.store.key(),
-            timestamp: args.timestamp,
+            timestamp,
         });
 
         Order::invariant(&ctx.accounts.order)

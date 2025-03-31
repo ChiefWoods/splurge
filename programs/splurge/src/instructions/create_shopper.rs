@@ -30,24 +30,27 @@ pub struct CreateShopper<'info> {
 }
 
 impl CreateShopper<'_> {
-    pub fn create_shopper(ctx: Context<CreateShopper>, args: CreateShopperArgs) -> Result<()> {
-        require!(!args.name.is_empty(), SplurgeError::ShopperNameRequired);
+    pub fn handler(ctx: Context<CreateShopper>, args: CreateShopperArgs) -> Result<()> {
+        let CreateShopperArgs {
+            name,
+            image,
+            address,
+        } = args;
+
+        require!(!name.is_empty(), SplurgeError::ShopperNameRequired);
         require!(
-            args.name.len() <= MAX_SHOPPER_NAME_LEN,
+            name.len() <= MAX_SHOPPER_NAME_LEN,
             SplurgeError::ShopperNameTooLong
         );
-        require!(!args.image.is_empty(), SplurgeError::ShopperImageRequired);
-        require!(
-            !args.address.is_empty(),
-            SplurgeError::ShopperAddressRequired
-        );
+        require!(!image.is_empty(), SplurgeError::ShopperImageRequired);
+        require!(!address.is_empty(), SplurgeError::ShopperAddressRequired);
 
         ctx.accounts.shopper.set_inner(Shopper {
             bump: ctx.bumps.shopper,
             authority: ctx.accounts.authority.key(),
-            name: args.name,
-            image: args.image,
-            address: args.address,
+            name,
+            image,
+            address,
         });
 
         Shopper::invariant(&ctx.accounts.shopper)

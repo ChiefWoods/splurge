@@ -25,7 +25,7 @@ pub struct UpdateOrder<'info> {
 }
 
 impl UpdateOrder<'_> {
-    pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
+    pub fn handler(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
         let order = &mut ctx.accounts.order;
 
         require!(
