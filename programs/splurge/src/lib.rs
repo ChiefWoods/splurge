@@ -6,9 +6,11 @@ pub mod state;
 pub mod utils;
 
 use anchor_lang::prelude::*;
-use {instructions::*, state::*};
 
-declare_id!("4Vgt9GWkVtW5Pf8MNfGQYEVYRiAyen4QWnCXH5jeXnft");
+pub use instructions::*;
+pub use state::*;
+
+declare_id!("EbjBQN91GCKvTsgKqj9GyK27qDionoUEmZWtpDazM1zj");
 
 #[program]
 pub mod splurge {

@@ -46,12 +46,12 @@ Note: Next.js app is still work in progress
 
 ### Prerequisites
 
-Update your Solana CLI, Bun toolkit and avm to the latest version.
+1. Update your Solana CLI, avm and Bun toolkit to the latest version
 
 ```bash
-solana-install update
+agave-install init 2.1.0
+avm use 0.31.1
 bun upgrade
-avm update
 ```
 
 ### Setup

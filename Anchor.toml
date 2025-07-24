@@ -1,5 +1,5 @@
 [toolchain]
-anchor_version = "0.31.0"
+anchor_version = "0.31.1"
 solana_version = "2.1.0"
 
 [features]
@@ -7,13 +7,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-splurge = "4Vgt9GWkVtW5Pf8MNfGQYEVYRiAyen4QWnCXH5jeXnft"
+splurge = "EbjBQN91GCKvTsgKqj9GyK27qDionoUEmZWtpDazM1zj"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "splurge-wallet.json"
 
 [scripts]
