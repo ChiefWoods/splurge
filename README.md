@@ -37,6 +37,8 @@ Note: Next.js app is still work in progress
 - [anchor-spl](https://docs.rs/anchor-spl/latest/anchor_spl/)
 - [num-derive](https://docs.rs/num-derive/latest/num_derive/)
 - [num-traits](https://docs.rs/num-traits/latest/num_traits/)
+- [pyth-solana-receiver-sdk](https://docs.rs/pyth-solana-receiver-sdk/latest/pyth_solana_receiver_sdk/)
+- [spl-math](https://docs.rs/spl-math/latest/spl_math/)
 
 ### Test Runner
 

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::{ORDER_SEED, REVIEW_SEED},
+    constants::{ORDER_SEED, REVIEW_SEED, SHOPPER_SEED},
     error::SplurgeError,
     state::{Order, OrderStatus, Review, Shopper},
 };
@@ -18,18 +18,20 @@ pub struct CreateReview<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-        has_one = authority,
+        seeds = [SHOPPER_SEED, authority.key().as_ref()],
+        bump = shopper.bump,
     )]
     pub shopper: Account<'info, Shopper>,
     #[account(
         seeds = [ORDER_SEED, shopper.key().as_ref(), order.item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
         bump = order.bump,
+        constraint = order.status == OrderStatus::Completed @ SplurgeError::OrderNotCompleted,
     )]
     pub order: Account<'info, Order>,
     #[account(
         init,
         payer = authority,
-        space = Review::MIN_SPACE + args.text.len(),
+        space = Review::space(&args.text),
         seeds = [REVIEW_SEED, order.key().as_ref()],
         bump,
     )]
@@ -39,16 +41,13 @@ pub struct CreateReview<'info> {
 
 impl CreateReview<'_> {
     pub fn handler(ctx: Context<CreateReview>, args: CreateReviewArgs) -> Result<()> {
-        require!(
-            ctx.accounts.order.status == OrderStatus::Completed,
-            SplurgeError::OrderNotCompleted
-        );
-
         let CreateReviewArgs { text, rating } = args;
 
         require!(rating >= 1 && rating <= 5, SplurgeError::InvalidRating);
 
-        ctx.accounts.review.set_inner(Review {
+        let review = &mut ctx.accounts.review;
+
+        review.set_inner(Review {
             bump: ctx.bumps.review,
             order: ctx.accounts.order.key(),
             rating,
@@ -56,6 +55,6 @@ impl CreateReview<'_> {
             text,
         });
 
-        Review::invariant(&ctx.accounts.review)
+        Review::invariant(&review)
     }
 }

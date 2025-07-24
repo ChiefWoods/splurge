@@ -7,7 +7,7 @@ use crate::{
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateItemArgs {
-    pub price: Option<u32>,
+    pub price: Option<u64>,
     pub inventory_count: Option<u32>,
 }
 
@@ -33,14 +33,16 @@ impl UpdateItem<'_> {
             inventory_count,
         } = args;
 
+        let item = &mut ctx.accounts.item;
+
         if let Some(price) = price {
-            ctx.accounts.item.price = price;
+            item.price = price;
         };
 
         if let Some(inventory_count) = inventory_count {
-            ctx.accounts.item.inventory_count = inventory_count;
+            item.inventory_count = inventory_count;
         };
 
-        Ok(())
+        Item::invariant(&item)
     }
 }

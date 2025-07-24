@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[derive(Accounts)]
-pub struct DeleteItem<'info> {
+pub struct UnlistItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
@@ -23,8 +23,8 @@ pub struct DeleteItem<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl DeleteItem<'_> {
-    pub fn handler(_ctx: Context<DeleteItem>) -> Result<()> {
+impl UnlistItem<'_> {
+    pub fn handler(_ctx: Context<UnlistItem>) -> Result<()> {
         Ok(())
     }
 }

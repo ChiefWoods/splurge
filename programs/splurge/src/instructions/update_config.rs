@@ -1,14 +1,14 @@
-use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
+use anchor_lang::prelude::*;
 
-use crate::{constants::CONFIG_SEED, error::SplurgeError, state::Config};
+use crate::{constants::CONFIG_SEED, error::SplurgeError, state::Config, AcceptedMint};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateConfigArgs {
     pub new_admin: Option<Pubkey>,
     pub treasury: Option<Pubkey>,
-    pub locked: Option<bool>,
+    pub is_paused: Option<bool>,
     pub order_fee_bps: Option<u16>,
-    pub whitelisted_mints: Option<Vec<Pubkey>>,
+    pub accepted_mints: Option<Vec<AcceptedMint>>,
 }
 
 #[derive(Accounts)]
@@ -18,7 +18,11 @@ pub struct UpdateConfig<'info> {
     pub admin: Signer<'info>,
     #[account(
         mut,
-        realloc = Config::MIN_SPACE + (args.whitelisted_mints.as_ref().unwrap().len() * PUBKEY_BYTES),
+        realloc = if args.accepted_mints.is_some() {
+            Config::space(args.accepted_mints.as_ref().unwrap())
+        } else {
+            config.to_account_info().data_len()
+        },
         realloc::payer = admin,
         realloc::zero = false,
         seeds = [CONFIG_SEED],
@@ -34,31 +38,35 @@ impl UpdateConfig<'_> {
         let UpdateConfigArgs {
             new_admin,
             treasury,
-            locked,
+            is_paused,
             order_fee_bps,
-            whitelisted_mints,
+            accepted_mints,
         } = args;
 
+        let config = &mut ctx.accounts.config;
+
         if let Some(new_admin) = new_admin {
-            ctx.accounts.config.admin = new_admin;
+            config.admin = new_admin;
         }
 
         if let Some(treasury) = treasury {
-            ctx.accounts.config.treasury = treasury;
+            config.treasury = treasury;
         }
 
-        if let Some(locked) = locked {
-            ctx.accounts.config.platform_locked = locked;
+        if let Some(is_paused) = is_paused {
+            config.is_paused = is_paused;
         }
 
         if let Some(order_fee_bps) = order_fee_bps {
-            ctx.accounts.config.order_fee_bps = order_fee_bps;
+            config.order_fee_bps = order_fee_bps;
         }
 
-        if let Some(whitelisted_mints) = whitelisted_mints {
-            ctx.accounts.config.whitelisted_mints = whitelisted_mints;
+        if let Some(mut accepted_mints) = accepted_mints {
+            accepted_mints.dedup_by(|a, b| a.mint == b.mint);
+
+            config.accepted_mints = accepted_mints;
         }
 
-        Config::invariant(&ctx.accounts.config)
+        Config::invariant(&config)
     }
 }

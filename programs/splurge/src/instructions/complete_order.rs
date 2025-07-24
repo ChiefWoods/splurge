@@ -8,11 +8,11 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::{CONFIG_SEED, ITEM_SEED, ORDER_SEED, STORE_SEED},
+    constants::{CONFIG_SEED, ORDER_SEED, STORE_SEED},
     error::SplurgeError,
     events::OrderCompleted,
+    order_signer,
     state::{Config, Item, Order, OrderStatus, Shopper, Store},
-    utils::{get_order_fee_in_atomic, get_total_in_atomic},
 };
 
 #[derive(Accounts)]
@@ -28,40 +28,40 @@ pub struct CompleteOrder<'info> {
         has_one = admin @ SplurgeError::UnauthorizedAdmin,
         has_one = treasury,
     )]
-    pub config: Box<Account<'info, Config>>,
+    pub config: Account<'info, Config>,
     #[account(
         has_one = authority
     )]
-    pub shopper: Box<Account<'info, Shopper>>,
+    pub shopper: Account<'info, Shopper>,
     #[account(
         seeds = [STORE_SEED, store.authority.key().as_ref()],
         bump = store.bump,
     )]
-    pub store: Box<Account<'info, Store>>,
+    pub store: Account<'info, Store>,
     #[account(
-        seeds = [ITEM_SEED, store.key().as_ref(), item.name.as_bytes()],
-        bump = item.bump,
+        has_one = store,
     )]
-    pub item: Box<Account<'info, Item>>,
+    pub item: Account<'info, Item>,
     #[account(
         mut,
         seeds = [ORDER_SEED, shopper.key().as_ref(), item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
         bump = order.bump,
         has_one = payment_mint,
+        constraint = order.status != OrderStatus::Completed @ SplurgeError::OrderAlreadyCompleted,
+        constraint = order.status == OrderStatus::Shipping @ SplurgeError::OrderNotBeingShipped,
     )]
-    pub order: Box<Account<'info, Order>>,
+    pub order: Account<'info, Order>,
     #[account(
         mint::token_program = token_program,
-        constraint = config.whitelisted_mints.contains(&payment_mint.key()) @ SplurgeError::MintNotWhitelisted,
     )]
-    pub payment_mint: Box<InterfaceAccount<'info, Mint>>,
+    pub payment_mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
         associated_token::mint = payment_mint,
         associated_token::authority = order,
         associated_token::token_program = token_program,
     )]
-    pub order_ata: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub order_token_account: InterfaceAccount<'info, TokenAccount>,
     #[account(
         init_if_needed,
         payer = admin,
@@ -69,52 +69,28 @@ pub struct CompleteOrder<'info> {
         associated_token::authority = store,
         associated_token::token_program = token_program,
     )]
-    pub store_ata: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(
-        init_if_needed,
-        payer = admin,
-        associated_token::mint = payment_mint,
-        associated_token::authority = treasury,
-        associated_token::token_program = token_program,
-    )]
-    pub treasury_ata: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub store_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
-    pub system_program: Program<'info, System>,
 }
 
 impl CompleteOrder<'_> {
     pub fn handler(ctx: Context<CompleteOrder>) -> Result<()> {
-        let order = &mut ctx.accounts.order;
-        let order_ata = &ctx.accounts.order_ata;
+        let config = &ctx.accounts.config;
         let payment_mint = &ctx.accounts.payment_mint;
 
-        require!(
-            order.status == OrderStatus::Shipping,
-            SplurgeError::OrderNotBeingShipped
-        );
-        require!(
-            order.status != OrderStatus::Completed,
-            SplurgeError::OrderAlreadyCompleted
-        );
+        config.validate_mint(payment_mint.key())?;
 
-        order.status = OrderStatus::Completed;
+        let order = &mut ctx.accounts.order;
+        let order_ata = &ctx.accounts.order_token_account;
 
         let shopper_key = ctx.accounts.shopper.key();
         let item_key = ctx.accounts.item.key();
+        let order_timestamp = order.timestamp.to_le_bytes();
 
-        let signer_seeds: &[&[&[u8]]] = &[&[
-            ORDER_SEED,
-            shopper_key.as_ref(),
-            item_key.as_ref(),
-            &order.timestamp.to_le_bytes()[..],
-            &[order.bump],
-        ]];
-
-        let total_in_atomic = get_total_in_atomic(order.total, payment_mint.decimals);
-
-        let order_fee_in_atomic =
-            get_order_fee_in_atomic(total_in_atomic, ctx.accounts.config.order_fee_bps);
+        let signer_seeds: &[&[u8]] =
+            order_signer!(shopper_key, item_key, order_timestamp, order.bump);
 
         transfer_checked(
             CpiContext::new(
@@ -123,26 +99,11 @@ impl CompleteOrder<'_> {
                     authority: order.to_account_info(),
                     mint: payment_mint.to_account_info(),
                     from: order_ata.to_account_info(),
-                    to: ctx.accounts.treasury_ata.to_account_info(),
+                    to: ctx.accounts.store_token_account.to_account_info(),
                 },
             )
-            .with_signer(signer_seeds),
-            order_fee_in_atomic,
-            payment_mint.decimals,
-        )?;
-
-        transfer_checked(
-            CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
-                TransferChecked {
-                    authority: order.to_account_info(),
-                    mint: payment_mint.to_account_info(),
-                    from: order_ata.to_account_info(),
-                    to: ctx.accounts.store_ata.to_account_info(),
-                },
-            )
-            .with_signer(signer_seeds),
-            order_ata.amount - order_fee_in_atomic,
+            .with_signer(&[signer_seeds]),
+            order_ata.amount,
             payment_mint.decimals,
         )?;
 
@@ -155,14 +116,16 @@ impl CompleteOrder<'_> {
                     destination: ctx.accounts.authority.to_account_info(),
                 },
             )
-            .with_signer(signer_seeds),
+            .with_signer(&[signer_seeds]),
         )?;
 
+        order.status = OrderStatus::Completed;
+
         emit!(OrderCompleted {
-            order: ctx.accounts.order.key(),
+            order: order.key(),
             timestamp: Clock::get()?.unix_timestamp,
         });
 
-        Ok(())
+        Order::invariant(&order)
     }
 }

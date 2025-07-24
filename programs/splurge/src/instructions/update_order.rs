@@ -20,6 +20,7 @@ pub struct UpdateOrder<'info> {
         mut,
         seeds = [ORDER_SEED, order.shopper.key().as_ref(), order.item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
         bump = order.bump,
+        constraint = order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping @ SplurgeError::OrderAlreadyFinalized,
     )]
     pub order: Account<'info, Order>,
 }
@@ -27,11 +28,6 @@ pub struct UpdateOrder<'info> {
 impl UpdateOrder<'_> {
     pub fn handler(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
         let order = &mut ctx.accounts.order;
-
-        require!(
-            order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping,
-            SplurgeError::OrderAlreadyFinalized
-        );
 
         order.status = status;
         let timestamp = Clock::get()?.unix_timestamp;

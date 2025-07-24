@@ -4,14 +4,14 @@ use crate::error::SplurgeError;
 
 #[account]
 pub struct Item {
-    /// Bump used for seed derivation
-    pub bump: u8, // 1
     /// PDA of store account
     pub store: Pubkey, // 32
-    /// Price in USD cents
-    pub price: u32, // 4
+    /// Price in atomic units of mint
+    pub price: u64, // 8
     /// Remaining inventory count
     pub inventory_count: u32, // 4
+    /// Bump used for seed derivation
+    pub bump: u8, // 1
     /// Display name
     pub name: String, // 4
     /// Display image
@@ -21,7 +21,19 @@ pub struct Item {
 }
 
 impl Item {
-    pub const MIN_SPACE: usize = Item::DISCRIMINATOR.len() + 1 + 32 + 4 + 4 + 4 + 4 + 4;
+    pub fn space(name: &str, image: &str, description: &str) -> usize {
+        Item::DISCRIMINATOR.len()
+            + 32
+            + 8
+            + 4
+            + 1
+            + 4
+            + name.len()
+            + 4
+            + image.len()
+            + 4
+            + description.len()
+    }
 
     pub fn invariant(&self) -> Result<()> {
         require_keys_neq!(self.store, Pubkey::default(), SplurgeError::InvalidAddress);

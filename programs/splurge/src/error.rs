@@ -2,50 +2,48 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum SplurgeError {
-    #[msg("Address cannot be default")]
+    #[msg("Address cannot be default pubkey")]
     InvalidAddress,
     #[msg("Timestamp cannot be in the future")]
     InvalidTimestamp,
     #[msg("Whitelist cannot be empty")]
-    EmptyWhitelist = 100,
-    #[msg("Signer not authorized")]
+    EmptyAcceptedMints,
+    #[msg("Signer not authorized as config admin")]
     UnauthorizedAdmin,
-    #[msg("Platform locked, no new orders can be created")]
-    PlatformLocked,
-    #[msg("Payment mint is not whitelisted")]
-    MintNotWhitelisted,
+    #[msg("Platform paused, no new orders can be created")]
+    PlatformPaused,
+    #[msg("Payment mint is not accepted")]
+    PaymentMintNotAccepted,
+    #[msg("Price update v2 does not match with any accepted mint")]
+    InvalidPriceUpdateV2,
     #[msg("Shopper name is required")]
-    ShopperNameRequired = 200,
+    ShopperNameRequired,
     #[msg("Shopper name exceeded maximum length")]
     ShopperNameTooLong,
-    #[msg("Shopper image is required")]
-    ShopperImageRequired,
     #[msg("Shopper address is required")]
     ShopperAddressRequired,
     #[msg("Store name is required")]
-    StoreNameRequired = 300,
+    StoreNameRequired,
     #[msg("Store name exceeded maximum length")]
     StoreNameTooLong,
-    #[msg("Store image is required")]
-    StoreImageRequired,
     #[msg("Store item name is required")]
-    ItemNameRequired = 400,
+    ItemNameRequired,
     #[msg("Store item name exceeded maximum length")]
     ItemNameTooLong,
-    #[msg("Store item image is required")]
-    ItemImageRequired,
-    #[msg("Order total is does not match product of item price and amount")]
-    IncorrectOrderTotal = 500,
     #[msg("Store item has insufficient inventory to fulfill order")]
     InsufficientInventory,
     #[msg("Order already finalized")]
     OrderAlreadyFinalized,
-    #[msg("Order is not in shipping status")]
+    #[msg("Order status is not shipping")]
     OrderNotBeingShipped,
     #[msg("Order already completed")]
     OrderAlreadyCompleted,
     #[msg("Order not completed")]
     OrderNotCompleted,
     #[msg("Rating must be between 1 and 5")]
-    InvalidRating = 600,
+    InvalidRating,
+    #[msg("Math operation overflow")]
+    MathOverflow,
+    #[msg("Oracle price must be above 0")]
+    InvalidPrice,
 }

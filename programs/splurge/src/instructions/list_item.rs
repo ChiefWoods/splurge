@@ -3,13 +3,13 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::{ITEM_SEED, MAX_ITEM_NAME_LEN, STORE_SEED},
     error::SplurgeError,
-    events::ItemCreated,
+    events::ItemListed,
     state::{Item, Store},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct CreateItemArgs {
-    pub price: u32,
+pub struct ListItemArgs {
+    pub price: u64,
     pub inventory_count: u32,
     pub name: String,
     pub image: String,
@@ -17,14 +17,14 @@ pub struct CreateItemArgs {
 }
 
 #[derive(Accounts)]
-#[instruction(args: CreateItemArgs)]
-pub struct CreateItem<'info> {
+#[instruction(args: ListItemArgs)]
+pub struct ListItem<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
         init,
         payer = authority,
-        space = Item::MIN_SPACE + args.name.len() + args.image.len() + args.description.len(),
+        space = Item::space(&args.name, &args.image, &args.description),
         seeds = [ITEM_SEED, store.key().as_ref(), args.name.as_bytes()],
         bump,
     )]
@@ -38,9 +38,9 @@ pub struct CreateItem<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl CreateItem<'_> {
-    pub fn handler(ctx: Context<CreateItem>, args: CreateItemArgs) -> Result<()> {
-        let CreateItemArgs {
+impl ListItem<'_> {
+    pub fn handler(ctx: Context<ListItem>, args: ListItemArgs) -> Result<()> {
+        let ListItemArgs {
             price,
             inventory_count,
             name,
@@ -53,9 +53,10 @@ impl CreateItem<'_> {
             name.len() <= MAX_ITEM_NAME_LEN,
             SplurgeError::ItemNameTooLong
         );
-        require!(!image.is_empty(), SplurgeError::ItemImageRequired);
 
-        ctx.accounts.item.set_inner(Item {
+        let item = &mut ctx.accounts.item;
+
+        item.set_inner(Item {
             bump: ctx.bumps.item,
             store: ctx.accounts.store.key(),
             price,
@@ -65,10 +66,11 @@ impl CreateItem<'_> {
             description,
         });
 
-        emit!(ItemCreated {
-            store: ctx.accounts.store.key(),
+        emit!(ItemListed {
+            item: item.key(),
+            timestamp: Clock::get()?.unix_timestamp,
         });
 
-        Item::invariant(&ctx.accounts.item)
+        Item::invariant(&item)
     }
 }
