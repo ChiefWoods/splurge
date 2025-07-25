@@ -3,10 +3,10 @@
     "types": ["bun"],
     "typeRoots": ["./node_modules/@types"],
     "lib": ["ESNext"],
-    "target": "ESNext",
     "module": "ESNext",
+    "target": "ESNext",
     "esModuleInterop": true,
-    "moduleDetection": "force",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
   }
 }

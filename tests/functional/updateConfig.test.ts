@@ -1,62 +1,54 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-} from '@solana/web3.js';
-import { ProgramTestContext } from 'solana-bankrun';
-import { BankrunProvider } from 'anchor-bankrun';
+import { Keypair } from '@solana/web3.js';
 import { Splurge } from '../../target/types/splurge';
 import { Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../setup';
-import { getConfigPdaAndBump } from '../pda';
-import usdc from '../fixtures/usdc_mint.json';
-import usdt from '../fixtures/usdt_mint.json';
-import pyusd from '../fixtures/pyusd_mint.json';
-import { getConfigAcc } from '../accounts';
+import { fetchConfigAcc } from '../accounts';
+import { LiteSVM } from 'litesvm';
+import { LiteSVMProvider } from 'anchor-litesvm';
+import { fundedSystemAccountInfo, getSetup } from '../setup';
+import {
+  USDC_MINT,
+  USDC_PRICE_UPDATE_V2,
+  USDT_MINT,
+  USDT_PRICE_UPDATE_V2,
+} from '../constants';
+import { getConfigPda } from '../pda';
 
 describe('updateConfig', () => {
-  let { context, provider, program } = {} as {
-    context: ProgramTestContext;
-    provider: BankrunProvider;
+  let { litesvm, provider, program } = {} as {
+    litesvm: LiteSVM;
+    provider: LiteSVMProvider;
     program: Program<Splurge>;
   };
 
-  const [treasury, newAdmin, newTreasury] = Array.from(
-    { length: 3 },
+  const [admin, treasury, newAdmin, newTreasury] = Array.from(
+    { length: 4 },
     Keypair.generate
   );
 
-  const whitelistedMints = [
-    new PublicKey(usdc.pubkey),
-    new PublicKey(usdt.pubkey),
+  let acceptedMints = [
+    {
+      mint: USDC_MINT,
+      priceUpdateV2: USDC_PRICE_UPDATE_V2,
+    },
   ];
 
   beforeEach(async () => {
-    ({ context, provider, program } = await getBankrunSetup(
-      [treasury, newAdmin, newTreasury].map((kp) => {
+    ({ litesvm, provider, program } = await getSetup([
+      ...[admin, treasury, newAdmin, newTreasury].map((kp) => {
         return {
-          address: kp.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: LAMPORTS_PER_SOL,
-            owner: SystemProgram.programId,
-          },
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(),
         };
-      })
-    ));
-
-    const admin = context.payer;
-    const orderFeeBps = 250;
+      }),
+    ]));
 
     await program.methods
       .initializeConfig({
+        acceptedMints,
         admin: admin.publicKey,
+        orderFeeBps: 250,
         treasury: treasury.publicKey,
-        whitelistedMints,
-        orderFeeBps,
       })
       .accounts({
         authority: admin.publicKey,
@@ -66,29 +58,33 @@ describe('updateConfig', () => {
   });
 
   test('updates a config', async () => {
+    acceptedMints.push({
+      mint: USDT_MINT,
+      priceUpdateV2: USDT_PRICE_UPDATE_V2,
+    });
+    const isPaused = true;
     const orderFeeBps = 500;
-    whitelistedMints.push(new PublicKey(pyusd.pubkey));
 
     await program.methods
       .updateConfig({
+        acceptedMints,
+        isPaused,
         newAdmin: newAdmin.publicKey,
-        treasury: newTreasury.publicKey,
-        locked: true,
         orderFeeBps,
-        whitelistedMints,
+        treasury: newTreasury.publicKey,
       })
       .accounts({
-        admin: context.payer.publicKey,
+        admin: admin.publicKey,
       })
-      .signers([context.payer])
+      .signers([admin])
       .rpc();
 
-    const [configPda] = getConfigPdaAndBump();
-    const configAcc = await getConfigAcc(program, configPda);
+    const configPda = getConfigPda();
+    const configAcc = await fetchConfigAcc(program, configPda);
 
     expect(configAcc.admin).toStrictEqual(newAdmin.publicKey);
     expect(configAcc.treasury).toStrictEqual(newTreasury.publicKey);
     expect(configAcc.orderFeeBps).toBe(orderFeeBps);
-    expect(configAcc.whitelistedMints).toStrictEqual(whitelistedMints);
+    expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
   });
 });

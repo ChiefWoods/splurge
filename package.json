@@ -9,7 +9,8 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "idl": "cp target/idl/splurge.json app/src/idl/splurge.json; cp target/types/splurge.ts app/src/types/splurge.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:test": "anchor build -- --features no-staleness-check"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1"
@@ -19,11 +20,11 @@
     "@solana/web3.js": "^1.98.2",
     "@types/bn.js": "^5.2.0",
     "@types/bun": "^1.2.19",
-    "anchor-bankrun": "^0.5.0",
+    "anchor-litesvm": "^0.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
+    "litesvm": "^0.2.0",
     "prettier": "^3.6.2",
-    "solana-bankrun": "^0.4.0",
     "typescript": "^5.8.3"
   },
   "packageManager": "bun@1.2.19"

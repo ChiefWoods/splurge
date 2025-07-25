@@ -1,47 +1,40 @@
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
-import idl from '../target/idl/splurge.json';
+import { SPLURGE_PROGRAM_ID } from './constants';
 
-const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
-
-export function getConfigPdaAndBump(): [PublicKey, number] {
+export function getConfigPda() {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('config')],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }
 
-export function getShopperPdaAndBump(
-  authority: PublicKey
-): [PublicKey, number] {
+export function getShopperPda(authority: PublicKey) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('shopper'), authority.toBuffer()],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }
 
-export function getStorePdaAndBump(authority: PublicKey): [PublicKey, number] {
+export function getStorePda(authority: PublicKey) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('store'), authority.toBuffer()],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }
 
-export function getItemPdaAndBump(
-  storePda: PublicKey,
-  name: string
-): [PublicKey, number] {
+export function getItemPda(storePda: PublicKey, name: string) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('item'), storePda.toBuffer(), Buffer.from(name)],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }
 
-export function getOrderPdaAndBump(
+export function getOrderPda(
   shopperPda: PublicKey,
   itemPda: PublicKey,
   timestamp: BN
-): [PublicKey, number] {
+) {
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from('order'),
@@ -50,12 +43,12 @@ export function getOrderPdaAndBump(
       timestamp.toArrayLike(Buffer, 'le', 8),
     ],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }
 
-export function getReviewPdaAndBump(orderPda: PublicKey): [PublicKey, number] {
+export function getReviewPda(orderPda: PublicKey) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('review'), orderPda.toBuffer()],
     SPLURGE_PROGRAM_ID
-  );
+  )[0];
 }

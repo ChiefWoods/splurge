@@ -1,149 +1,64 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-} from '@solana/web3.js';
-import {
-  ACCOUNT_SIZE,
-  AccountLayout,
   getAccount,
   getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { ProgramTestContext } from 'solana-bankrun';
-import { BankrunProvider } from 'anchor-bankrun';
 import { Splurge } from '../../target/types/splurge';
 import { BN, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../setup';
-import {
-  getOrderPdaAndBump,
-  getShopperPdaAndBump,
-  getItemPdaAndBump,
-  getStorePdaAndBump,
-} from '../pda';
-import usdc from '../fixtures/usdc_mint.json';
+import { getItemPda, getOrderPda, getShopperPda, getStorePda } from '../pda';
+import { LiteSVM } from 'litesvm';
+import { LiteSVMProvider } from 'anchor-litesvm';
+import { fundedSystemAccountInfo, getSetup, initAta } from '../setup';
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from '../constants';
 
 describe('withdrawEarnings', () => {
-  let { context, provider, program } = {} as {
-    context: ProgramTestContext;
-    provider: BankrunProvider;
+  let { litesvm, provider, program } = {} as {
+    litesvm: LiteSVM;
+    provider: LiteSVMProvider;
     program: Program<Splurge>;
   };
 
-  const [treasury, shopper, store] = Array.from(
-    { length: 3 },
+  const [admin, treasury, shopperAuthority, storeAuthority] = Array.from(
+    { length: 4 },
     Keypair.generate
   );
 
   const itemName = 'Item A';
-  const itemPrice = 1000; // $10
+  const itemPrice = 10e6; // $1
   const initInventoryCount = 10;
-
-  const usdcMint = new PublicKey(usdc.pubkey);
-  const usdcMintOwner = new PublicKey(usdc.account.owner);
-
-  const [shopperPda] = getShopperPdaAndBump(shopper.publicKey);
-  const [storePda] = getStorePdaAndBump(store.publicKey);
-  const [itemPda] = getItemPdaAndBump(storePda, itemName);
+  const initShopperAtaBal = 10e9; // $100
+  const tokenProgram = TOKEN_PROGRAM_ID;
+  let storePda: PublicKey;
+  let itemPda: PublicKey;
+  let shopperPda: PublicKey;
   let orderPda: PublicKey;
 
-  const treasuryUsdcAta = getAssociatedTokenAddressSync(
-    usdcMint,
-    treasury.publicKey,
-    false,
-    usdcMintOwner
-  );
-  const shopperUsdcAta = getAssociatedTokenAddressSync(
-    usdcMint,
-    shopper.publicKey,
-    false,
-    usdcMintOwner
-  );
-  const initShopperUsdcAtaBal = 100_000_000n;
-
   beforeEach(async () => {
-    const [treasuryUsdcAtaData, shopperUsdcAtaData] = Array.from(
-      { length: 2 },
-      () => Buffer.alloc(ACCOUNT_SIZE)
-    );
-
-    AccountLayout.encode(
-      {
-        mint: usdcMint,
-        owner: treasury.publicKey,
-        amount: 0n,
-        delegateOption: 0,
-        delegate: PublicKey.default,
-        delegatedAmount: 0n,
-        state: 1,
-        isNativeOption: 0,
-        isNative: 0n,
-        closeAuthorityOption: 0,
-        closeAuthority: PublicKey.default,
-      },
-      treasuryUsdcAtaData
-    );
-
-    AccountLayout.encode(
-      {
-        mint: usdcMint,
-        owner: shopper.publicKey,
-        amount: initShopperUsdcAtaBal,
-        delegateOption: 0,
-        delegate: PublicKey.default,
-        delegatedAmount: 0n,
-        state: 1,
-        isNativeOption: 0,
-        isNative: 0n,
-        closeAuthorityOption: 0,
-        closeAuthority: PublicKey.default,
-      },
-      shopperUsdcAtaData
-    );
-
-    ({ context, provider, program } = await getBankrunSetup([
-      ...[treasury, shopper, store].map((kp) => {
+    ({ litesvm, provider, program } = await getSetup([
+      ...[admin, treasury, shopperAuthority, storeAuthority].map((kp) => {
         return {
-          address: kp.publicKey,
-          info: {
-            data: Buffer.alloc(0),
-            executable: false,
-            lamports: LAMPORTS_PER_SOL,
-            owner: SystemProgram.programId,
-          },
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(),
         };
       }),
-      {
-        address: treasuryUsdcAta,
-        info: {
-          data: treasuryUsdcAtaData,
-          executable: false,
-          lamports: LAMPORTS_PER_SOL,
-          owner: usdcMintOwner,
-        },
-      },
-      {
-        address: shopperUsdcAta,
-        info: {
-          data: shopperUsdcAtaData,
-          executable: false,
-          lamports: LAMPORTS_PER_SOL,
-          owner: usdcMintOwner,
-        },
-      },
     ]));
 
-    const admin = context.payer;
-    const whitelistedMints = [new PublicKey(usdc.pubkey)];
-    const orderFeeBps = 250;
+    initAta(litesvm, USDC_MINT, treasury.publicKey);
+    initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
     await program.methods
       .initializeConfig({
+        acceptedMints: [
+          {
+            mint: USDC_MINT,
+            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+          },
+        ],
         admin: admin.publicKey,
+        orderFeeBps: 250,
         treasury: treasury.publicKey,
-        whitelistedMints,
-        orderFeeBps,
       })
       .accounts({
         authority: admin.publicKey,
@@ -152,121 +67,126 @@ describe('withdrawEarnings', () => {
       .rpc();
 
     await program.methods
-      .createShopper({
+      .initializeShopper({
         name: 'Shopper A',
         image: 'https://example.com/image.png',
         address: 'address',
       })
       .accounts({
-        authority: shopper.publicKey,
+        authority: shopperAuthority.publicKey,
       })
-      .signers([shopper])
+      .signers([shopperAuthority])
       .rpc();
 
     await program.methods
-      .createStore({
+      .initializeStore({
         name: 'Store A',
         image: 'https://example.com/image.png',
         about: 'about',
       })
       .accounts({
-        authority: store.publicKey,
+        authority: storeAuthority.publicKey,
       })
-      .signers([store])
+      .signers([storeAuthority])
       .rpc();
 
     await program.methods
-      .createItem({
-        price: itemPrice,
+      .listItem({
+        price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
         image: 'https://example.com/item.png',
         description: 'description',
       })
       .accounts({
-        authority: store.publicKey,
+        authority: storeAuthority.publicKey,
       })
-      .signers([store])
+      .signers([storeAuthority])
       .rpc();
 
-    const { unixTimestamp } = await context.banksClient.getClock();
-    const timestamp = new BN(Number(unixTimestamp));
-
-    orderPda = getOrderPdaAndBump(shopperPda, itemPda, timestamp)[0];
+    storePda = getStorePda(storeAuthority.publicKey);
+    itemPda = getItemPda(storePda, itemName);
+    shopperPda = getShopperPda(shopperAuthority.publicKey);
+    const { unixTimestamp } = litesvm.getClock();
+    orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
 
     await program.methods
       .createOrder({
         amount: 1,
-        timestamp,
       })
       .accountsPartial({
-        authority: shopper.publicKey,
+        authority: shopperAuthority.publicKey,
         store: storePda,
         item: itemPda,
-        paymentMint: usdcMint,
-        tokenProgram: usdcMintOwner,
+        order: orderPda,
+        priceUpdateV2: USDC_PRICE_UPDATE_V2,
+        paymentMint: USDC_MINT,
+        tokenProgram,
       })
-      .signers([shopper])
+      .signers([shopperAuthority])
       .rpc();
 
     await program.methods
       .updateOrder({ shipping: {} })
-      .accountsPartial({
-        admin: context.payer.publicKey,
+      .accounts({
+        admin: admin.publicKey,
         order: orderPda,
       })
-      .signers([context.payer])
+      .signers([admin])
       .rpc();
 
     await program.methods
       .completeOrder()
       .accountsPartial({
+        admin: admin.publicKey,
         shopper: shopperPda,
         store: storePda,
         item: itemPda,
         order: orderPda,
-        tokenProgram: usdcMintOwner,
+        tokenProgram,
       })
-      .signers([context.payer])
+      .signers([admin])
       .rpc();
   });
 
   test('withdraw earnings', async () => {
     const storeUsdcAta = getAssociatedTokenAddressSync(
-      usdcMint,
+      USDC_MINT,
       storePda,
       true,
-      usdcMintOwner
+      tokenProgram
     );
-    const storeUsdcAtaBal = (
+    const preStoreUsdcAtaBal = (
       await getAccount(provider.connection, storeUsdcAta)
     ).amount;
 
     await program.methods
       .withdrawEarnings()
       .accountsPartial({
-        authority: store.publicKey,
+        authority: storeAuthority.publicKey,
         store: storePda,
-        paymentMint: usdcMint,
-        tokenProgram: usdcMintOwner,
+        paymentMint: USDC_MINT,
+        tokenProgram,
       })
-      .signers([store])
+      .signers([storeAuthority])
       .rpc();
 
     const storeAuthorityUsdcAta = getAssociatedTokenAddressSync(
-      usdcMint,
-      store.publicKey,
+      USDC_MINT,
+      storeAuthority.publicKey,
       false,
-      usdcMintOwner
+      tokenProgram
     );
     const storeAuthorityUsdcAtaBal = (
       await getAccount(provider.connection, storeAuthorityUsdcAta)
     ).amount;
 
-    expect(Number(storeAuthorityUsdcAtaBal)).toBe(Number(storeUsdcAtaBal));
+    expect(Number(storeAuthorityUsdcAtaBal)).toBe(Number(preStoreUsdcAtaBal));
 
-    const storeUsdcAtaAcc = await context.banksClient.getAccount(storeUsdcAta);
+    const postStoreUsdcAtaBal = (
+      await getAccount(provider.connection, storeUsdcAta, 'processed')
+    ).amount;
 
-    expect(storeUsdcAtaAcc).toBeNull();
+    expect(postStoreUsdcAtaBal).toBe(0n);
   });
 });

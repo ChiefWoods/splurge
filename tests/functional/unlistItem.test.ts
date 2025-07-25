@@ -7,9 +7,8 @@ import { LiteSVM } from 'litesvm';
 import { LiteSVMProvider } from 'anchor-litesvm';
 import { fundedSystemAccountInfo, getSetup } from '../setup';
 import { getItemPda, getStorePda } from '../pda';
-import { fetchItemAcc } from '../accounts';
 
-describe('updateItem', () => {
+describe('unlistItem', () => {
   let { litesvm, provider, program } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
@@ -78,18 +77,12 @@ describe('updateItem', () => {
       .rpc();
   });
 
-  test('updates an item', async () => {
-    const price = 20e6; // $2
-    const inventoryCount = 5;
-
+  test('unlist an item', async () => {
     const storePda = getStorePda(storeAuthority.publicKey);
     const itemPda = getItemPda(storePda, itemName);
 
     await program.methods
-      .updateItem({
-        price: new BN(price),
-        inventoryCount,
-      })
+      .unlistItem()
       .accountsPartial({
         authority: storeAuthority.publicKey,
         store: storePda,
@@ -98,9 +91,8 @@ describe('updateItem', () => {
       .signers([storeAuthority])
       .rpc();
 
-    const itemAcc = await fetchItemAcc(program, itemPda);
+    const itemAccBal = litesvm.getBalance(itemPda);
 
-    expect(itemAcc.price.toNumber()).toBe(price);
-    expect(itemAcc.inventoryCount).toBe(inventoryCount);
+    expect(itemAccBal).toBe(0n);
   });
 });

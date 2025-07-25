@@ -1,57 +1,49 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-} from '@solana/web3.js';
-import { ProgramTestContext } from 'solana-bankrun';
-import { BankrunProvider } from 'anchor-bankrun';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import { Splurge } from '../../target/types/splurge';
-import { AnchorError, Program } from '@coral-xyz/anchor';
-import { getBankrunSetup } from '../setup';
-import { getConfigPdaAndBump } from '../pda';
-import usdc from '../fixtures/usdc_mint.json';
-import usdt from '../fixtures/usdt_mint.json';
-import { getConfigAcc } from '../accounts';
+import { Program } from '@coral-xyz/anchor';
+import { fetchConfigAcc } from '../accounts';
+import { LiteSVM } from 'litesvm';
+import { LiteSVMProvider } from 'anchor-litesvm';
+import { expectAnchorError, fundedSystemAccountInfo, getSetup } from '../setup';
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from '../constants';
+import { getConfigPda } from '../pda';
 
 describe('initializeConfig', () => {
-  let { context, provider, program } = {} as {
-    context: ProgramTestContext;
-    provider: BankrunProvider;
+  let { litesvm, provider, program } = {} as {
+    litesvm: LiteSVM;
+    provider: LiteSVMProvider;
     program: Program<Splurge>;
   };
 
-  const treasury = Keypair.generate();
+  const [admin, treasury] = Array.from({ length: 2 }, () => Keypair.generate());
 
   beforeEach(async () => {
-    ({ context, provider, program } = await getBankrunSetup([
-      {
-        address: treasury.publicKey,
-        info: {
-          data: Buffer.alloc(0),
-          executable: false,
-          lamports: LAMPORTS_PER_SOL,
-          owner: SystemProgram.programId,
-        },
-      },
+    ({ litesvm, provider, program } = await getSetup([
+      ...[admin, treasury].map((kp) => {
+        return {
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(),
+        };
+      }),
     ]));
   });
 
   test('initializes a config', async () => {
-    const admin = context.payer;
-    const whitelistedMints = [
-      new PublicKey(usdc.pubkey),
-      new PublicKey(usdt.pubkey),
+    const acceptedMints = [
+      {
+        mint: USDC_MINT,
+        priceUpdateV2: USDC_PRICE_UPDATE_V2,
+      },
     ];
     const orderFeeBps = 250;
 
     await program.methods
       .initializeConfig({
+        acceptedMints,
         admin: admin.publicKey,
-        treasury: treasury.publicKey,
-        whitelistedMints,
         orderFeeBps,
+        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,
@@ -59,29 +51,31 @@ describe('initializeConfig', () => {
       .signers([admin])
       .rpc();
 
-    const [configPda, configBump] = getConfigPdaAndBump();
-    const configAcc = await getConfigAcc(program, configPda);
+    const configPda = getConfigPda();
+    const configAcc = await fetchConfigAcc(program, configPda);
 
-    expect(configAcc.bump).toBe(configBump);
     expect(configAcc.admin).toStrictEqual(admin.publicKey);
     expect(configAcc.treasury).toStrictEqual(treasury.publicKey);
-    expect(configAcc.platformLocked).toBe(false);
+    expect(configAcc.isPaused).toBe(false);
     expect(configAcc.orderFeeBps).toBe(orderFeeBps);
-    expect(configAcc.whitelistedMints).toStrictEqual(whitelistedMints);
+    expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
   });
 
   test('throws if a mint is default PublicKey', async () => {
-    const admin = context.payer;
-    const whitelistedMints = [new PublicKey(usdc.pubkey), PublicKey.default];
-    const orderFeeBps = 250;
+    const acceptedMints = [
+      {
+        mint: PublicKey.default,
+        priceUpdateV2: USDC_PRICE_UPDATE_V2,
+      },
+    ];
 
     try {
       await program.methods
         .initializeConfig({
+          acceptedMints,
           admin: admin.publicKey,
+          orderFeeBps: 250,
           treasury: treasury.publicKey,
-          whitelistedMints,
-          orderFeeBps,
         })
         .accounts({
           authority: admin.publicKey,
@@ -89,25 +83,20 @@ describe('initializeConfig', () => {
         .signers([admin])
         .rpc();
     } catch (err) {
-      expect(err).toBeInstanceOf(AnchorError);
-
-      const { errorCode } = (err as AnchorError).error;
-      expect(errorCode.code).toBe('InvalidAddress');
+      expectAnchorError(err, 'InvalidAddress');
     }
   });
 
   test('throws if whitelist is empty', async () => {
-    const admin = context.payer;
-    const whitelistedMints = [];
-    const orderFeeBps = 250;
+    const acceptedMints = [];
 
     try {
       await program.methods
         .initializeConfig({
+          acceptedMints,
           admin: admin.publicKey,
+          orderFeeBps: 250,
           treasury: treasury.publicKey,
-          whitelistedMints,
-          orderFeeBps,
         })
         .accounts({
           authority: admin.publicKey,
@@ -115,10 +104,7 @@ describe('initializeConfig', () => {
         .signers([admin])
         .rpc();
     } catch (err) {
-      expect(err).toBeInstanceOf(AnchorError);
-
-      const { errorCode } = (err as AnchorError).error;
-      expect(errorCode.code).toBe('EmptyWhitelist');
+      expectAnchorError(err, 'EmptyAcceptedMints');
     }
   });
 });
