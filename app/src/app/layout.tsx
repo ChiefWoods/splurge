@@ -6,7 +6,7 @@ import { SolanaProvider } from '@/providers/SolanaProvider';
 import Header from '@/components/Header';
 import { SWRConfig } from 'swr';
 import { Toaster } from '@/components/ui/sonner';
-import { defaultFetcher } from '@/lib/api';
+import { wrappedFetch } from '@/lib/api';
 import { ConfigProvider } from '@/providers/ConfigProvider';
 import { ShopperProvider } from '@/providers/ShopperProvider';
 import { StoreProvider } from '@/providers/StoreProvider';
@@ -43,7 +43,7 @@ export default function RootLayout({
           value={{
             suspense: false,
             revalidateOnFocus: false,
-            fetcher: defaultFetcher,
+            fetcher: wrappedFetch,
           }}
         >
           <SolanaProvider>

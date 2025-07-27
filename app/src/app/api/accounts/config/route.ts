@@ -1,14 +1,11 @@
-import { parseProgramAccount, parseConfig } from '@/lib/accounts';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchConfig } from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   try {
-    const [configAcc] = await SPLURGE_PROGRAM.account.config.all();
-
     return NextResponse.json(
       {
-        config: parseProgramAccount(configAcc, parseConfig),
+        config: await fetchConfig(),
       },
       {
         status: 200,

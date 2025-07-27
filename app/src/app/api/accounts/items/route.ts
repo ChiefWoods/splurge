@@ -1,7 +1,7 @@
-import { parseProgramAccount, parseItem } from '@/lib/accounts';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
 import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchAllItems, fetchItem, fetchMultipleItems } from '@/lib/accounts';
+import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
         ? [
             {
               memcmp: {
-                offset: 1,
+                offset: DISCRIMINATOR_SIZE,
                 bytes: storePda,
                 encoding: 'base58',
               },
@@ -23,35 +23,27 @@ export async function GET(req: NextRequest) {
           ]
         : [];
 
-      const allItemAcc = await SPLURGE_PROGRAM.account.item.all(filters);
-
       return NextResponse.json(
         {
-          items: allItemAcc.map((item) => parseProgramAccount(item, parseItem)),
+          items: await fetchAllItems(filters),
         },
         {
           status: 200,
         }
       );
     } else if (pdas.length > 1) {
-      const itemAccs = await SPLURGE_PROGRAM.account.item.fetchMultiple(pdas);
-
       return NextResponse.json(
         {
-          items: itemAccs.map((item, i) =>
-            item ? { publicKey: pdas[i], ...parseItem(item) } : null
-          ),
+          items: await fetchMultipleItems(pdas),
         },
         {
           status: 200,
         }
       );
     } else {
-      const itemAcc = await SPLURGE_PROGRAM.account.item.fetchNullable(pdas[0]);
-
       return NextResponse.json(
         {
-          item: itemAcc ? { publicKey: pdas[0], ...parseItem(itemAcc) } : null,
+          item: await fetchItem(pdas[0]),
         },
         {
           status: 200,

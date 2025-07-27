@@ -12,10 +12,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ParsedOrder, ParsedProgramAccount } from '@/lib/accounts';
-import { WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
+import { ParsedOrder, ParsedProgramAccount } from '@/types/accounts';
+import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
-import { capitalizeFirstLetter, getAccountLink } from '@/lib/utils';
+import { capitalizeFirstLetter } from '@/lib/utils';
+import { getAccountLink } from '@/lib/solana-helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
 import { Tabs } from '@radix-ui/react-tabs';
@@ -183,9 +184,8 @@ export default function Page() {
                             <span>{order.total.toFixed(2)}</span>
                             <Image
                               src={
-                                WHITELISTED_PAYMENT_TOKENS.find(
-                                  (token) => token.mint === order.paymentMint
-                                )!.image
+                                ACCEPTED_MINTS_METADATA.get(order.paymentMint)!
+                                  .image
                               }
                               alt="payment token"
                               width={20}

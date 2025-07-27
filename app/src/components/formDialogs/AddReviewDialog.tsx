@@ -6,7 +6,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Button } from '../ui/button';
@@ -30,7 +30,7 @@ import {
 } from '../ui/form';
 import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
-import { getCreateReviewIx } from '@/lib/instructions';
+import { createReviewIx } from '@/lib/instructions';
 import { getReviewPda, getShopperPda } from '@/lib/pda';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useReview } from '@/providers/ReviewProvider';
@@ -67,7 +67,7 @@ export function AddReviewDialog({
 
         const tx = await buildTx(
           [
-            await getCreateReviewIx({
+            await createReviewIx({
               text: data.text,
               rating: data.rating,
               authority: publicKey,

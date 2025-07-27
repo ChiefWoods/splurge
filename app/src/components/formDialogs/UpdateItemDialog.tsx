@@ -25,14 +25,15 @@ import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import Image from 'next/image';
-import { getUpdateItemIx } from '@/lib/instructions';
+import { updateItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
+import { BN } from '@coral-xyz/anchor';
 
 export function UpdateItemDialog({
   name,
@@ -76,8 +77,8 @@ export function UpdateItemDialog({
 
         const tx = await buildTx(
           [
-            await getUpdateItemIx({
-              price: data.price,
+            await updateItemIx({
+              price: new BN(data.price),
               inventoryCount: data.inventoryCount,
               authority: publicKey,
               itemPda: new PublicKey(itemPda),

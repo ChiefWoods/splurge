@@ -29,15 +29,15 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { Textarea } from '../ui/textarea';
 import { getDicebearFile } from '@/lib/api';
-import { getCreateItemIx } from '@/lib/instructions';
+import { listItemIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useStore } from '@/providers/StoreProvider';
 import { useItem } from '@/providers/ItemProvider';
 import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
+import { BN } from '@coral-xyz/anchor';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
@@ -86,8 +86,8 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
 
               const tx = await buildTx(
                 [
-                  await getCreateItemIx({
-                    price: data.price,
+                  await listItemIx({
+                    price: new BN(data.price),
                     inventoryCount: data.inventoryCount,
                     name: data.name,
                     image: imageUri,

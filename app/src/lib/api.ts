@@ -1,10 +1,6 @@
 import { VersionedTransaction } from '@solana/web3.js';
 
-const DicebearStyles: Map<string, string> = new Map([
-  ['shopper', 'personas'],
-  ['store', 'shapes'],
-  ['item', 'icons'],
-]);
+const DicebearStyles: Map<string, string> = new Map([['item', 'icons']]);
 
 export async function getDicebearFile(
   type: string,
@@ -27,10 +23,10 @@ export async function getDicebearFile(
 
   const file = await res.blob();
 
-  return new File([file], file.name, { type: file.type });
+  return new File([file], seed, { type: file.type });
 }
 
-export async function defaultFetcher(url: string) {
+export async function wrappedFetch(url: string) {
   const res = await fetch(url);
   const data = await res.json();
 

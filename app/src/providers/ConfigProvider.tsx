@@ -1,20 +1,19 @@
 'use client';
 
-import { ParsedConfig, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedConfig } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { TriggerWithoutArgs } from 'swr/mutation';
+import useSWR from 'swr';
 
 interface ConfigContextType {
-  config: ParsedProgramAccount<ParsedConfig> | undefined;
-  configMutating: boolean;
+  config: ParsedConfig | undefined;
+  configLoading: boolean;
   configError: Error | undefined;
-  triggerConfig: TriggerWithoutArgs;
 }
 
 const ConfigContext = createContext<ConfigContextType>({} as ConfigContextType);
 
-const url = '/api/accounts/config';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/config`;
 
 export function useConfig() {
   return useContext(ConfigContext);
@@ -23,21 +22,18 @@ export function useConfig() {
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const {
     data: config,
-    isMutating: configMutating,
+    isLoading: configLoading,
     error: configError,
-    trigger: triggerConfig,
-  } = useSWRMutation(url, async (url) => {
-    return (await defaultFetcher(url))
-      .config as ParsedProgramAccount<ParsedConfig>;
+  } = useSWR(apiEndpoint, async (url) => {
+    return (await wrappedFetch(url)).config as ParsedConfig;
   });
 
   return (
     <ConfigContext.Provider
       value={{
         config,
-        configMutating,
+        configLoading: configLoading,
         configError,
-        triggerConfig,
       }}
     >
       {children}

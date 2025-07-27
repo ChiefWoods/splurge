@@ -1,7 +1,7 @@
 'use client';
 
-import { ParsedShopper, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedShopper } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { getShopperPda } from '@/lib/pda';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createContext, ReactNode, useContext } from 'react';
@@ -9,21 +9,21 @@ import useSWR, { KeyedMutator } from 'swr';
 import useSWRMutation, { TriggerWithoutArgs } from 'swr/mutation';
 
 interface ShopperContextType {
-  allShoppers: ParsedProgramAccount<ParsedShopper>[] | undefined;
-  shopper: ParsedProgramAccount<ParsedShopper> | undefined;
+  allShoppers: ParsedShopper[] | undefined;
+  shopper: ParsedShopper | undefined;
   allShoppersMutating: boolean;
   shopperLoading: boolean;
   allShoppersError: Error | undefined;
   shopperError: Error | undefined;
   triggerAllShoppers: TriggerWithoutArgs;
-  mutateShopper: KeyedMutator<ParsedProgramAccount<ParsedShopper>>;
+  mutateShopper: KeyedMutator<ParsedShopper>;
 }
 
 const ShopperContext = createContext<ShopperContextType>(
   {} as ShopperContextType
 );
 
-const url = '/api/accounts/shoppers';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/shoppers`;
 
 export function useShopper() {
   return useContext(ShopperContext);
@@ -36,9 +36,8 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
     isMutating: allShoppersMutating,
     error: allShoppersError,
     trigger: triggerAllShoppers,
-  } = useSWRMutation(url, async (url) => {
-    return (await defaultFetcher(url))
-      .shoppers as ParsedProgramAccount<ParsedShopper>[];
+  } = useSWRMutation(apiEndpoint, async (url) => {
+    return (await wrappedFetch(url)).shoppers as ParsedShopper[];
   });
 
   const {
@@ -47,13 +46,11 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
     error: shopperError,
     mutate: mutateShopper,
   } = useSWR(
-    publicKey ? { url, publicKey } : null,
+    publicKey ? { url: apiEndpoint, publicKey } : null,
     async ({ url, publicKey }) => {
       return (
-        await defaultFetcher(
-          `${url}?pda=${getShopperPda(publicKey).toBase58()}`
-        )
-      ).shopper as ParsedProgramAccount<ParsedShopper>;
+        await wrappedFetch(`${url}?pda=${getShopperPda(publicKey).toBase58()}`)
+      ).shopper as ParsedShopper;
     }
   );
 

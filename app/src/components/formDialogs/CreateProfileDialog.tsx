@@ -27,13 +27,11 @@ import { ImageInput } from '@/components/ImageInput';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useRouter } from 'next/navigation';
-import { SWRResponse, mutate } from 'swr';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
-import { PublicKey } from '@solana/web3.js';
-import { getCreateShopperIx } from '@/lib/instructions';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { createShopperIx } from '@/lib/instructions';
 import { getDicebearFile } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { getShopperPda } from '@/lib/pda';
@@ -79,7 +77,7 @@ export function CreateProfileDialog() {
 
               const tx = await buildTx(
                 [
-                  await getCreateShopperIx({
+                  await createShopperIx({
                     name: data.name,
                     image: imageUri,
                     address: data.address,

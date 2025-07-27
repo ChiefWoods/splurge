@@ -1,21 +1,25 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { SPLURGE_PROGRAM } from './constants';
-import { BN } from '@coral-xyz/anchor';
-import { OrderStatus } from './accounts';
+import {
+  CreateOrderArgs,
+  CreateReviewArgs,
+  InitializeShopperArgs,
+  InitializeStoreArgs,
+  ListItemArgs,
+  OrderStatus,
+  UpdateItemArgs,
+} from '../types/accounts';
 
-export async function getCreateShopperIx({
+export async function createShopperIx({
   name,
   image,
   address,
   authority,
-}: {
-  name: string;
-  image: string;
-  address: string;
+}: InitializeShopperArgs & {
   authority: PublicKey;
 }): Promise<TransactionInstruction> {
   return await SPLURGE_PROGRAM.methods
-    .createShopper({
+    .initializeShopper({
       name,
       image,
       address,
@@ -26,19 +30,16 @@ export async function getCreateShopperIx({
     .instruction();
 }
 
-export async function getCreateStoreIx({
+export async function createStoreIx({
   name,
   image,
   about,
   authority,
-}: {
-  name: string;
-  image: string;
-  about: string;
+}: InitializeStoreArgs & {
   authority: PublicKey;
 }): Promise<TransactionInstruction> {
   return await SPLURGE_PROGRAM.methods
-    .createStore({
+    .initializeStore({
       name,
       image,
       about,
@@ -49,23 +50,18 @@ export async function getCreateStoreIx({
     .instruction();
 }
 
-export async function getCreateItemIx({
+export async function listItemIx({
   price,
   inventoryCount,
   name,
   image,
   description,
   authority,
-}: {
-  price: number;
-  inventoryCount: number;
-  name: string;
-  image: string;
-  description: string;
+}: ListItemArgs & {
   authority: PublicKey;
 }): Promise<TransactionInstruction> {
   return await SPLURGE_PROGRAM.methods
-    .createItem({
+    .listItem({
       price,
       inventoryCount,
       name,
@@ -78,15 +74,13 @@ export async function getCreateItemIx({
     .instruction();
 }
 
-export async function getUpdateItemIx({
+export async function updateItemIx({
   price,
   inventoryCount,
   authority,
   itemPda,
   storePda,
-}: {
-  price: number;
-  inventoryCount: number;
+}: UpdateItemArgs & {
   authority: PublicKey;
   itemPda: PublicKey;
   storePda: PublicKey;
@@ -104,7 +98,7 @@ export async function getUpdateItemIx({
     .instruction();
 }
 
-export async function getDeleteItemIx({
+export async function unlistItemIx({
   authority,
   itemPda,
   storePda,
@@ -114,7 +108,7 @@ export async function getDeleteItemIx({
   storePda: PublicKey;
 }): Promise<TransactionInstruction> {
   return await SPLURGE_PROGRAM.methods
-    .deleteItem()
+    .unlistItem()
     .accountsPartial({
       authority,
       item: itemPda,
@@ -123,17 +117,14 @@ export async function getDeleteItemIx({
     .instruction();
 }
 
-export async function getCreateOrderIx({
+export async function createOrderIx({
   amount,
-  timestamp,
   authority,
   storePda,
   itemPda,
   paymentMint,
   tokenProgram,
-}: {
-  amount: number;
-  timestamp: number;
+}: CreateOrderArgs & {
   authority: PublicKey;
   storePda: PublicKey;
   itemPda: PublicKey;
@@ -143,7 +134,6 @@ export async function getCreateOrderIx({
   return await SPLURGE_PROGRAM.methods
     .createOrder({
       amount,
-      timestamp: new BN(timestamp),
     })
     .accountsPartial({
       authority,
@@ -155,31 +145,31 @@ export async function getCreateOrderIx({
     .instruction();
 }
 
-export async function getUpdateOrderIx({
+export async function updateOrderIx({
   status,
+  admin,
   orderPda,
 }: {
-  status: keyof OrderStatus;
+  status: OrderStatus;
+  admin: PublicKey;
   orderPda: PublicKey;
 }): Promise<TransactionInstruction> {
-  const orderStatus = { [status]: {} } as unknown as OrderStatus;
   return await SPLURGE_PROGRAM.methods
-    .updateOrder(orderStatus)
+    .updateOrder(status)
     .accounts({
+      admin,
       order: orderPda,
     })
     .instruction();
 }
 
-export async function getCreateReviewIx({
+export async function createReviewIx({
   text,
   rating,
   authority,
   shopperPda,
   orderPda,
-}: {
-  text: string;
-  rating: number;
+}: CreateReviewArgs & {
   authority: PublicKey;
   shopperPda: PublicKey;
   orderPda: PublicKey;
@@ -197,7 +187,7 @@ export async function getCreateReviewIx({
     .instruction();
 }
 
-export async function getWithdrawEarningsIx({
+export async function withdrawEarningsIx({
   authority,
   storePda,
   paymentMint,

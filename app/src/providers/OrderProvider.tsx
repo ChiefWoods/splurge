@@ -1,25 +1,25 @@
 'use client';
 
-import { ParsedOrder, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedOrder } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface OrderContextType {
-  allOrders: ParsedProgramAccount<ParsedOrder>[] | undefined;
-  order: ParsedProgramAccount<ParsedOrder> | undefined;
+  allOrders: ParsedOrder[] | undefined;
+  order: ParsedOrder | undefined;
   allOrdersMutating: boolean;
   orderMutating: boolean;
   allOrdersError: Error | undefined;
   orderError: Error | undefined;
   triggerAllOrders: TriggerWithArgs<
-    ParsedProgramAccount<ParsedOrder>[],
+    ParsedOrder[],
     any,
     string,
     { shopperPda?: string | undefined; storePda?: string | undefined }
   >;
   triggerOrder: TriggerWithArgs<
-    ParsedProgramAccount<ParsedOrder>,
+    ParsedOrder,
     any,
     string,
     { publicKey: string }
@@ -28,7 +28,7 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType>({} as OrderContextType);
 
-const url = '/api/accounts/orders';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/orders`;
 
 export function useOrder() {
   return useContext(OrderContext);
@@ -41,7 +41,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     error: allOrdersError,
     trigger: triggerAllOrders,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (
       url,
       { arg }: { arg: { shopperPda?: string; storePda?: string } }
@@ -58,8 +58,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         newUrl.searchParams.append('store', storePda);
       }
 
-      return (await defaultFetcher(newUrl.href))
-        .orders as ParsedProgramAccount<ParsedOrder>[];
+      return (await wrappedFetch(newUrl.href)).orders as ParsedOrder[];
     }
   );
 
@@ -69,10 +68,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     error: orderError,
     trigger: triggerOrder,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
-      return (await defaultFetcher(`${url}?pda=${arg.publicKey}`))
-        .order as ParsedProgramAccount<ParsedOrder>;
+      return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
+        .order as ParsedOrder;
     }
   );
 

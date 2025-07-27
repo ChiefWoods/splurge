@@ -1,6 +1,6 @@
 'use client';
 
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,7 +18,7 @@ import {
 } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
 import { useItem } from '@/providers/ItemProvider';
-import { getDeleteItemIx } from '@/lib/instructions';
+import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
 
@@ -50,7 +50,7 @@ export function DeleteItemDialog({
 
         const tx = await buildTx(
           [
-            await getDeleteItemIx({
+            await unlistItemIx({
               authority: publicKey,
               itemPda: new PublicKey(itemPda),
               storePda: new PublicKey(storePda),

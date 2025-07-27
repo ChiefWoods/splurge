@@ -4,36 +4,18 @@ import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Program } from '@coral-xyz/anchor';
 import { Splurge } from '@/types/splurge';
 
-export const CLUSTER: Cluster | 'localnet' =
-  process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER === 'localnet'
-    ? 'localnet'
-    : ((process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? 'devnet') as Cluster);
-const DEFAULT_CLUSTER = CLUSTER !== 'localnet' ? CLUSTER : 'devnet';
-export const SERVER_CONNECTION = new Connection(
-  process.env.SOLANA_RPC_URL ?? clusterApiUrl(DEFAULT_CLUSTER)
-);
-export const CLIENT_CONNECTION = new Connection(
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(DEFAULT_CLUSTER)
+type WrappedCluster = Cluster | 'localnet';
+
+export const CLUSTER: WrappedCluster = (process.env
+  .NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? 'devnet') as WrappedCluster;
+export const CONNECTION = new Connection(
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
+    (CLUSTER === 'localnet' ? 'http://localhost:8899' : clusterApiUrl(CLUSTER))
 );
 
-export const ADDRESS_LOOKUP_TABLE = process.env.NEXT_PUBLIC_ADDRESS_LOOKUP_TABLE
-  ? (
-      await CLIENT_CONNECTION.getAddressLookupTable(
-        new PublicKey(process.env.NEXT_PUBLIC_ADDRESS_LOOKUP_TABLE)
-      )
-    ).value
-  : undefined;
-
-export const SPLURGE_PROGRAM = new Program(idl as Splurge, {
-  connection: SERVER_CONNECTION,
+export const SPLURGE_PROGRAM = new Program<Splurge>(idl, {
+  connection: CONNECTION,
 });
-
-export const CONFIG_SEED = 'config';
-export const SHOPPER_SEED = 'shopper';
-export const STORE_SEED = 'store';
-export const ITEM_SEED = 'item';
-export const ORDER_SEED = 'order';
-export const REVIEW_SEED = 'review';
 
 export const MAX_SHOPPER_NAME_LENGTH = 64;
 export const MAX_STORE_NAME_LENGTH = 64;
@@ -47,19 +29,33 @@ export const ACCEPTED_IMAGE_TYPES = [
 ];
 
 // Hardcoded because devnet USDC has no metadata to fetch
-export const WHITELISTED_PAYMENT_TOKENS = [
+export const ACCEPTED_MINTS_METADATA = new Map<
+  string,
   {
-    mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-    name: 'USDC',
-    image: '/whitelisted_mint/usdc.png',
-    symbol: 'USDC',
-    owner: TOKEN_PROGRAM_ID,
-  },
-  {
-    mint: 'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
-    name: 'Paypal USD',
-    image: '/whitelisted_mint/pyusd.png',
-    symbol: 'PYUSD',
-    owner: TOKEN_2022_PROGRAM_ID,
-  },
-];
+    name: string;
+    image: string;
+    symbol: string;
+    owner: PublicKey;
+  }
+>([
+  [
+    '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    {
+      name: 'USDC',
+      image: '/accepted_mint/usdc.png',
+      symbol: 'USDC',
+      owner: TOKEN_PROGRAM_ID,
+    },
+  ],
+  [
+    'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
+    {
+      name: 'Paypal USD',
+      image: '/accepted_mint/pyusd.png',
+      symbol: 'PYUSD',
+      owner: TOKEN_2022_PROGRAM_ID,
+    },
+  ],
+]);
+
+export const DISCRIMINATOR_SIZE = 8;

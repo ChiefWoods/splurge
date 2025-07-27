@@ -1,132 +1,169 @@
-import { IdlAccounts, IdlTypes, ProgramAccount } from '@coral-xyz/anchor';
-import { Splurge } from '../types/splurge';
+import { SPLURGE_PROGRAM } from './constants';
+import { GetProgramAccountsFilter } from '@solana/web3.js';
+import { getConfigPda } from './pda';
+import {
+  parseConfig,
+  ParsedConfig,
+  ParsedItem,
+  ParsedOrder,
+  ParsedReview,
+  ParsedShopper,
+  ParsedStore,
+  parseItem,
+  parseOrder,
+  parseReview,
+  parseShopper,
+  parseStore,
+} from '@/types/accounts';
 
-export type Config = IdlAccounts<Splurge>['config'];
-export type Shopper = IdlAccounts<Splurge>['shopper'];
-export type Store = IdlAccounts<Splurge>['store'];
-export type Item = IdlAccounts<Splurge>['item'];
-export type Order = IdlAccounts<Splurge>['order'];
-export type Review = IdlAccounts<Splurge>['review'];
-export type OrderStatus = IdlTypes<Splurge>['orderStatus'];
+const configPda = getConfigPda();
 
-export type ParsedProgramAccount<T> = T & {
-  publicKey: string;
-};
+export async function fetchConfig(): Promise<ParsedConfig | null> {
+  const configAcc =
+    await SPLURGE_PROGRAM.account.config.fetchNullable(configPda);
 
-export interface ParsedConfig {
-  admin: string;
-  treasury: string;
-  platformLocked: boolean;
-  orderFeeBps: number;
-  whitelistedMints: string[];
+  return configAcc
+    ? { publicKey: configPda.toBase58(), ...parseConfig(configAcc) }
+    : null;
 }
 
-export interface ParsedShopper {
-  authority: string;
-  name: string;
-  image: string;
-  address: string;
+export async function fetchAllItems(
+  filters: GetProgramAccountsFilter[]
+): Promise<ParsedItem[]> {
+  const itemAccs = await SPLURGE_PROGRAM.account.item.all(filters);
+
+  return itemAccs.map(({ account, publicKey }) => {
+    return {
+      publicKey: publicKey.toBase58(),
+      ...parseItem(account),
+    };
+  });
 }
 
-export interface ParsedStore {
-  authority: string;
-  name: string;
-  image: string;
-  about: string;
+export async function fetchMultipleItems(
+  pdas: string[]
+): Promise<(ParsedItem | null)[]> {
+  const itemAccs = await SPLURGE_PROGRAM.account.item.fetchMultiple(pdas);
+
+  return itemAccs.map((item, i) =>
+    item ? { publicKey: pdas[i], ...parseItem(item) } : null
+  );
 }
 
-export interface ParsedItem {
-  store: string;
-  price: number;
-  inventoryCount: number;
-  name: string;
-  image: string;
-  description: string;
+export async function fetchItem(pda: string): Promise<ParsedItem | null> {
+  const itemAcc = await SPLURGE_PROGRAM.account.item.fetchNullable(pda);
+
+  return itemAcc ? { publicKey: pda, ...parseItem(itemAcc) } : null;
 }
 
-export interface ParsedOrder {
-  shopper: string;
-  item: string;
-  timestamp: number;
-  status: OrderStatus;
-  amount: number;
-  total: number;
-  paymentMint: string;
+export async function fetchAllOrders(
+  filters: GetProgramAccountsFilter[]
+): Promise<ParsedOrder[]> {
+  const orderAccs = await SPLURGE_PROGRAM.account.order.all(filters);
+
+  return orderAccs.map(({ account, publicKey }) => {
+    return {
+      publicKey: publicKey.toBase58(),
+      ...parseOrder(account),
+    };
+  });
 }
 
-export interface ParsedReview {
-  order: string;
-  rating: number;
-  timestamp: number;
-  text: string;
+export async function fetchMultipleOrders(
+  pdas: string[]
+): Promise<(ParsedOrder | null)[]> {
+  const orderAccs = await SPLURGE_PROGRAM.account.order.fetchMultiple(pdas);
+
+  return orderAccs.map((order, i) =>
+    order ? { publicKey: pdas[i], ...parseOrder(order) } : null
+  );
 }
 
-export function parseProgramAccount<A, P>(
-  programAccount: ProgramAccount,
-  parser: (account: A) => P
-): ParsedProgramAccount<P> {
-  return {
-    publicKey: programAccount.publicKey.toBase58(),
-    ...parser(programAccount.account),
-  };
+export async function fetchOrder(pda: string): Promise<ParsedOrder | null> {
+  const orderAcc = await SPLURGE_PROGRAM.account.order.fetchNullable(pda);
+
+  return orderAcc ? { publicKey: pda, ...parseOrder(orderAcc) } : null;
 }
 
-export function parseConfig(config: Config): ParsedConfig {
-  return {
-    admin: config.admin.toBase58(),
-    treasury: config.treasury.toBase58(),
-    platformLocked: config.platformLocked,
-    orderFeeBps: config.orderFeeBps,
-    whitelistedMints: config.whitelistedMints.map((mint) => mint.toBase58()),
-  };
+export async function fetchAllReviews(
+  filters: GetProgramAccountsFilter[]
+): Promise<ParsedReview[]> {
+  const reviewAccs = await SPLURGE_PROGRAM.account.review.all(filters);
+
+  return reviewAccs.map(({ account, publicKey }) => {
+    return {
+      publicKey: publicKey.toBase58(),
+      ...parseReview(account),
+    };
+  });
 }
 
-export function parseShopper(shopper: Shopper): ParsedShopper {
-  return {
-    authority: shopper.authority.toBase58(),
-    name: shopper.name,
-    image: shopper.image,
-    address: shopper.address,
-  };
+export async function fetchMultipleReviews(
+  pdas: string[]
+): Promise<(ParsedReview | null)[]> {
+  const reviewAccs = await SPLURGE_PROGRAM.account.review.fetchMultiple(pdas);
+
+  return reviewAccs.map((review, i) =>
+    review ? { publicKey: pdas[i], ...parseReview(review) } : null
+  );
 }
 
-export function parseStore(store: Store): ParsedStore {
-  return {
-    authority: store.authority.toBase58(),
-    name: store.name,
-    image: store.image,
-    about: store.about,
-  };
+export async function fetchReview(pda: string): Promise<ParsedReview | null> {
+  const reviewAcc = await SPLURGE_PROGRAM.account.review.fetchNullable(pda);
+
+  return reviewAcc ? { publicKey: pda, ...parseReview(reviewAcc) } : null;
 }
 
-export function parseItem(item: Item): ParsedItem {
-  return {
-    store: item.store.toBase58(),
-    price: item.price,
-    inventoryCount: item.inventoryCount,
-    name: item.name,
-    image: item.image,
-    description: item.description,
-  };
+export async function fetchAllShoppers(): Promise<ParsedShopper[]> {
+  const shopperAccs = await SPLURGE_PROGRAM.account.shopper.all();
+
+  return shopperAccs.map(({ account, publicKey }) => {
+    return {
+      publicKey: publicKey.toBase58(),
+      ...parseShopper(account),
+    };
+  });
 }
 
-export function parseOrder(order: Order): ParsedOrder {
-  return {
-    shopper: order.shopper.toBase58(),
-    item: order.item.toBase58(),
-    timestamp: order.timestamp.toNumber(),
-    status: order.status,
-    amount: order.amount,
-    total: order.total,
-    paymentMint: order.paymentMint.toBase58(),
-  };
+export async function fetchMultipleShoppers(
+  pdas: string[]
+): Promise<(ParsedShopper | null)[]> {
+  const shopperAccs = await SPLURGE_PROGRAM.account.shopper.fetchMultiple(pdas);
+
+  return shopperAccs.map((shopper, i) =>
+    shopper ? { publicKey: pdas[i], ...parseShopper(shopper) } : null
+  );
 }
 
-export function parseReview(review: Review): ParsedReview {
-  return {
-    order: review.order.toBase58(),
-    rating: review.rating,
-    timestamp: review.timestamp.toNumber(),
-    text: review.text,
-  };
+export async function fetchShopper(pda: string): Promise<ParsedShopper | null> {
+  const shopperAcc = await SPLURGE_PROGRAM.account.shopper.fetchNullable(pda);
+
+  return shopperAcc ? { publicKey: pda, ...parseShopper(shopperAcc) } : null;
+}
+
+export async function fetchAllStores(): Promise<ParsedStore[]> {
+  const storeAccs = await SPLURGE_PROGRAM.account.store.all();
+
+  return storeAccs.map(({ account, publicKey }) => {
+    return {
+      publicKey: publicKey.toBase58(),
+      ...parseStore(account),
+    };
+  });
+}
+
+export async function fetchMultipleStores(
+  pdas: string[]
+): Promise<(ParsedStore | null)[]> {
+  const storeAccs = await SPLURGE_PROGRAM.account.store.fetchMultiple(pdas);
+
+  return storeAccs.map((store, i) =>
+    store ? { publicKey: pdas[i], ...parseStore(store) } : null
+  );
+}
+
+export async function fetchStore(pda: string): Promise<ParsedStore | null> {
+  const storeAcc = await SPLURGE_PROGRAM.account.store.fetchNullable(pda);
+
+  return storeAcc ? { publicKey: pda, ...parseStore(storeAcc) } : null;
 }

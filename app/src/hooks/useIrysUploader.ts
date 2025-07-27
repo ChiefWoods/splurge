@@ -1,6 +1,6 @@
 'use client';
 
-import { CLIENT_CONNECTION } from '@/lib/constants';
+import { CONNECTION } from '@/lib/constants';
 import { WebUploader } from '@irys/web-upload';
 import WebSolana from '@irys/web-upload-solana';
 import BaseWebIrys from '@irys/web-upload/esm/base';
@@ -17,7 +17,7 @@ export function useIrysUploader() {
         try {
           const irysUploader = await WebUploader(WebSolana)
             .withProvider(wallet)
-            .withRpc(CLIENT_CONNECTION.rpcEndpoint)
+            .withRpc(CONNECTION.rpcEndpoint)
             .devnet();
 
           setIrysUploader(irysUploader);

@@ -1,34 +1,29 @@
 'use client';
 
-import { ParsedItem, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedItem } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface ItemContextType {
-  allItems: ParsedProgramAccount<ParsedItem>[] | undefined;
-  item: ParsedProgramAccount<ParsedItem> | undefined;
+  allItems: ParsedItem[] | undefined;
+  item: ParsedItem | undefined;
   allItemsMutating: boolean;
   itemMutating: boolean;
   allItemsError: Error | undefined;
   itemError: Error | undefined;
   triggerAllItems: TriggerWithArgs<
-    ParsedProgramAccount<ParsedItem>[],
+    ParsedItem[],
     any,
     string,
     { storePda?: string | undefined }
   >;
-  triggerItem: TriggerWithArgs<
-    ParsedProgramAccount<ParsedItem>,
-    any,
-    string,
-    { publicKey: string }
-  >;
+  triggerItem: TriggerWithArgs<ParsedItem, any, string, { publicKey: string }>;
 }
 
 const ItemContext = createContext<ItemContextType>({} as ItemContextType);
 
-const url = '/api/accounts/items';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/items`;
 
 export function useItem() {
   return useContext(ItemContext);
@@ -41,7 +36,7 @@ export function ItemProvider({ children }: { children: ReactNode }) {
     error: allItemsError,
     trigger: triggerAllItems,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { storePda?: string } }) => {
       const { storePda } = arg;
 
@@ -51,8 +46,7 @@ export function ItemProvider({ children }: { children: ReactNode }) {
         newUrl.searchParams.append('store', storePda);
       }
 
-      return (await defaultFetcher(newUrl.href))
-        .items as ParsedProgramAccount<ParsedItem>[];
+      return (await wrappedFetch(newUrl.href)).items as ParsedItem[];
     }
   );
 
@@ -62,10 +56,10 @@ export function ItemProvider({ children }: { children: ReactNode }) {
     error: itemError,
     trigger: triggerItem,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
-      return (await defaultFetcher(`${url}?pda=${arg.publicKey}`))
-        .item as ParsedProgramAccount<ParsedItem>;
+      return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
+        .item as ParsedItem;
     }
   );
 

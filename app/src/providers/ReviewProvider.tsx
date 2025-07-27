@@ -1,25 +1,25 @@
 'use client';
 
-import { ParsedReview, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedReview } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface ReviewContextType {
-  allReviews: ParsedProgramAccount<ParsedReview>[] | undefined;
-  review: ParsedProgramAccount<ParsedReview> | undefined;
+  allReviews: ParsedReview[] | undefined;
+  review: ParsedReview | undefined;
   allReviewsMutating: boolean;
   reviewMutating: boolean;
   allReviewsError: Error | undefined;
   reviewError: Error | undefined;
   triggerAllReviews: TriggerWithArgs<
-    ParsedProgramAccount<ParsedReview>[],
+    ParsedReview[],
     any,
     string,
     { itemPda?: string }
   >;
   triggerReview: TriggerWithArgs<
-    ParsedProgramAccount<ParsedReview>,
+    ParsedReview,
     any,
     string,
     { publicKey: string }
@@ -28,7 +28,7 @@ interface ReviewContextType {
 
 const ReviewContext = createContext<ReviewContextType>({} as ReviewContextType);
 
-const url = '/api/accounts/reviews';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/reviews`;
 
 export function useReview() {
   return useContext(ReviewContext);
@@ -41,7 +41,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     error: allReviewsError,
     trigger: triggerAllReviews,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { itemPda?: string } }) => {
       const { itemPda } = arg;
 
@@ -51,8 +51,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
         newUrl.searchParams.append('item', itemPda);
       }
 
-      return (await defaultFetcher(newUrl.href))
-        .reviews as ParsedProgramAccount<ParsedReview>[];
+      return (await wrappedFetch(newUrl.href)).reviews as ParsedReview[];
     }
   );
 
@@ -62,10 +61,10 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     error: reviewError,
     trigger: triggerReview,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
-      return (await defaultFetcher(`${url}?pda=${arg.publicKey}`))
-        .review as ParsedProgramAccount<ParsedReview>;
+      return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
+        .review as ParsedReview;
     }
   );
 

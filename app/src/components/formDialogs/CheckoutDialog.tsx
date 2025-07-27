@@ -6,7 +6,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { ReactNode, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import {
@@ -38,8 +38,8 @@ import {
   SelectValue,
 } from '../ui/select';
 import { z } from 'zod';
-import { WHITELISTED_PAYMENT_TOKENS } from '@/lib/constants';
-import { getCreateOrderIx } from '@/lib/instructions';
+import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
+import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
 
@@ -82,7 +82,7 @@ export function CheckoutDialog({
     resolver: zodResolver(createOrderSchema),
     defaultValues: {
       amount: 1,
-      paymentMint: WHITELISTED_PAYMENT_TOKENS[0].mint,
+      paymentMint: ACCEPTED_MINTS_METADATA.keys().next().value,
     },
   });
 
@@ -95,9 +95,7 @@ export function CheckoutDialog({
 
         setIsSubmitting(true);
 
-        const token = WHITELISTED_PAYMENT_TOKENS.find(
-          ({ mint }) => mint === data.paymentMint
-        );
+        const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
 
         if (!token) {
           throw new Error('Payment mint not whitelisted.');
@@ -105,9 +103,8 @@ export function CheckoutDialog({
 
         const tx = await buildTx(
           [
-            await getCreateOrderIx({
+            await createOrderIx({
               amount: data.amount,
-              timestamp: Date.now(),
               authority: publicKey,
               storePda: new PublicKey(storePda),
               itemPda: new PublicKey(itemPda),
@@ -260,8 +257,8 @@ export function CheckoutDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {WHITELISTED_PAYMENT_TOKENS.map(
-                            ({ mint, name, image, symbol }) => (
+                          {Array.from(ACCEPTED_MINTS_METADATA.entries()).map(
+                            ([mint, { name, image, symbol }]) => (
                               <SelectItem key={mint} value={mint}>
                                 <div className="flex items-center justify-start gap-x-2">
                                   <Image

@@ -28,10 +28,10 @@ import { useRouter } from 'next/navigation';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/utils';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { getCreateStoreIx } from '@/lib/instructions';
+import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { getDicebearFile } from '@/lib/api';
 import { getStorePda } from '@/lib/pda';
@@ -77,7 +77,7 @@ export function CreateStoreDialog() {
 
               const tx = await buildTx(
                 [
-                  await getCreateStoreIx({
+                  await createStoreIx({
                     name: data.name,
                     image: imageUri,
                     about: data.about,

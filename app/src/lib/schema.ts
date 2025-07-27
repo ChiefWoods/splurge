@@ -1,13 +1,11 @@
 import { z } from 'zod';
 import {
   ACCEPTED_IMAGE_TYPES,
-  CLIENT_CONNECTION,
   MAX_SHOPPER_NAME_LENGTH,
   MAX_ITEM_NAME_LENGTH,
   MAX_STORE_NAME_LENGTH,
 } from './constants';
 import { capitalizeFirstLetter } from './utils';
-import { PublicKey } from '@solana/web3.js';
 
 const zCommonString = (field: string) => {
   return z
@@ -44,21 +42,9 @@ const zPrice = z
 
 export const zAmount = z.number().int().min(1, 'Amount must be at least 1');
 
-export const zPaymentMint = z
-  .string()
-  .length(44, {
-    message: 'Invalid payment mint public key.',
-  })
-  .refine(async (mintAddress) => {
-    try {
-      return Boolean(
-        await CLIENT_CONNECTION.getAccountInfo(new PublicKey(mintAddress))
-      );
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-  }, 'Payment mint does not exist.');
+export const zPaymentMint = z.string().length(44, {
+  message: 'Invalid payment mint public key.',
+});
 
 const zRating = z
   .number()

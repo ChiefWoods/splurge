@@ -1,7 +1,7 @@
 'use client';
 
-import { ParsedStore, ParsedProgramAccount } from '@/lib/accounts';
-import { defaultFetcher } from '@/lib/api';
+import { ParsedStore } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWRMutation, {
   TriggerWithArgs,
@@ -9,15 +9,15 @@ import useSWRMutation, {
 } from 'swr/mutation';
 
 interface StoreContextType {
-  allStores: ParsedProgramAccount<ParsedStore>[] | undefined;
-  store: ParsedProgramAccount<ParsedStore> | undefined;
+  allStores: ParsedStore[] | undefined;
+  store: ParsedStore | undefined;
   allStoresMutating: boolean;
   storeMutating: boolean;
   allStoresError: Error | undefined;
   storeError: Error | undefined;
   triggerAllStores: TriggerWithoutArgs;
   triggerStore: TriggerWithArgs<
-    ParsedProgramAccount<ParsedStore>,
+    ParsedStore,
     any,
     string,
     { publicKey: string }
@@ -26,7 +26,7 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType>({} as StoreContextType);
 
-const url = '/api/accounts/stores';
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`;
 
 export function useStore() {
   return useContext(StoreContext);
@@ -38,9 +38,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     isMutating: allStoresMutating,
     error: allStoresError,
     trigger: triggerAllStores,
-  } = useSWRMutation(url, async (url) => {
-    return (await defaultFetcher(url))
-      .stores as ParsedProgramAccount<ParsedStore>[];
+  } = useSWRMutation(apiEndpoint, async (url) => {
+    return (await wrappedFetch(url)).stores as ParsedStore[];
   });
 
   const {
@@ -49,10 +48,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     error: storeError,
     trigger: triggerStore,
   } = useSWRMutation(
-    url,
+    apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
-      return (await defaultFetcher(`${url}?pda=${arg.publicKey}`))
-        .store as ParsedProgramAccount<ParsedStore>;
+      return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
+        .store as ParsedStore;
     }
   );
 

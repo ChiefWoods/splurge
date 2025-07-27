@@ -1,7 +1,11 @@
-import { parseProgramAccount, parseReview } from '@/lib/accounts';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
-import { GetProgramAccountsFilter } from '@solana/web3.js';
+import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  fetchAllOrders,
+  fetchAllReviews,
+  fetchMultipleReviews,
+  fetchReview,
+} from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,70 +15,46 @@ export async function GET(req: NextRequest) {
 
   try {
     if (!pdas.length) {
-      const filters: GetProgramAccountsFilter[] = [];
+      let reviews = await fetchAllReviews([]);
 
+      // filter for reviews with a matching order PDA
       if (itemPda) {
-        const orderAccs = await SPLURGE_PROGRAM.account.order.all([
+        const orderAccs = await fetchAllOrders([
           {
             memcmp: {
-              offset: 33,
+              offset: DISCRIMINATOR_SIZE + 32,
               bytes: itemPda,
               encoding: 'base58',
             },
           },
         ]);
 
-        const orderPdas = orderAccs.map((order) => order.publicKey.toBase58());
+        const orderPdas = orderAccs.map(({ publicKey }) => publicKey);
 
-        filters.push(
-          ...(orderPdas.map((orderPda) => {
-            return {
-              memcmp: {
-                offset: 1,
-                bytes: orderPda,
-                encoding: 'base58',
-              },
-            };
-          }) as GetProgramAccountsFilter[])
-        );
+        reviews = reviews.filter(({ order }) => orderPdas.includes(order));
       }
-
-      const allReviewAcc = await SPLURGE_PROGRAM.account.review.all(filters);
 
       return NextResponse.json(
         {
-          reviews: allReviewAcc.map((review) =>
-            parseProgramAccount(review, parseReview)
-          ),
+          reviews,
         },
         {
           status: 200,
         }
       );
     } else if (pdas.length > 1) {
-      const reviewAccs =
-        await SPLURGE_PROGRAM.account.review.fetchMultiple(pdas);
-
       return NextResponse.json(
         {
-          reviews: reviewAccs.map((review, i) =>
-            review ? { publicKey: pdas[i], ...parseReview(review) } : null
-          ),
+          reviews: await fetchMultipleReviews(pdas),
         },
         {
           status: 200,
         }
       );
     } else {
-      const reviewAcc = await SPLURGE_PROGRAM.account.review.fetchNullable(
-        pdas[0]
-      );
-
       return NextResponse.json(
         {
-          review: reviewAcc
-            ? { publicKey: pdas[0], ...parseReview(reviewAcc) }
-            : null,
+          review: await fetchReview(pdas[0]),
         },
         {
           status: 200,

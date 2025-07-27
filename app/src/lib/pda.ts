@@ -1,33 +1,24 @@
 import { PublicKey } from '@solana/web3.js';
-import {
-  MAX_ITEM_NAME_LENGTH,
-  ORDER_SEED,
-  REVIEW_SEED,
-  SHOPPER_SEED,
-  CONFIG_SEED,
-  ITEM_SEED,
-  STORE_SEED,
-  SPLURGE_PROGRAM,
-} from './constants';
+import { MAX_ITEM_NAME_LENGTH, SPLURGE_PROGRAM } from './constants';
 import { BN } from '@coral-xyz/anchor';
 
 export function getConfigPda(): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(CONFIG_SEED)],
+    [Buffer.from('config')],
     SPLURGE_PROGRAM.programId
   )[0];
 }
 
 export function getShopperPda(authority: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(SHOPPER_SEED), authority.toBuffer()],
+    [Buffer.from('shopper'), authority.toBuffer()],
     SPLURGE_PROGRAM.programId
   )[0];
 }
 
 export function getStorePda(authority: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(STORE_SEED), authority.toBuffer()],
+    [Buffer.from('store'), authority.toBuffer()],
     SPLURGE_PROGRAM.programId
   )[0];
 }
@@ -38,7 +29,7 @@ export function getItemPda(storePda: PublicKey, name: string): PublicKey {
   }
 
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(ITEM_SEED), storePda.toBuffer(), Buffer.from(name)],
+    [Buffer.from('item'), storePda.toBuffer(), Buffer.from(name)],
     SPLURGE_PROGRAM.programId
   )[0];
 }
@@ -50,7 +41,7 @@ export function getOrderPda(
 ): PublicKey {
   return PublicKey.findProgramAddressSync(
     [
-      Buffer.from(ORDER_SEED),
+      Buffer.from('order'),
       shopperPda.toBuffer(),
       itemPda.toBuffer(),
       timestamp.toArrayLike(Buffer, 'le', 8),
@@ -61,7 +52,7 @@ export function getOrderPda(
 
 export function getReviewPda(orderPda: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from(REVIEW_SEED), orderPda.toBuffer()],
+    [Buffer.from('review'), orderPda.toBuffer()],
     SPLURGE_PROGRAM.programId
   )[0];
 }

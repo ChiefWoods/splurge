@@ -1,5 +1,8 @@
-import { parseProgramAccount, parseStore } from '@/lib/accounts';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
+import {
+  fetchAllStores,
+  fetchMultipleStores,
+  fetchStore,
+} from '@/lib/accounts';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -9,41 +12,27 @@ export async function GET(req: NextRequest) {
 
   try {
     if (!pdas.length) {
-      const allStoreAcc = await SPLURGE_PROGRAM.account.store.all();
-
       return NextResponse.json(
         {
-          stores: allStoreAcc.map((store) =>
-            parseProgramAccount(store, parseStore)
-          ),
+          stores: await fetchAllStores(),
         },
         {
           status: 200,
         }
       );
     } else if (pdas.length > 1) {
-      const storeAccs = await SPLURGE_PROGRAM.account.store.fetchMultiple(pdas);
-
       return NextResponse.json(
         {
-          stores: storeAccs.map((store, i) =>
-            store ? { publicKey: pdas[i], ...parseStore(store) } : null
-          ),
+          stores: await fetchMultipleStores(pdas),
         },
         {
           status: 200,
         }
       );
     } else {
-      const storeAcc = await SPLURGE_PROGRAM.account.store.fetchNullable(
-        pdas[0]
-      );
-
       return NextResponse.json(
         {
-          store: storeAcc
-            ? { publicKey: pdas[0], ...parseStore(storeAcc) }
-            : null,
+          store: await fetchStore(pdas[0]),
         },
         {
           status: 200,

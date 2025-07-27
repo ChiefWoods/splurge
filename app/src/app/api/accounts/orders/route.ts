@@ -1,7 +1,12 @@
-import { parseProgramAccount, parseOrder } from '@/lib/accounts';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
 import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  fetchAllItems,
+  fetchAllOrders,
+  fetchMultipleOrders,
+  fetchOrder,
+} from '@/lib/accounts';
+import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -17,74 +22,53 @@ export async function GET(req: NextRequest) {
       if (shopperPda) {
         filters.push({
           memcmp: {
-            offset: 1,
+            offset: DISCRIMINATOR_SIZE,
             bytes: shopperPda,
             encoding: 'base58',
           },
         });
       }
 
+      let orders = await fetchAllOrders(filters);
+
+      // filter for orders with a matching item PDA
       if (storePda) {
-        const itemAccs = await SPLURGE_PROGRAM.account.item.all([
+        const itemAccs = await fetchAllItems([
           {
             memcmp: {
-              offset: 1,
+              offset: DISCRIMINATOR_SIZE,
               bytes: storePda,
               encoding: 'base58',
             },
           },
         ]);
 
-        const itemPdas = itemAccs.map((item) => item.publicKey.toBase58());
+        const itemPdas = itemAccs.map((item) => item.publicKey);
 
-        filters.push(
-          ...(itemPdas.map((itemPda) => {
-            return {
-              memcmp: {
-                offset: 33,
-                bytes: itemPda,
-                encoding: 'base58',
-              },
-            };
-          }) as GetProgramAccountsFilter[])
-        );
+        orders = orders.filter(({ item }) => itemPdas.includes(item));
       }
-
-      const allOrderAcc = await SPLURGE_PROGRAM.account.order.all(filters);
 
       return NextResponse.json(
         {
-          orders: allOrderAcc.map((order) =>
-            parseProgramAccount(order, parseOrder)
-          ),
+          orders,
         },
         {
           status: 200,
         }
       );
     } else if (pdas.length > 1) {
-      const orderAccs = await SPLURGE_PROGRAM.account.order.fetchMultiple(pdas);
-
       return NextResponse.json(
         {
-          orders: orderAccs.map((order, i) =>
-            order ? { publicKey: pdas[i], ...parseOrder(order) } : null
-          ),
+          orders: await fetchMultipleOrders(pdas),
         },
         {
           status: 200,
         }
       );
     } else {
-      const orderAcc = await SPLURGE_PROGRAM.account.order.fetchNullable(
-        pdas[0]
-      );
-
       return NextResponse.json(
         {
-          order: orderAcc
-            ? { publicKey: pdas[0], ...parseOrder(orderAcc) }
-            : null,
+          order: await fetchOrder(pdas[0]),
         },
         {
           status: 200,
