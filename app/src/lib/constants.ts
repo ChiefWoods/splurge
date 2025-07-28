@@ -4,13 +4,10 @@ import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Program } from '@coral-xyz/anchor';
 import { Splurge } from '@/types/splurge';
 
-type WrappedCluster = Cluster | 'localnet';
-
-export const CLUSTER: WrappedCluster = (process.env
-  .NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? 'devnet') as WrappedCluster;
+export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
+  'devnet') as Cluster;
 export const CONNECTION = new Connection(
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
-    (CLUSTER === 'localnet' ? 'http://localhost:8899' : clusterApiUrl(CLUSTER))
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER)
 );
 
 export const SPLURGE_PROGRAM = new Program<Splurge>(idl, {
