@@ -10,7 +10,7 @@ import { getShopperPda, getStorePda } from '@/lib/pda';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 
-export default function Header() {
+export function Header() {
   const { publicKey } = useWallet();
   const { getShopperAcc, getStoreAcc } = useAnchorProgram();
   const shopper = useSWR(

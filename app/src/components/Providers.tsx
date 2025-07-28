@@ -10,7 +10,7 @@ import { SolanaProvider } from '@/providers/SolanaProvider';
 import { StoreProvider } from '@/providers/StoreProvider';
 import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
-import Header from './Header';
+import { Header } from './Header';
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
