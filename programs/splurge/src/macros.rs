@@ -14,8 +14,8 @@ macro_rules! imprecise_number {
 
 #[macro_export]
 macro_rules! shopper_signer {
-    (&authority_key: expr, &bump: expr) => {
-        &[SHOPPER_SEED, authority_key.as_ref(), &[$bump]]
+    ($authority_key: expr, $bump: expr) => {
+        &[SHOPPER_SEED, $authority_key.as_ref(), &[$bump]]
     };
 }
 
