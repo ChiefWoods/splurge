@@ -19,13 +19,13 @@
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.2",
     "@types/bn.js": "^5.2.0",
-    "@types/bun": "^1.2.19",
+    "@types/bun": "^1.2.20",
     "anchor-litesvm": "^0.1.2",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
+    "lint-staged": "^16.1.5",
     "litesvm": "^0.2.0",
     "prettier": "^3.6.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "packageManager": "bun@1.2.19"
 }
