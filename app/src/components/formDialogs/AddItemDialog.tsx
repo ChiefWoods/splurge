@@ -38,6 +38,7 @@ import { useItem } from '@/providers/ItemProvider';
 import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
+import { ImageInputLabel } from '../ImageInputLabel';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
@@ -199,7 +200,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image</FormLabel>
+                  <ImageInputLabel />
                   <FormControl>
                     <ImageInput
                       field={field}

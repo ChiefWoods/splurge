@@ -36,6 +36,8 @@ import { getDicebearFile } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useShopper } from '@/providers/ShopperProvider';
 import { REDIRECT_DELAY_SECS } from '@/lib/constants';
+import { getShopperPda } from '@/lib/pda';
+import { ImageInputLabel } from '../ImageInputLabel';
 
 export function CreateProfileDialog() {
   const router = useRouter();
@@ -105,6 +107,9 @@ export function CreateProfileDialog() {
 
                 setTimeout(async () => {
                   await shopper.mutate();
+                  router.replace(
+                    `/shoppers/${getShopperPda(publicKey).toBase58()}`
+                  );
                 }, REDIRECT_DELAY_SECS);
 
                 return (
@@ -168,7 +173,7 @@ export function CreateProfileDialog() {
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image</FormLabel>
+                  <ImageInputLabel />
                   <FormControl>
                     <ImageInput
                       field={field}

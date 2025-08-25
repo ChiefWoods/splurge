@@ -35,8 +35,12 @@ import { confirmTransaction } from '@solana-developers/helpers';
 import { getDicebearFile } from '@/lib/api';
 import { useStore } from '@/providers/StoreProvider';
 import { REDIRECT_DELAY_SECS } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
+import { getStorePda } from '@/lib/pda';
+import { ImageInputLabel } from '../ImageInputLabel';
 
 export function CreateStoreDialog() {
+  const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { personalStore } = useStore();
@@ -103,6 +107,9 @@ export function CreateStoreDialog() {
 
                 setTimeout(async () => {
                   await personalStore.mutate();
+                  router.replace(
+                    `/stores/${getStorePda(publicKey).toBase58()}`
+                  );
                 }, REDIRECT_DELAY_SECS);
 
                 return (
@@ -166,7 +173,7 @@ export function CreateStoreDialog() {
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image</FormLabel>
+                  <ImageInputLabel />
                   <FormControl>
                     <ImageInput
                       field={field}
