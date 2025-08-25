@@ -7,3 +7,5 @@ test-ledger
 .yarn
 *-wallet.json
 *-keypair.json
+.env
+!.env.example

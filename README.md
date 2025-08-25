@@ -107,6 +107,8 @@ anchor keys sync
 
 ```bash
 anchor build
+# Alternative build for running tests
+# bun run build:test
 ```
 
 3. Run tests
@@ -133,6 +135,22 @@ In `/app`, start development server.
 
 ```bash
 bun run dev
+```
+
+#### Accounts
+
+Initialize program accounts. Depending on the cluster used, you may be required to initialize your own stablecoin mints.
+
+1. Configure `.env` files
+
+```bash
+cp .env.example .env
+```
+
+2. Run scripts
+
+```bash
+bun run scripts/instructions/initializeConfig.ts
 ```
 
 ## Issues
