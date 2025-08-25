@@ -1,25 +1,30 @@
 import { VersionedTransaction } from '@solana/web3.js';
 
-const DicebearStyles: Map<string, string> = new Map([['item', 'icons']]);
+const DicebearStyles: Map<string, string> = new Map([
+  ['shopper', 'personas'],
+  ['store', 'shapes'],
+  ['item', 'icons'],
+]);
 
-export async function getDicebearFile(
-  type: string,
-  seed: string = ''
-): Promise<File> {
+export function getDicebearEndpoint(type: string) {
   const style = DicebearStyles.get(type);
 
   if (!style) {
     throw new Error('Invalid type');
   }
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_DICEBEAR_API}/${style}/svg?seed=${seed}`,
-    {
-      headers: {
-        'Content-Type': 'image/jpeg',
-      },
-    }
-  );
+  return `${process.env.NEXT_PUBLIC_DICEBEAR_API}/${style}/svg`;
+}
+
+export async function getDicebearFile(
+  type: string,
+  seed: string = ''
+): Promise<File> {
+  const res = await fetch(`${getDicebearEndpoint(type)}?seed=${seed}`, {
+    headers: {
+      'Content-Type': 'image/jpeg',
+    },
+  });
 
   const file = await res.blob();
 

@@ -56,3 +56,5 @@ export const ACCEPTED_MINTS_METADATA = new Map<
 ]);
 
 export const DISCRIMINATOR_SIZE = 8;
+
+export const REDIRECT_DELAY_SECS = 1000;

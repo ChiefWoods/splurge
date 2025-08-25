@@ -24,7 +24,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useRouter } from 'next/navigation';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
@@ -34,12 +33,13 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { getDicebearFile } from '@/lib/api';
-import { getStorePda } from '@/lib/pda';
+import { useStore } from '@/providers/StoreProvider';
+import { REDIRECT_DELAY_SECS } from '@/lib/constants';
 
 export function CreateStoreDialog() {
-  const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const { personalStore } = useStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -101,11 +101,9 @@ export function CreateStoreDialog() {
                 form.reset();
                 setImagePreview('');
 
-                setTimeout(() => {
-                  // if (store.data) {
-                  router.push(`/stores/${getStorePda(publicKey).toBase58()}`);
-                  // }
-                }, 1000);
+                setTimeout(async () => {
+                  await personalStore.mutate();
+                }, REDIRECT_DELAY_SECS);
 
                 return (
                   <TransactionToast

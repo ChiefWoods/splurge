@@ -34,12 +34,14 @@ import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { createShopperIx } from '@/lib/instructions';
 import { getDicebearFile } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { getShopperPda } from '@/lib/pda';
+import { useShopper } from '@/providers/ShopperProvider';
+import { REDIRECT_DELAY_SECS } from '@/lib/constants';
 
 export function CreateProfileDialog() {
   const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const { shopper } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -101,11 +103,9 @@ export function CreateProfileDialog() {
                 form.reset();
                 setImagePreview('');
 
-                setTimeout(() => {
-                  router.push(
-                    `/shoppers/${getShopperPda(publicKey).toBase58()}`
-                  );
-                }, 1000);
+                setTimeout(async () => {
+                  await shopper.mutate();
+                }, REDIRECT_DELAY_SECS);
 
                 return (
                   <TransactionToast

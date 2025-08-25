@@ -1,11 +1,11 @@
-import { SERVER_CONNECTION } from '@/lib/constants';
+import { CONNECTION } from '@/lib/constants';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
     const json = await req.json();
 
-    const res = await fetch(SERVER_CONNECTION.rpcEndpoint, {
+    const res = await fetch(CONNECTION.rpcEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -13,31 +13,31 @@ import Link from 'next/link';
 
 export default function Page() {
   const { shopper } = useShopper();
-  const { allItems, itemMutating, triggerAllItems } = useItem();
-  const { allStores, storeMutating, triggerAllStores } = useStore();
+  const { allItems } = useItem();
+  const { allStores } = useStore();
 
-  triggerAllItems({});
-  triggerAllStores();
+  allItems.trigger({});
+  allStores.trigger();
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full">
-        {shopper?.name
-          ? `Welcome back, ${shopper.name}`
+        {shopper.data?.name
+          ? `Welcome back, ${shopper.data.name}`
           : 'Welcome to Splurge!'}
       </h2>
       <div className="flex w-full flex-1 flex-wrap gap-6">
-        {itemMutating || storeMutating ? (
+        {allItems.isMutating || allStores.isMutating ? (
           <>
             {[...Array(6)].map((_, i) => (
               <ItemCardSkeleton key={i} />
             ))}
           </>
-        ) : allItems?.length && allStores?.length ? (
+        ) : allItems.data?.length && allStores.data?.length ? (
           <>
-            {allItems.map(
+            {allItems.data.map(
               ({ publicKey, name, image, inventoryCount, price, store }) => {
-                const itemStore = allStores.find(
+                const itemStore = allStores.data?.find(
                   ({ publicKey }) => publicKey === store
                 );
 

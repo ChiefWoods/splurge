@@ -33,7 +33,7 @@ export function DeleteItemDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { triggerAllItems } = useItem();
+  const { allItems } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,7 +68,7 @@ export function DeleteItemDialog({
       {
         loading: 'Waiting for signature...',
         success: (signature) => {
-          triggerAllItems(
+          allItems.trigger(
             { storePda },
             {
               optimisticData: (prev) => {

@@ -34,9 +34,10 @@ export function useIrysUploader() {
     }
 
     const price = await irysUploader.getPrice(file.size);
+    // user signs and sends transaction here
     await irysUploader.fund(price);
 
-    const receipt = await irysUploader.upload(
+    const { id } = await irysUploader.upload(
       Buffer.from(await file.arrayBuffer()),
       {
         tags: [
@@ -52,7 +53,7 @@ export function useIrysUploader() {
       }
     );
 
-    return `https://gateway.irys.xyz/${receipt.id}`;
+    return `https://gateway.irys.xyz/${id}`;
   }
 
   return { upload };

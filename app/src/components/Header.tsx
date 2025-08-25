@@ -3,34 +3,23 @@
 import { ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
 import { WalletMultiButtonDynamic } from '@/providers/SolanaProvider';
-import useSWR from 'swr';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useAnchorProgram } from '@/hooks/useAnchorProgram';
-import { getShopperPda, getStorePda } from '@/lib/pda';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
+import { useShopper } from '@/providers/ShopperProvider';
+import { useStore } from '@/providers/StoreProvider';
+import { useMemo } from 'react';
+import { Keypair } from '@solana/web3.js';
+import { getDicebearEndpoint } from '@/lib/api';
 
 export function Header() {
   const { publicKey } = useWallet();
-  const { getShopperAcc, getStoreAcc } = useAnchorProgram();
-  const shopper = useSWR(
-    publicKey ? { url: '/api/shoppers', publicKey } : null,
-    async ({ publicKey }) => {
-      const pda = getShopperPda(publicKey);
-      const acc = await getShopperAcc(pda);
+  const { shopper } = useShopper();
+  const { personalStore } = useStore();
 
-      return { pda, acc };
-    }
-  );
-  const store = useSWR(
-    publicKey ? { url: '/api/stores', publicKey } : null,
-    async ({ publicKey }) => {
-      const pda = getStorePda(publicKey);
-      const acc = await getStoreAcc(pda);
-
-      return { pda, acc };
-    }
-  );
+  const avatarSeed = useMemo(() => {
+    return publicKey?.toBase58() ?? Keypair.generate().publicKey.toBase58();
+  }, [publicKey]);
 
   const navLinks = [
     {
@@ -39,11 +28,13 @@ export function Header() {
     },
     {
       name: 'My Store',
-      href: store.data?.acc ? `/stores/${store.data.pda}` : '/stores/create',
+      href: personalStore.data
+        ? `/stores/${personalStore.data.publicKey}`
+        : '/stores/create',
     },
     {
       name: 'My Orders',
-      href: shopper.data?.acc ? `/orders` : '/shoppers/create',
+      href: shopper.data ? `/orders` : '/shoppers/create',
     },
   ];
 
@@ -65,8 +56,8 @@ export function Header() {
         </ul>
         <Link
           href={
-            shopper.data?.acc
-              ? `/shoppers/${shopper.data?.pda}`
+            shopper.data
+              ? `/shoppers/${shopper.data.publicKey}`
               : '/shoppers/create'
           }
         >
@@ -75,7 +66,10 @@ export function Header() {
               <Skeleton className="h-full w-full" />
             ) : (
               <AvatarImage
-                src={shopper.data?.acc?.image ?? '/default_shopper.svg'}
+                src={
+                  shopper.data?.image ??
+                  `${getDicebearEndpoint('shopper')}?seed=${avatarSeed}`
+                }
                 className="bg-white"
               />
             )}

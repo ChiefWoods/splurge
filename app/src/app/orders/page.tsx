@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ParsedOrder, ParsedProgramAccount } from '@/types/accounts';
+import { ParsedOrder } from '@/types/accounts';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
 import { capitalizeFirstLetter } from '@/lib/utils';
@@ -50,24 +50,22 @@ const tabs = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
 
 export default function Page() {
   const { publicKey } = useWallet();
-  const { allOrders, triggerAllOrders } = useOrder();
-  const { allItems, triggerAllItems } = useItem();
-  const [sortedOrders, setSortedOrders] = useState<
-    ParsedProgramAccount<ParsedOrder>[]
-  >([]);
+  const { allOrders } = useOrder();
+  const { allItems } = useItem();
+  const [sortedOrders, setSortedOrders] = useState<ParsedOrder[]>([]);
   const [tabValue, setTabValue] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
   const [showNameAsc, setShowNameAsc] = useState<boolean>(true);
 
-  triggerAllOrders({
+  allOrders.trigger({
     shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
   });
-  triggerAllItems({});
+  allItems.trigger({});
 
   useEffect(() => {
     if (allOrders && allItems) {
-      const sortedOrders = allOrders
-        .filter((order) => {
+      const sortedOrders = allOrders.data
+        ?.filter((order) => {
           if (tabValue === 'all') {
             return true;
           } else {
@@ -75,7 +73,7 @@ export default function Page() {
           }
         })
         .filter((order) => {
-          const item = allItems.find(
+          const item = allItems.data?.find(
             ({ publicKey }) => publicKey === order.item
           );
 
@@ -86,8 +84,12 @@ export default function Page() {
           return item.name.toLowerCase().includes(searchValue.toLowerCase());
         })
         .sort((a, b) => {
-          const itemA = allItems.find(({ publicKey }) => publicKey === a.item);
-          const itemB = allItems.find(({ publicKey }) => publicKey === b.item);
+          const itemA = allItems.data?.find(
+            ({ publicKey }) => publicKey === a.item
+          );
+          const itemB = allItems.data?.find(
+            ({ publicKey }) => publicKey === b.item
+          );
 
           if (!itemA || !itemB) {
             throw new Error('Matching item not found for order.');
@@ -98,7 +100,7 @@ export default function Page() {
             : itemB.name.localeCompare(itemA.name);
         });
 
-      setSortedOrders(sortedOrders);
+      setSortedOrders(sortedOrders ?? []);
     }
   }, [allOrders, allItems, tabValue, searchValue, showNameAsc]);
 
@@ -106,7 +108,7 @@ export default function Page() {
     <section className="main-section flex-1">
       <h2 className="w-full text-start">My Orders</h2>
       {publicKey ? (
-        allOrders?.length && (
+        allOrders.data?.length && (
           <Tabs
             defaultValue="all"
             value={tabValue}
@@ -149,7 +151,7 @@ export default function Page() {
                   sortedOrders.map((order) => {
                     const status = Object.keys(order.status)[0];
 
-                    const item = allItems.find(
+                    const item = allItems.data?.find(
                       ({ publicKey }) => publicKey === order.item
                     );
 
@@ -181,7 +183,11 @@ export default function Page() {
                         <TableCell>{order.amount}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-x-2">
-                            <span>{order.total.toFixed(2)}</span>
+                            <span>
+                              {(
+                                order.paymentSubtotal + order.platformFee
+                              ).toFixed(2)}
+                            </span>
                             <Image
                               src={
                                 ACCEPTED_MINTS_METADATA.get(order.paymentMint)!

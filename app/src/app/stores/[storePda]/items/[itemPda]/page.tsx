@@ -27,31 +27,35 @@ export default function Page() {
   }>();
   const { publicKey } = useWallet();
   const [reviewOrderPda, setReviewOrderPda] = useState<string>('');
-  const { item, itemMutating, triggerItem } = useItem();
-  const { store, storeMutating, triggerStore } = useStore();
-  const { allOrders, allOrdersMutating, triggerAllOrders } = useOrder();
-  const { allReviews, allReviewsMutating, triggerAllReviews } = useReview();
-  const { allShoppers, allShoppersMutating, triggerAllShoppers } = useShopper();
+  const { item } = useItem();
+  const { store } = useStore();
+  const { allOrders } = useOrder();
+  const { allReviews } = useReview();
+  const { allShoppers } = useShopper();
 
-  triggerItem({ publicKey: itemPda });
-  triggerStore({ publicKey: storePda });
-  triggerAllOrders({
+  item.trigger({ publicKey: itemPda });
+  store.trigger({ publicKey: storePda });
+  allOrders.trigger({
     storePda,
     shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
   });
-  triggerAllReviews({ itemPda });
-  triggerAllShoppers();
+  allReviews.trigger({ itemPda });
+  allShoppers.trigger();
 
-  if ((!itemMutating && !item) || (!storeMutating && !store)) {
+  if ((!item.isMutating && !item.data) || (!store.isMutating && !store.data)) {
     notFound();
   }
 
   useEffect(() => {
-    if (publicKey && allOrders?.length && allReviews?.length) {
-      const itemOrders = allOrders.filter((order) => order.item === itemPda);
+    if (publicKey && allOrders.data?.length && allReviews.data?.length) {
+      const itemOrders = allOrders.data.filter(
+        (order) => order.item === itemPda
+      );
 
       for (const order of itemOrders) {
-        if (!allReviews.find((review) => review.order === order.publicKey)) {
+        if (
+          !allReviews.data.find((review) => review.order === order.publicKey)
+        ) {
           setReviewOrderPda(order.publicKey);
           return;
         }
@@ -63,35 +67,35 @@ export default function Page() {
 
   return (
     <section className="main-section flex-1">
-      {itemMutating ? (
+      {item.isMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        item && (
+        item.data && (
           <AccountSection
-            key={item.publicKey}
-            title={item.name}
-            image={item.image}
+            key={item.data.publicKey}
+            title={item.data.name}
+            image={item.data.image}
             prefix="Item ID:"
             address={storePda}
             content={
               <>
-                <p className="truncate text-primary">{item.description}</p>
+                <p className="truncate text-primary">{item.data.description}</p>
                 <p className="font-semibold text-primary">
-                  {item.price.toFixed(2)} USD
+                  {item.data.price.toFixed(2)} USD
                 </p>
-                <p className="muted-text">{item.inventoryCount} left</p>
+                <p className="muted-text">{item.data.inventoryCount} left</p>
               </>
             }
             buttons={
               publicKey &&
               getStorePda(publicKey).toBase58() === storePda &&
-              item.inventoryCount > 0 && (
+              item.data.inventoryCount > 0 && (
                 <AccountSectionButtonTab>
                   <CheckoutDialog
-                    name={item.name}
-                    image={item.image}
-                    price={item.price}
-                    maxAmount={item.inventoryCount}
+                    name={item.data.name}
+                    image={item.data.image}
+                    price={item.data.price}
+                    maxAmount={item.data.inventoryCount}
                     storePda={storePda}
                     itemPda={itemPda}
                   >
@@ -113,42 +117,46 @@ export default function Page() {
           )}
         </div>
         <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
-          {allOrdersMutating || allShoppersMutating || allReviewsMutating ? (
+          {allOrders.isMutating ||
+          allShoppers.isMutating ||
+          allReviews.isMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ReviewRowSkeleton key={i} />
               ))}
             </>
-          ) : allOrders && allShoppers && allReviews?.length ? (
-            allReviews.map(({ publicKey, order, rating, timestamp, text }) => {
-              const reviewOrder = allOrders.find(
-                ({ publicKey }) => publicKey === order
-              );
+          ) : allOrders.data && allShoppers.data && allReviews.data?.length ? (
+            allReviews.data.map(
+              ({ publicKey, order, rating, timestamp, text }) => {
+                const reviewOrder = allOrders.data?.find(
+                  ({ publicKey }) => publicKey === order
+                );
 
-              if (!reviewOrder) {
-                throw new Error('Matching order not found for review.');
+                if (!reviewOrder) {
+                  throw new Error('Matching order not found for review.');
+                }
+
+                const shopper = allShoppers.data?.find(
+                  (shopper) => shopper.publicKey === reviewOrder.shopper
+                );
+
+                if (!shopper) {
+                  throw new Error('Matching shopper not found for order.');
+                }
+
+                return (
+                  <ReviewRow
+                    key={publicKey}
+                    shopperPda={shopper.publicKey}
+                    shopperName={shopper.name}
+                    shopperImage={shopper.image}
+                    timestamp={timestamp}
+                    rating={rating}
+                    text={text}
+                  />
+                );
               }
-
-              const shopper = allShoppers.find(
-                (shopper) => shopper.publicKey === reviewOrder.shopper
-              );
-
-              if (!shopper) {
-                throw new Error('Matching shopper not found for order.');
-              }
-
-              return (
-                <ReviewRow
-                  key={publicKey}
-                  shopperPda={shopper.publicKey}
-                  shopperName={shopper.name}
-                  shopperImage={shopper.image}
-                  timestamp={timestamp}
-                  rating={rating}
-                  text={text}
-                />
-              );
-            })
+            )
           ) : (
             <NoResultText text="No reviews made." />
           )}

@@ -23,13 +23,13 @@ import { notFound, useParams } from 'next/navigation';
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useWallet();
-  const { store, storeMutating, triggerStore } = useStore();
-  const { allItems, itemMutating, triggerAllItems } = useItem();
+  const { store } = useStore();
+  const { allItems } = useItem();
 
-  triggerStore({ publicKey: storePda });
-  triggerAllItems({ storePda });
+  store.trigger({ publicKey: storePda });
+  allItems.trigger({ storePda });
 
-  if (!storeMutating && !itemMutating && !store) {
+  if (!store.isMutating && !allItems.isMutating && !store.data) {
     notFound();
   }
 
@@ -48,20 +48,20 @@ export default function Page() {
 
   return (
     <section className="main-section flex-1">
-      {storeMutating ? (
+      {store.isMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        store && (
+        store.data && (
           <AccountSection
             key={storePda}
-            title={store.name}
-            image={store.image}
+            title={store.data.name}
+            image={store.data.image}
             prefix="Store ID:"
             address={storePda}
-            content={<p className="text-primary">{store.about}</p>}
+            content={<p className="text-primary">{store.data.about}</p>}
             buttons={
               publicKey &&
-              store.publicKey === getStorePda(publicKey).toBase58() && (
+              store.data.publicKey === getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, icon, text }) => (
@@ -87,14 +87,14 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
-          {itemMutating ? (
+          {allItems.isMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ItemCardSkeleton key={i} />
               ))}
             </>
-          ) : allItems?.length ? (
-            allItems.map(
+          ) : allItems.data?.length ? (
+            allItems.data.map(
               ({
                 publicKey: pda,
                 name,
@@ -103,7 +103,7 @@ export default function Page() {
                 inventoryCount,
                 price,
               }) =>
-                store && (
+                store.data && (
                   <ItemCard
                     key={pda}
                     itemPda={pda}
@@ -114,7 +114,8 @@ export default function Page() {
                     storePda={storePda}
                   >
                     {publicKey &&
-                    store.publicKey === getStorePda(publicKey).toBase58() ? (
+                    store.data.publicKey ===
+                      getStorePda(publicKey).toBase58() ? (
                       <div className="flex items-end gap-x-2">
                         <UpdateItemDialog
                           name={name}

@@ -8,12 +8,12 @@ import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const router = useRouter();
-  const { shopper, shopperLoading } = useShopper();
+  const { shopper } = useShopper();
 
-  if (shopperLoading) {
+  if (shopper.isLoading) {
     return <Spinner />;
-  } else if (!shopperLoading && shopper) {
-    router.replace(`/shoppers/${shopper}`);
+  } else if (shopper.data) {
+    router.replace(`/shoppers/${shopper.data.publicKey}`);
   }
 
   return (

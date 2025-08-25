@@ -14,30 +14,30 @@ export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
   const router = useRouter();
   const { publicKey } = useWallet();
-  const { shopper, shopperLoading } = useShopper();
+  const { shopper } = useShopper();
 
   if (!publicKey) {
     router.replace('/shoppers/create');
   } else if (shopperPda !== getShopperPda(publicKey).toBase58()) {
     throw new Error('Unauthorized.');
-  } else if (!shopperLoading && !shopper) {
+  } else if (!shopper.isLoading && !shopper.data) {
     notFound();
   }
 
   return (
     <section className="main-section flex-1">
-      {shopperLoading ? (
+      {shopper.isLoading ? (
         <AccountSectionSkeleton header={true} />
       ) : (
-        shopper && (
+        shopper.data && (
           <AccountSection
             key={shopperPda}
             header="My Profile"
-            title={shopper.name}
-            image={shopper.image}
+            title={shopper.data.name}
+            image={shopper.data.image}
             prefix="Shopper ID:"
             address={shopperPda}
-            content={<p className="text-primary">{shopper.address}</p>}
+            content={<p className="text-primary">{shopper.data.address}</p>}
             buttons={
               <Button asChild variant={'secondary'} size={'sm'}>
                 <Link href="/orders">

@@ -8,12 +8,12 @@ import { useStore } from '@/providers/StoreProvider';
 
 export default function Page() {
   const router = useRouter();
-  const { store, storeMutating } = useStore();
+  const { personalStore } = useStore();
 
-  if (storeMutating) {
+  if (personalStore.isLoading) {
     return <Spinner />;
-  } else if (!storeMutating && store) {
-    router.replace(`/stores/${store}`);
+  } else if (personalStore.data) {
+    router.replace(`/stores/${personalStore.data.publicKey}`);
   }
 
   return (

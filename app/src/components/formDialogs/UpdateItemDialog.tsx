@@ -54,7 +54,7 @@ export function UpdateItemDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { triggerAllItems } = useItem();
+  const { allItems } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,7 +101,7 @@ export function UpdateItemDialog({
       {
         loading: 'Waiting for signature...',
         success: ({ signature, inventoryCount, price }) => {
-          triggerAllItems(
+          allItems.trigger(
             { storePda },
             {
               optimisticData: (prev) => {

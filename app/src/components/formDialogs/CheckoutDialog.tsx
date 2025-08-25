@@ -66,7 +66,7 @@ export function CheckoutDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { triggerAllItems } = useItem();
+  const { allItems } = useItem();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderTotal, setOrderTotal] = useState<number>(0);
@@ -124,7 +124,7 @@ export function CheckoutDialog({
       {
         loading: 'Waiting for signature...',
         success: (signature) => {
-          triggerAllItems(
+          allItems.trigger(
             {},
             {
               optimisticData: (prev) => {
