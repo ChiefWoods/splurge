@@ -2,7 +2,7 @@
 
 import { CONNECTION } from '@/lib/constants';
 import { WebUploader } from '@irys/web-upload';
-import WebSolana from '@irys/web-upload-solana';
+import { WebSolana } from '@irys/web-upload-solana';
 import BaseWebIrys from '@irys/web-upload/esm/base';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useState } from 'react';
