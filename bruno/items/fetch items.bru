@@ -1,0 +1,20 @@
+meta {
+  name: fetch items
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/accounts/items
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~pda: 
+  ~store: 
+}
+
+settings {
+  encodeUrl: true
+}

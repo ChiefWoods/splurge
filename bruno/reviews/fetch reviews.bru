@@ -1,0 +1,20 @@
+meta {
+  name: fetch reviews
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/accounts/reviews
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~pda: 
+  ~item: 
+}
+
+settings {
+  encodeUrl: true
+}
