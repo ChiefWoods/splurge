@@ -4,6 +4,9 @@ import { ParsedStore } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
+import useSWR, { SWRResponse } from 'swr';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { getStorePda } from '@/lib/pda';
 
 interface StoreContextType {
   allStores: SWRMutationResponse<ParsedStore[], any, string, never>;
@@ -15,6 +18,7 @@ interface StoreContextType {
       publicKey: string;
     }
   >;
+  personalStore: SWRResponse<ParsedStore, any, any>;
 }
 
 const StoreContext = createContext<StoreContextType>({} as StoreContextType);
@@ -26,6 +30,8 @@ export function useStore() {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const { publicKey } = useWallet();
+
   const allStores = useSWRMutation(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).stores as ParsedStore[];
   });
@@ -38,11 +44,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   );
 
+  const personalStore = useSWR(
+    publicKey ? { url: apiEndpoint, publicKey } : null,
+    async ({ url, publicKey }) => {
+      return (
+        await wrappedFetch(`${url}?pda=${getStorePda(publicKey).toBase58()}`)
+      ).store as ParsedStore;
+    }
+  );
+
   return (
     <StoreContext.Provider
       value={{
         allStores,
         store,
+        personalStore,
       }}
     >
       {children}
