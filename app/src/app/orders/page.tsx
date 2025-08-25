@@ -57,15 +57,19 @@ export default function Page() {
   const [searchValue, setSearchValue] = useState<string>('');
   const [showNameAsc, setShowNameAsc] = useState<boolean>(true);
 
-  allOrders.trigger({
-    shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
-  });
-  allItems.trigger({});
+  useEffect(() => {
+    (async () => {
+      await allOrders.trigger({
+        shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
+      });
+      await allItems.trigger({});
+    })();
+  }, []);
 
   useEffect(() => {
-    if (allOrders && allItems) {
+    if (allOrders.data && allItems.data) {
       const sortedOrders = allOrders.data
-        ?.filter((order) => {
+        .filter((order) => {
           if (tabValue === 'all') {
             return true;
           } else {

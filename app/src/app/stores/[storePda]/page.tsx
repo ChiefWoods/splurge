@@ -19,6 +19,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
@@ -26,12 +27,16 @@ export default function Page() {
   const { store } = useStore();
   const { allItems } = useItem();
 
-  store.trigger({ publicKey: storePda });
-  allItems.trigger({ storePda });
+  useEffect(() => {
+    (async () => {
+      await store.trigger({ publicKey: storePda });
+      await allItems.trigger({ storePda });
 
-  if (!store.isMutating && !allItems.isMutating && !store.data) {
-    notFound();
-  }
+      if (!store.isMutating && !allItems.isMutating && !store.data) {
+        notFound();
+      }
+    })();
+  }, []);
 
   const buttons = [
     {

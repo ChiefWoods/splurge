@@ -10,14 +10,19 @@ import { useStore } from '@/providers/StoreProvider';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function Page() {
   const { shopper } = useShopper();
   const { allItems } = useItem();
   const { allStores } = useStore();
 
-  allItems.trigger({});
-  allStores.trigger();
+  useEffect(() => {
+    (async () => {
+      await allItems.trigger({});
+      await allStores.trigger();
+    })();
+  }, []);
 
   return (
     <section className="main-section flex-1">

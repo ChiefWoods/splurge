@@ -33,14 +33,18 @@ export default function Page() {
   const { allReviews } = useReview();
   const { allShoppers } = useShopper();
 
-  item.trigger({ publicKey: itemPda });
-  store.trigger({ publicKey: storePda });
-  allOrders.trigger({
-    storePda,
-    shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
-  });
-  allReviews.trigger({ itemPda });
-  allShoppers.trigger();
+  useEffect(() => {
+    (async () => {
+      await item.trigger({ publicKey: itemPda });
+      await store.trigger({ publicKey: storePda });
+      await allOrders.trigger({
+        storePda,
+        shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
+      });
+      await allReviews.trigger({ itemPda });
+      await allShoppers.trigger();
+    })();
+  }, []);
 
   if ((!item.isMutating && !item.data) || (!store.isMutating && !store.data)) {
     notFound();
