@@ -12,7 +12,7 @@ import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import { Header } from './Header';
 
-export default function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <SWRConfig
       value={{
