@@ -7,7 +7,8 @@ import { Splurge } from '@/types/splurge';
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;
 export const CONNECTION = new Connection(
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER)
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
+  'confirmed'
 );
 
 export const SPLURGE_PROGRAM = new Program<Splurge>(idl, {
@@ -56,5 +57,3 @@ export const ACCEPTED_MINTS_METADATA = new Map<
 ]);
 
 export const DISCRIMINATOR_SIZE = 8;
-
-export const REDIRECT_DELAY_SECS = 1000;

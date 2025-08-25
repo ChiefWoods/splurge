@@ -35,7 +35,6 @@ import { createShopperIx } from '@/lib/instructions';
 import { getDicebearFile } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useShopper } from '@/providers/ShopperProvider';
-import { REDIRECT_DELAY_SECS } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 
@@ -99,18 +98,24 @@ export function CreateProfileDialog() {
             },
             {
               loading: 'Waiting for signature...',
-              success: (signature) => {
+              success: async (signature) => {
                 setIsSubmitting(false);
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
 
-                setTimeout(async () => {
-                  await shopper.mutate();
-                  router.replace(
-                    `/shoppers/${getShopperPda(publicKey).toBase58()}`
-                  );
-                }, REDIRECT_DELAY_SECS);
+                await shopper.mutate(
+                  {
+                    address: data.address,
+                    authority: publicKey.toBase58(),
+                    image: imageUri,
+                    name: data.name,
+                    publicKey: getShopperPda(publicKey).toBase58(),
+                  },
+                  {
+                    revalidate: false,
+                  }
+                );
 
                 return (
                   <TransactionToast

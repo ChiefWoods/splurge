@@ -92,7 +92,7 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
-          {allItems.isMutating ? (
+          {allItems.isMutating || store.isMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ItemCardSkeleton key={i} />

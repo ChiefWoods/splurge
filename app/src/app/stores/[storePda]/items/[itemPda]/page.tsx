@@ -43,12 +43,15 @@ export default function Page() {
       });
       await allReviews.trigger({ itemPda });
       await allShoppers.trigger();
-    })();
-  }, []);
 
-  if ((!item.isMutating && !item.data) || (!store.isMutating && !store.data)) {
-    notFound();
-  }
+      if (
+        (!item.isMutating && !item.data) ||
+        (!store.isMutating && !store.data)
+      ) {
+        notFound();
+      }
+    })();
+  }, [publicKey, storePda, itemPda]);
 
   useEffect(() => {
     if (publicKey && allOrders.data?.length && allReviews.data?.length) {
@@ -123,7 +126,9 @@ export default function Page() {
         <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
           {allOrders.isMutating ||
           allShoppers.isMutating ||
-          allReviews.isMutating ? (
+          allReviews.isMutating ||
+          store.isMutating ||
+          item.isMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ReviewRowSkeleton key={i} />

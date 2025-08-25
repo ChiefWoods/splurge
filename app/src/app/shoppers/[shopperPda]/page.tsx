@@ -8,7 +8,8 @@ import { useShopper } from '@/providers/ShopperProvider';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
@@ -16,13 +17,20 @@ export default function Page() {
   const { publicKey } = useWallet();
   const { shopper } = useShopper();
 
-  if (!publicKey) {
-    router.replace('/shoppers/create');
-  } else if (shopperPda !== getShopperPda(publicKey).toBase58()) {
-    throw new Error('Unauthorized.');
-  } else if (!shopper.isLoading && !shopper.data) {
-    notFound();
-  }
+  useEffect(() => {
+    if (!publicKey) {
+      router.replace('/shoppers/create');
+    } else if (
+      shopperPda !== getShopperPda(publicKey).toBase58() &&
+      !shopper.isLoading
+    ) {
+      router.replace(
+        shopper.data
+          ? `/shoppers/${shopper.data.publicKey}`
+          : '/shoppers/create'
+      );
+    }
+  }, [publicKey, router, shopperPda, shopper]);
 
   return (
     <section className="main-section flex-1">

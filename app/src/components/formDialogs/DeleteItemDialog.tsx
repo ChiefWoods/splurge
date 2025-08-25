@@ -67,8 +67,8 @@ export function DeleteItemDialog({
       },
       {
         loading: 'Waiting for signature...',
-        success: (signature) => {
-          allItems.trigger(
+        success: async (signature) => {
+          await allItems.trigger(
             { storePda },
             {
               optimisticData: (prev) => {

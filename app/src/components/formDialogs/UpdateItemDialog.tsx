@@ -100,8 +100,8 @@ export function UpdateItemDialog({
       },
       {
         loading: 'Waiting for signature...',
-        success: ({ signature, inventoryCount, price }) => {
-          allItems.trigger(
+        success: async ({ signature, inventoryCount, price }) => {
+          await allItems.trigger(
             { storePda },
             {
               optimisticData: (prev) => {

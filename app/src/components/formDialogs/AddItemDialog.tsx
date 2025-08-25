@@ -107,8 +107,8 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
             },
             {
               loading: 'Waiting for signature...',
-              success: (signature) => {
-                allItems.trigger(
+              success: async (signature) => {
+                await allItems.trigger(
                   { storePda },
                   {
                     optimisticData: (prev) => {

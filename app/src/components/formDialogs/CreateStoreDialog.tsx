@@ -34,7 +34,6 @@ import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { getDicebearFile } from '@/lib/api';
 import { useStore } from '@/providers/StoreProvider';
-import { REDIRECT_DELAY_SECS } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
@@ -99,18 +98,24 @@ export function CreateStoreDialog() {
             },
             {
               loading: 'Waiting for signature...',
-              success: (signature) => {
+              success: async (signature) => {
                 setIsSubmitting(false);
                 setIsOpen(false);
                 form.reset();
                 setImagePreview('');
 
-                setTimeout(async () => {
-                  await personalStore.mutate();
-                  router.replace(
-                    `/stores/${getStorePda(publicKey).toBase58()}`
-                  );
-                }, REDIRECT_DELAY_SECS);
+                await personalStore.mutate(
+                  {
+                    about: data.about,
+                    authority: publicKey.toBase58(),
+                    image: imageUri,
+                    name: data.name,
+                    publicKey: getStorePda(publicKey).toBase58(),
+                  },
+                  {
+                    revalidate: false,
+                  }
+                );
 
                 return (
                   <TransactionToast

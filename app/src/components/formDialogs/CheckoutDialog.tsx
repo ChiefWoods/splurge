@@ -123,8 +123,8 @@ export function CheckoutDialog({
       },
       {
         loading: 'Waiting for signature...',
-        success: (signature) => {
-          allItems.trigger(
+        success: async (signature) => {
+          await allItems.trigger(
             {},
             {
               optimisticData: (prev) => {
