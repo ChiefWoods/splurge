@@ -4,6 +4,7 @@ import './globals.css';
 import { ReactNode } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { Providers } from '@/components/Providers';
+import { Header } from '@/components/Header';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
         <Providers>
+          <Header />
           <main className="flex flex-1 flex-col items-center">{children}</main>
         </Providers>
         <Toaster richColors closeButton />

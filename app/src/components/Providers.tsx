@@ -10,7 +10,6 @@ import { SolanaProvider } from '@/providers/SolanaProvider';
 import { StoreProvider } from '@/providers/StoreProvider';
 import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
-import { Header } from './Header';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -27,10 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <StoreProvider>
               <ItemProvider>
                 <OrderProvider>
-                  <ReviewProvider>
-                    <Header />
-                    {children}
-                  </ReviewProvider>
+                  <ReviewProvider>{children}</ReviewProvider>
                 </OrderProvider>
               </ItemProvider>
             </StoreProvider>
