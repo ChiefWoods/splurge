@@ -3,24 +3,17 @@
 import { ParsedStore } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, {
-  TriggerWithArgs,
-  TriggerWithoutArgs,
-} from 'swr/mutation';
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
 interface StoreContextType {
-  allStores: ParsedStore[] | undefined;
-  store: ParsedStore | undefined;
-  allStoresMutating: boolean;
-  storeMutating: boolean;
-  allStoresError: Error | undefined;
-  storeError: Error | undefined;
-  triggerAllStores: TriggerWithoutArgs;
-  triggerStore: TriggerWithArgs<
+  allStores: SWRMutationResponse<ParsedStore[], any, string, never>;
+  store: SWRMutationResponse<
     ParsedStore,
     any,
     string,
-    { publicKey: string }
+    {
+      publicKey: string;
+    }
   >;
 }
 
@@ -33,21 +26,11 @@ export function useStore() {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const {
-    data: allStores,
-    isMutating: allStoresMutating,
-    error: allStoresError,
-    trigger: triggerAllStores,
-  } = useSWRMutation(apiEndpoint, async (url) => {
+  const allStores = useSWRMutation(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).stores as ParsedStore[];
   });
 
-  const {
-    data: store,
-    isMutating: storeMutating,
-    error: storeError,
-    trigger: triggerStore,
-  } = useSWRMutation(
+  const store = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -60,12 +43,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       value={{
         allStores,
         store,
-        allStoresMutating,
-        storeMutating,
-        allStoresError,
-        storeError,
-        triggerAllStores,
-        triggerStore,
       }}
     >
       {children}

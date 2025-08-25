@@ -3,26 +3,24 @@
 import { ParsedReview } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
 interface ReviewContextType {
-  allReviews: ParsedReview[] | undefined;
-  review: ParsedReview | undefined;
-  allReviewsMutating: boolean;
-  reviewMutating: boolean;
-  allReviewsError: Error | undefined;
-  reviewError: Error | undefined;
-  triggerAllReviews: TriggerWithArgs<
+  allReviews: SWRMutationResponse<
     ParsedReview[],
     any,
     string,
-    { itemPda?: string }
+    {
+      itemPda?: string;
+    }
   >;
-  triggerReview: TriggerWithArgs<
+  review: SWRMutationResponse<
     ParsedReview,
     any,
     string,
-    { publicKey: string }
+    {
+      publicKey: string;
+    }
   >;
 }
 
@@ -35,12 +33,7 @@ export function useReview() {
 }
 
 export function ReviewProvider({ children }: { children: ReactNode }) {
-  const {
-    data: allReviews,
-    isMutating: allReviewsMutating,
-    error: allReviewsError,
-    trigger: triggerAllReviews,
-  } = useSWRMutation(
+  const allReviews = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { itemPda?: string } }) => {
       const { itemPda } = arg;
@@ -55,12 +48,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const {
-    data: review,
-    isMutating: reviewMutating,
-    error: reviewError,
-    trigger: triggerReview,
-  } = useSWRMutation(
+  const review = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -73,12 +61,6 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       value={{
         allReviews,
         review,
-        allReviewsMutating,
-        reviewMutating,
-        allReviewsError,
-        reviewError,
-        triggerAllReviews,
-        triggerReview,
       }}
     >
       {children}

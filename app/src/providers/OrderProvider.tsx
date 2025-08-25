@@ -3,26 +3,25 @@
 import { ParsedOrder } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
 interface OrderContextType {
-  allOrders: ParsedOrder[] | undefined;
-  order: ParsedOrder | undefined;
-  allOrdersMutating: boolean;
-  orderMutating: boolean;
-  allOrdersError: Error | undefined;
-  orderError: Error | undefined;
-  triggerAllOrders: TriggerWithArgs<
+  allOrders: SWRMutationResponse<
     ParsedOrder[],
     any,
     string,
-    { shopperPda?: string | undefined; storePda?: string | undefined }
+    {
+      shopperPda?: string;
+      storePda?: string;
+    }
   >;
-  triggerOrder: TriggerWithArgs<
+  order: SWRMutationResponse<
     ParsedOrder,
     any,
     string,
-    { publicKey: string }
+    {
+      publicKey: string;
+    }
   >;
 }
 
@@ -35,12 +34,7 @@ export function useOrder() {
 }
 
 export function OrderProvider({ children }: { children: ReactNode }) {
-  const {
-    data: allOrders,
-    isMutating: allOrdersMutating,
-    error: allOrdersError,
-    trigger: triggerAllOrders,
-  } = useSWRMutation(
+  const allOrders = useSWRMutation(
     apiEndpoint,
     async (
       url,
@@ -62,12 +56,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const {
-    data: order,
-    isMutating: orderMutating,
-    error: orderError,
-    trigger: triggerOrder,
-  } = useSWRMutation(
+  const order = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -80,12 +69,6 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       value={{
         allOrders,
         order,
-        allOrdersMutating,
-        orderMutating,
-        allOrdersError,
-        orderError,
-        triggerAllOrders,
-        triggerOrder,
       }}
     >
       {children}

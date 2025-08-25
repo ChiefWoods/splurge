@@ -3,12 +3,10 @@
 import { ParsedConfig } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWR from 'swr';
+import useSWR, { SWRResponse } from 'swr';
 
 interface ConfigContextType {
-  config: ParsedConfig | undefined;
-  configLoading: boolean;
-  configError: Error | undefined;
+  config: SWRResponse<ParsedConfig, any, any>;
 }
 
 const ConfigContext = createContext<ConfigContextType>({} as ConfigContextType);
@@ -20,11 +18,7 @@ export function useConfig() {
 }
 
 export function ConfigProvider({ children }: { children: ReactNode }) {
-  const {
-    data: config,
-    isLoading: configLoading,
-    error: configError,
-  } = useSWR(apiEndpoint, async (url) => {
+  const config = useSWR(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).config as ParsedConfig;
   });
 
@@ -32,8 +26,6 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     <ConfigContext.Provider
       value={{
         config,
-        configLoading: configLoading,
-        configError,
       }}
     >
       {children}

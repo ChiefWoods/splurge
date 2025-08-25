@@ -3,22 +3,25 @@
 import { ParsedItem } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
 
 interface ItemContextType {
-  allItems: ParsedItem[] | undefined;
-  item: ParsedItem | undefined;
-  allItemsMutating: boolean;
-  itemMutating: boolean;
-  allItemsError: Error | undefined;
-  itemError: Error | undefined;
-  triggerAllItems: TriggerWithArgs<
+  allItems: SWRMutationResponse<
     ParsedItem[],
     any,
     string,
-    { storePda?: string | undefined }
+    {
+      storePda?: string;
+    }
   >;
-  triggerItem: TriggerWithArgs<ParsedItem, any, string, { publicKey: string }>;
+  item: SWRMutationResponse<
+    ParsedItem,
+    any,
+    string,
+    {
+      publicKey: string;
+    }
+  >;
 }
 
 const ItemContext = createContext<ItemContextType>({} as ItemContextType);
@@ -30,12 +33,7 @@ export function useItem() {
 }
 
 export function ItemProvider({ children }: { children: ReactNode }) {
-  const {
-    data: allItems,
-    isMutating: allItemsMutating,
-    error: allItemsError,
-    trigger: triggerAllItems,
-  } = useSWRMutation(
+  const allItems = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { storePda?: string } }) => {
       const { storePda } = arg;
@@ -50,12 +48,7 @@ export function ItemProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const {
-    data: item,
-    isMutating: itemMutating,
-    error: itemError,
-    trigger: triggerItem,
-  } = useSWRMutation(
+  const item = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -68,12 +61,6 @@ export function ItemProvider({ children }: { children: ReactNode }) {
       value={{
         allItems,
         item,
-        allItemsMutating,
-        itemMutating,
-        allItemsError,
-        itemError,
-        triggerAllItems,
-        triggerItem,
       }}
     >
       {children}
