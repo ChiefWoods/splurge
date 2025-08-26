@@ -26,19 +26,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-type SortedOrders = {
-  pda: string;
-  status: string;
-  amount: number;
-  totalUsd: number;
-  paymentMint: string;
-  storeItem: {
-    pda: string;
-    name: string;
-    image: string;
-  };
-};
-
 const statusColors: Record<string, string> = {
   pending: 'bg-pending hover:bg-pending',
   shipping: 'bg-shipping hover:bg-shipping',
@@ -72,11 +59,10 @@ export default function Page() {
     if (allOrders.data && allItems.data) {
       const sortedOrders = allOrders.data
         .filter((order) => {
-          if (tabValue === 'all') {
-            return true;
-          } else {
-            return Object.keys(order.status)[0] === tabValue;
-          }
+          return tabValue === 'all'
+            ? true
+            : // @ts-expect-error status is a DecodeEnum but safely parsed as a string
+              order.status === tabValue;
         })
         .filter((order) => {
           const item = allItems.data?.find(
