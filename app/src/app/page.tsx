@@ -40,64 +40,66 @@ export default function Page() {
           </>
         ) : allItems.data?.length && allStores.data?.length ? (
           <>
-            {allItems.data.map(
-              ({ publicKey, name, image, inventoryCount, price, store }) => {
-                const itemStore = allStores.data?.find(
-                  ({ publicKey }) => publicKey === store
-                );
+            {allItems.data
+              .filter(({ inventoryCount }) => inventoryCount > 0)
+              .map(
+                ({ publicKey, name, image, inventoryCount, price, store }) => {
+                  const itemStore = allStores.data?.find(
+                    ({ publicKey }) => publicKey === store
+                  );
 
-                if (!itemStore) {
-                  throw new Error('Matching store not found for item.');
-                }
+                  if (!itemStore) {
+                    throw new Error('Matching store not found for item.');
+                  }
 
-                return (
-                  <ItemCard
-                    key={publicKey}
-                    itemPda={publicKey}
-                    itemName={name}
-                    itemImage={image}
-                    inventoryCount={inventoryCount}
-                    price={price}
-                    storeName={itemStore.name}
-                    storePda={store}
-                  >
-                    <div className="flex h-fit items-center justify-between">
-                      <Link href={`/stores/${store}`}>
-                        <div className="flex gap-x-2">
-                          <Image
-                            src={itemStore.image}
-                            alt={itemStore.name}
-                            width={40}
-                            height={40}
-                            className="rounded-full"
-                          />
-                          <div className="flex flex-col">
-                            <p className="truncate text-sm font-semibold">
-                              {itemStore.name}
-                            </p>
-                            <p className="muted-text text-sm">
-                              {truncateAddress(store)}
-                            </p>
+                  return (
+                    <ItemCard
+                      key={publicKey}
+                      itemPda={publicKey}
+                      itemName={name}
+                      itemImage={image}
+                      inventoryCount={inventoryCount}
+                      price={price}
+                      storeName={itemStore.name}
+                      storePda={store}
+                    >
+                      <div className="flex h-fit items-center justify-between">
+                        <Link href={`/stores/${store}`}>
+                          <div className="flex gap-x-2">
+                            <Image
+                              src={itemStore.image}
+                              alt={itemStore.name}
+                              width={40}
+                              height={40}
+                              className="rounded-full"
+                            />
+                            <div className="flex flex-col">
+                              <p className="truncate text-sm font-semibold">
+                                {itemStore.name}
+                              </p>
+                              <p className="muted-text text-sm">
+                                {truncateAddress(store)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                      <CheckoutDialog
-                        name={name}
-                        image={image}
-                        price={price}
-                        maxAmount={inventoryCount}
-                        storePda={store}
-                        itemPda={publicKey}
-                        btnVariant="default"
-                        btnSize="icon"
-                      >
-                        <ShoppingCart />
-                      </CheckoutDialog>
-                    </div>
-                  </ItemCard>
-                );
-              }
-            )}
+                        </Link>
+                        <CheckoutDialog
+                          name={name}
+                          image={image}
+                          price={price}
+                          maxAmount={inventoryCount}
+                          storePda={store}
+                          itemPda={publicKey}
+                          btnVariant="default"
+                          btnSize="icon"
+                        >
+                          <ShoppingCart />
+                        </CheckoutDialog>
+                      </div>
+                    </ItemCard>
+                  );
+                }
+              )}
           </>
         ) : (
           <p className="muted-text my-auto w-full text-center">
