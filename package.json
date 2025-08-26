@@ -12,7 +12,8 @@
     "build:test": "anchor build -- --features no-staleness-check",
     "deploy": "anchor deploy -p splurge --provider.cluster d --program-keypair target/deploy/splurge-keypair.json --provider.wallet splurge-wallet.json",
     "idl:sync": "cp target/idl/splurge.json app/src/idl/splurge.json; cp target/types/splurge.ts app/src/types/splurge.ts",
-    "idl:init": "anchor idl init $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json"
+    "idl:init": "anchor idl init $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json",
+    "idl:upgrade": "anchor idl upgrade $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1"
