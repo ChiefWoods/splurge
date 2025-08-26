@@ -25,6 +25,7 @@ import { ArrowDown, ArrowUp, SquareArrowOutUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-pending hover:bg-pending',
@@ -133,7 +134,10 @@ export default function Page() {
                   </Button>
                 </TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Total</TableHead>
+                <TableHead className="flex items-center gap-2">
+                  Total
+                  <InfoTooltip text="A small additional platform fee is applied on top of the order." />
+                </TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
