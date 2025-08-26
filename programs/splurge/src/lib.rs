@@ -53,8 +53,8 @@ pub mod splurge {
         UnlistItem::handler(ctx)
     }
 
-    pub fn create_order(ctx: Context<CreateOrder>, args: CreateOrderArgs) -> Result<()> {
-        CreateOrder::handler(ctx, args)
+    pub fn create_order(ctx: Context<CreateOrder>, amount: u32, timestamp: i64) -> Result<()> {
+        CreateOrder::handler(ctx, amount, timestamp)
     }
 
     pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {

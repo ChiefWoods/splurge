@@ -1,7 +1,6 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { SPLURGE_PROGRAM } from './constants';
 import {
-  CreateOrderArgs,
   CreateReviewArgs,
   InitializeShopperArgs,
   InitializeStoreArgs,
@@ -124,7 +123,8 @@ export async function createOrderIx({
   itemPda,
   paymentMint,
   tokenProgram,
-}: CreateOrderArgs & {
+}: {
+  amount: number;
   authority: PublicKey;
   storePda: PublicKey;
   itemPda: PublicKey;

@@ -151,9 +151,7 @@ describe('createOrder', () => {
     const orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
 
     await program.methods
-      .createOrder({
-        amount,
-      })
+      .createOrder(amount, new BN(unixTimestamp))
       .accountsPartial({
         authority: shopperAuthority.publicKey,
         store: storePda,
@@ -228,9 +226,7 @@ describe('createOrder', () => {
 
     try {
       await program.methods
-        .createOrder({
-          amount,
-        })
+        .createOrder(amount, new BN(unixTimestamp))
         .accountsPartial({
           authority: shopperAuthority.publicKey,
           store: storePda,
@@ -276,9 +272,7 @@ describe('createOrder', () => {
 
     try {
       await program.methods
-        .createOrder({
-          amount,
-        })
+        .createOrder(amount, new BN(unixTimestamp))
         .accountsPartial({
           authority: shopperAuthority.publicKey,
           store: storePda,
@@ -323,9 +317,7 @@ describe('createOrder', () => {
 
     try {
       await program.methods
-        .createOrder({
-          amount,
-        })
+        .createOrder(amount, new BN(unixTimestamp))
         .accountsPartial({
           authority: shopperAuthority.publicKey,
           store: storePda,

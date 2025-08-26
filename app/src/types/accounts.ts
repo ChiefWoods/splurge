@@ -14,7 +14,6 @@ export type InitializeShopperArgs = IdlTypes<Splurge>['initializeShopperArgs'];
 export type InitializeStoreArgs = IdlTypes<Splurge>['initializeStoreArgs'];
 export type ListItemArgs = IdlTypes<Splurge>['listItemArgs'];
 export type UpdateItemArgs = IdlTypes<Splurge>['updateItemArgs'];
-export type CreateOrderArgs = IdlTypes<Splurge>['createOrderArgs'];
 export type CreateReviewArgs = IdlTypes<Splurge>['createReviewArgs'];
 
 export interface ParsedProgramAccount {

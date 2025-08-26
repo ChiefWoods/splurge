@@ -16,12 +16,8 @@ use crate::{
     state::{Config, Item, Order, OrderStatus, Shopper, Store},
 };
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct CreateOrderArgs {
-    pub amount: u32,
-}
-
 #[derive(Accounts)]
+#[instruction(_amount: u32, timestamp: i64)]
 pub struct CreateOrder<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -52,12 +48,11 @@ pub struct CreateOrder<'info> {
         init,
         payer = authority,
         space = Order::DISCRIMINATOR.len() + Order::INIT_SPACE,
-        seeds = [ORDER_SEED, shopper.key().as_ref(), item.key().as_ref(), clock.unix_timestamp.to_le_bytes().as_ref()],
+        seeds = [ORDER_SEED, shopper.key().as_ref(), item.key().as_ref(), timestamp.to_le_bytes().as_ref()],
         bump,
     )]
     pub order: Account<'info, Order>,
     pub price_update_v2: Account<'info, PriceUpdateV2>,
-    pub clock: Sysvar<'info, Clock>,
     #[account(
         mint::token_program = token_program,
     )]
@@ -90,7 +85,7 @@ pub struct CreateOrder<'info> {
 }
 
 impl CreateOrder<'_> {
-    pub fn handler(ctx: Context<CreateOrder>, args: CreateOrderArgs) -> Result<()> {
+    pub fn handler(ctx: Context<CreateOrder>, amount: u32, timestamp: i64) -> Result<()> {
         let config = &ctx.accounts.config;
         let payment_mint = &ctx.accounts.payment_mint;
 
@@ -106,8 +101,6 @@ impl CreateOrder<'_> {
             publish_time,
             ..
         } = price_update_v2.price_message;
-
-        let timestamp = Clock::get()?.unix_timestamp;
 
         #[cfg(not(feature = "no-staleness-check"))]
         require!(
@@ -129,7 +122,6 @@ impl CreateOrder<'_> {
         )
         .unwrap();
 
-        let CreateOrderArgs { amount } = args;
         let item = &mut ctx.accounts.item;
 
         let payment_subtotal = imprecise_number!(precise_number!(amount.into())

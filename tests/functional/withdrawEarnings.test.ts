@@ -111,9 +111,7 @@ describe('withdrawEarnings', () => {
     orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
 
     await program.methods
-      .createOrder({
-        amount: 1,
-      })
+      .createOrder(1, new BN(unixTimestamp))
       .accountsPartial({
         authority: shopperAuthority.publicKey,
         store: storePda,
