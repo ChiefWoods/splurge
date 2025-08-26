@@ -8,6 +8,7 @@ import {
   OrderStatus,
   UpdateItemArgs,
 } from '../types/accounts';
+import { BN } from '@coral-xyz/anchor';
 
 export async function createShopperIx({
   name,
@@ -121,6 +122,7 @@ export async function createOrderIx({
   authority,
   storePda,
   itemPda,
+  priceUpdateV2,
   paymentMint,
   tokenProgram,
 }: {
@@ -128,17 +130,20 @@ export async function createOrderIx({
   authority: PublicKey;
   storePda: PublicKey;
   itemPda: PublicKey;
+  priceUpdateV2: PublicKey;
   paymentMint: PublicKey;
   tokenProgram: PublicKey;
 }): Promise<TransactionInstruction> {
+  // timestamp is deducted by 1 second to provide an approximation buffer for clock drift
+  const timestamp = Math.floor(Date.now() / 1000 - 1);
+
   return await SPLURGE_PROGRAM.methods
-    .createOrder({
-      amount,
-    })
+    .createOrder(amount, new BN(timestamp))
     .accountsPartial({
       authority,
       store: storePda,
       item: itemPda,
+      priceUpdateV2,
       paymentMint,
       tokenProgram,
     })

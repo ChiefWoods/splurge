@@ -42,6 +42,7 @@ import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
+import { useShopper } from '@/providers/ShopperProvider';
 import { atomicToUsd } from '@/lib/utils';
 
 export function CheckoutDialog({
@@ -51,7 +52,7 @@ export function CheckoutDialog({
   maxAmount,
   storePda,
   itemPda,
-  btnVariant = 'secondary',
+  btnVariant = 'default',
   btnSize = 'sm',
   children,
 }: {
@@ -68,6 +69,7 @@ export function CheckoutDialog({
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { allItems } = useItem();
+  const { shopper } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderTotal, setOrderTotal] = useState<number>(0);
@@ -94,12 +96,16 @@ export function CheckoutDialog({
           throw new Error('Wallet not connected.');
         }
 
+        if (!shopper.data) {
+          throw new Error('Shopper account not created.');
+        }
+
         setIsSubmitting(true);
 
         const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
 
         if (!token) {
-          throw new Error('Payment mint not whitelisted.');
+          throw new Error('Payment mint not found.');
         }
 
         const tx = await buildTx(
@@ -109,6 +115,7 @@ export function CheckoutDialog({
               authority: publicKey,
               storePda: new PublicKey(storePda),
               itemPda: new PublicKey(itemPda),
+              priceUpdateV2: token.priceUpdateV2,
               paymentMint: new PublicKey(data.paymentMint),
               tokenProgram: token.owner,
             }),
@@ -258,6 +265,7 @@ export function CheckoutDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          {/* Accepted mints should be obtained from config account, but hardcoded here due to devnet constraints */}
                           {Array.from(ACCEPTED_MINTS_METADATA.entries()).map(
                             ([mint, { name, image, symbol }]) => (
                               <SelectItem key={mint} value={mint}>
