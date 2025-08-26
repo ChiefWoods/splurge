@@ -98,7 +98,7 @@ export default function Page() {
             }
             buttons={
               publicKey &&
-              getStorePda(publicKey).toBase58() === storePda &&
+              getStorePda(publicKey).toBase58() !== storePda &&
               item.data.inventoryCount > 0 && (
                 <AccountSectionButtonTab>
                   <CheckoutDialog
