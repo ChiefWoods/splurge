@@ -58,13 +58,15 @@ export default function Page() {
   const [showNameAsc, setShowNameAsc] = useState<boolean>(true);
 
   useEffect(() => {
+    if (!publicKey) return;
+
     (async () => {
       await allOrders.trigger({
-        shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
+        shopperPda: getShopperPda(publicKey).toBase58(),
       });
       await allItems.trigger({});
     })();
-  }, []);
+  }, [publicKey]);
 
   useEffect(() => {
     if (allOrders.data && allItems.data) {
@@ -112,90 +114,102 @@ export default function Page() {
     <section className="main-section flex-1">
       <h2 className="w-full text-start">My Orders</h2>
       {publicKey ? (
-        allOrders.data?.length && (
-          <Tabs
-            defaultValue="all"
-            value={tabValue}
-            onValueChange={(value) => setTabValue(value)}
-            className="flex w-full flex-1 flex-col gap-y-6"
-          >
-            <TabsList className="flex w-full">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab} value={tab} className="flex-1">
-                  {capitalizeFirstLetter(tab)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <Input
-              placeholder="Search..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[200px]">Status</TableHead>
-                  <TableHead>
-                    <Button
-                      size={'sm'}
-                      variant={'ghost'}
-                      onClick={() => setShowNameAsc(!showNameAsc)}
-                    >
-                      Item
-                      {showNameAsc ? <ArrowDown /> : <ArrowUp />}
-                    </Button>
-                  </TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+        <Tabs
+          defaultValue="all"
+          value={tabValue}
+          onValueChange={(value) => setTabValue(value)}
+          className="flex w-full flex-1 flex-col gap-y-6"
+        >
+          <TabsList className="flex w-full">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab} value={tab} className="flex-1">
+                {capitalizeFirstLetter(tab)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <Input
+            placeholder="Search..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Status</TableHead>
+                <TableHead>
+                  <Button
+                    size={'sm'}
+                    variant={'ghost'}
+                    onClick={() => setShowNameAsc(!showNameAsc)}
+                  >
+                    Item
+                    {showNameAsc ? <ArrowDown /> : <ArrowUp />}
+                  </Button>
+                </TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allOrders.isMutating || allItems.isMutating ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Loading...
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allItems && sortedOrders.length ? (
-                  sortedOrders.map((order) => {
-                    const status = Object.keys(order.status)[0];
-
-                    const item = allItems.data?.find(
-                      ({ publicKey }) => publicKey === order.item
+              ) : allItems.data && sortedOrders.length ? (
+                sortedOrders.map(
+                  ({
+                    amount,
+                    item,
+                    paymentMint,
+                    paymentSubtotal,
+                    platformFee,
+                    publicKey: pda,
+                    status,
+                    timestamp,
+                  }) => {
+                    const orderItem = allItems.data?.find(
+                      ({ publicKey }) => publicKey === item
                     );
 
-                    if (!item) {
+                    if (!orderItem) {
                       throw new Error('Matching item not found for order.');
                     }
 
                     return (
-                      <TableRow key={order.publicKey}>
+                      <TableRow key={pda}>
                         <TableCell>
+                          {/* @ts-expect-error status is a DecodeEnum but safely parsed as a string */}
                           <Badge className={`${statusColors[status]}`}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            {/* @ts-expect-error status is a DecodeEnum but safely parsed as a string */}
+                            {capitalizeFirstLetter(status)}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-x-4">
                             <div className="h-12 w-12 rounded-lg border bg-[#f4f4f5] p-1">
                               <Image
-                                src={item.image}
-                                alt={item.name}
+                                src={orderItem.image}
+                                alt={orderItem.name}
                                 width={40}
                                 height={40}
                                 className="h-full w-full object-cover"
                               />
                             </div>
-                            <span className="text-md">{item.name}</span>
+                            <span className="text-md">{orderItem.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{order.amount}</TableCell>
+                        <TableCell>{amount}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-x-2">
                             <span>
-                              {atomicToUsd(
-                                order.paymentSubtotal + order.platformFee
-                              )}
+                              {atomicToUsd(paymentSubtotal + platformFee)}
                             </span>
                             <Image
                               src={
-                                ACCEPTED_MINTS_METADATA.get(order.paymentMint)!
-                                  .image
+                                ACCEPTED_MINTS_METADATA.get(paymentMint)!.image
                               }
                               alt="payment token"
                               width={20}
@@ -211,33 +225,30 @@ export default function Page() {
                             variant={'ghost'}
                             className="h-fit w-fit"
                           >
-                            <Link
-                              href={getAccountLink(order.publicKey)}
-                              target="_blank"
-                            >
+                            <Link href={getAccountLink(pda)} target="_blank">
                               <SquareArrowOutUpRight />
                             </Link>
                           </Button>
                         </TableCell>
                       </TableRow>
                     );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                      No orders found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            {sortedOrders && (
-              <p className="muted-text text-sm">
-                {sortedOrders.length} item(s) found.
-              </p>
-            )}
-          </Tabs>
-        )
+                  }
+                )
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    No orders found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {sortedOrders && (
+            <p className="muted-text text-sm">
+              {sortedOrders.length} item(s) found.
+            </p>
+          )}
+        </Tabs>
       ) : (
         <p className="my-auto">Connect your wallet</p>
       )}
