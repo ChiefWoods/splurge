@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { MINT_DECIMALS } from './constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,4 +32,11 @@ export function getElapsedTime(timestamp: number): string {
   if (minutes > 0) return `${minutes}m`;
   if (seconds > 0) return `${seconds}s`;
   return 'now';
+}
+
+export function atomicToUsd(
+  atomic: number,
+  decimals: number = MINT_DECIMALS
+): string {
+  return (atomic / 10 ** decimals).toFixed(2);
 }

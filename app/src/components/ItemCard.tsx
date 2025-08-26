@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { atomicToUsd, cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
 export function ItemCard({
@@ -46,7 +46,7 @@ export function ItemCard({
         )}
       >
         <div className="flex w-full flex-col gap-y-1 overflow-hidden">
-          <p className="muted-text">{price.toFixed(2)} USD</p>
+          <p className="muted-text">{atomicToUsd(price)} USD</p>
           {!storeName && <p className="muted-text">{inventoryCount} left</p>}
         </div>
         {children}

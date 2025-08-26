@@ -10,6 +10,7 @@ import { ReviewRow } from '@/components/ReviewRow';
 import { ReviewRowSkeleton } from '@/components/ReviewRowSkeleton';
 import { Separator } from '@/components/ui/separator';
 import { getShopperPda, getStorePda } from '@/lib/pda';
+import { atomicToUsd } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
 import { useReview } from '@/providers/ReviewProvider';
@@ -88,9 +89,11 @@ export default function Page() {
               <>
                 <p className="truncate text-primary">{item.data.description}</p>
                 <p className="font-semibold text-primary">
-                  {item.data.price.toFixed(2)} USD
+                  {atomicToUsd(item.data.price)} USD
                 </p>
-                <p className="muted-text">{item.data.inventoryCount} left</p>
+                <p className="muted-text">
+                  {item.data.inventoryCount} in inventory
+                </p>
               </>
             }
             buttons={

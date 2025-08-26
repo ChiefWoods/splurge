@@ -34,6 +34,8 @@ import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { BN } from '@coral-xyz/anchor';
+import { MINT_DECIMALS } from '@/lib/constants';
+import { atomicToUsd } from '@/lib/utils';
 
 export function UpdateItemDialog({
   name,
@@ -78,7 +80,7 @@ export function UpdateItemDialog({
         const tx = await buildTx(
           [
             await updateItemIx({
-              price: new BN(data.price),
+              price: new BN(Number(data.price.toFixed(2))),
               inventoryCount: data.inventoryCount,
               authority: publicKey,
               itemPda: new PublicKey(itemPda),
@@ -110,7 +112,7 @@ export function UpdateItemDialog({
                     if (item.publicKey === itemPda) {
                       return {
                         ...item,
-                        price: data.price,
+                        price: Number(data.price.toFixed(2)),
                         inventoryCount:
                           item.inventoryCount - data.inventoryCount,
                       };
@@ -185,6 +187,7 @@ export function UpdateItemDialog({
                     <Input
                       type="number"
                       {...field}
+                      value={field.value.toString()}
                       min={0}
                       step={1}
                       onChange={(e) => {
@@ -207,14 +210,16 @@ export function UpdateItemDialog({
                     <Input
                       type="number"
                       {...field}
+                      value={field.value / 10 ** MINT_DECIMALS}
                       min={1}
                       step={0.01}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        field.onChange(isNaN(value) ? 0 : value);
-                      }}
-                      onBlur={() => {
-                        field.onChange(parseFloat(field.value.toFixed(2)));
+                        const usdValue = parseFloat(e.target.value);
+                        field.onChange(
+                          isNaN(usdValue)
+                            ? 0
+                            : Number(usdValue.toFixed(2)) * 10 ** MINT_DECIMALS
+                        );
                       }}
                     />
                   </FormControl>

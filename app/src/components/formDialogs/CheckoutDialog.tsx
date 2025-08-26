@@ -42,6 +42,7 @@ import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
+import { atomicToUsd } from '@/lib/utils';
 
 export function CheckoutDialog({
   name,
@@ -212,7 +213,7 @@ export function CheckoutDialog({
             <div className="flex w-full flex-col gap-y-2">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm font-semibold">Price</p>
-                <p>{price} USD</p>
+                <p>{atomicToUsd(price)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <FormField
@@ -283,7 +284,7 @@ export function CheckoutDialog({
             </div>
             <div className="flex justify-between gap-x-2">
               <p className="text-sm font-semibold">Total</p>
-              <p className="font-semibold">{orderTotal.toFixed(2)} USD</p>
+              <p className="font-semibold">{atomicToUsd(orderTotal)} USD</p>
             </div>
             <DialogFooter className="flex w-full justify-end gap-4">
               <Button

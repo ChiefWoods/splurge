@@ -39,6 +39,7 @@ import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { ImageInputLabel } from '../ImageInputLabel';
+import { MINT_DECIMALS } from '@/lib/constants';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
@@ -88,7 +89,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               const tx = await buildTx(
                 [
                   await listItemIx({
-                    price: new BN(data.price),
+                    price: new BN(data.price * 10 ** MINT_DECIMALS),
                     inventoryCount: data.inventoryCount,
                     name: data.name,
                     image: imageUri,
@@ -121,7 +122,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                               data.name
                             ).toBase58(),
                             store: storePda,
-                            price: data.price,
+                            price: data.price * 10 ** MINT_DECIMALS,
                             inventoryCount: data.inventoryCount,
                             name: data.name,
                             image: imageUri,
@@ -239,6 +240,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                     <Input
                       type="number"
                       {...field}
+                      value={field.value.toString()}
                       min={0}
                       step={1}
                       onChange={(e) => {
@@ -261,14 +263,18 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                     <Input
                       type="number"
                       {...field}
+                      value={field.value.toString()}
                       min={1}
                       step={0.01}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        field.onChange(isNaN(value) ? 0 : value);
+                        const usdValue = parseFloat(e.target.value);
+                        field.onChange(
+                          isNaN(usdValue) ? 0 : Number(usdValue.toFixed(2))
+                        );
                       }}
                       onBlur={() => {
-                        field.onChange(parseFloat(field.value.toFixed(2)));
+                        const roundedUsdValue = Number(field.value.toFixed(2));
+                        field.onChange(roundedUsdValue);
                       }}
                     />
                   </FormControl>

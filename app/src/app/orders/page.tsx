@@ -15,7 +15,7 @@ import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ParsedOrder } from '@/types/accounts';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
-import { capitalizeFirstLetter } from '@/lib/utils';
+import { atomicToUsd, capitalizeFirstLetter } from '@/lib/utils';
 import { getAccountLink } from '@/lib/solana-helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
@@ -188,9 +188,9 @@ export default function Page() {
                         <TableCell>
                           <div className="flex items-center gap-x-2">
                             <span>
-                              {(
+                              {atomicToUsd(
                                 order.paymentSubtotal + order.platformFee
-                              ).toFixed(2)}
+                              )}
                             </span>
                             <Image
                               src={

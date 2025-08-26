@@ -57,3 +57,5 @@ export const ACCEPTED_MINTS_METADATA = new Map<
 ]);
 
 export const DISCRIMINATOR_SIZE = 8;
+
+export const MINT_DECIMALS = 6;
