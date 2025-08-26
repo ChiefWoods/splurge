@@ -1,5 +1,6 @@
+import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { admin, program, treasury } from "../setup";
+import { admin, connection, program, treasury } from "../setup";
 
 console.log("Initializing config...")
 
@@ -26,3 +27,24 @@ const signature = await program.methods
   .rpc();
 
 console.log("Config initialized:", signature);
+
+console.log("Initializing treasury ATAs...")
+
+for (const { mint } of acceptedMints) {
+  const { owner } = await connection.getAccountInfo(mint);
+
+  const { address } = await getOrCreateAssociatedTokenAccount(
+    connection,
+    admin,
+    mint,
+    treasury.publicKey,
+    false,
+    "confirmed",
+    {
+      commitment: "confirmed"
+    },
+    owner,
+  )
+
+  console.log(`Treasury ATA for ${mint.toBase58()} initialized: ${address.toBase58()}`);
+}

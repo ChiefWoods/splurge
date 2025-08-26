@@ -9,6 +9,6 @@ export const admin = Keypair.fromSecretKey(
 export const treasury = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(process.env.TREASURY_KEYPAIR))
 )
-const connection = new Connection(process.env.ANCHOR_PROVIDER_URL || clusterApiUrl('devnet'))
+export const connection = new Connection(process.env.ANCHOR_PROVIDER_URL || clusterApiUrl('devnet'))
 const provider = new AnchorProvider(connection, new Wallet(admin))
 export const program = new Program<Splurge>(idl, provider);
