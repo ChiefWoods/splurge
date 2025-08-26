@@ -6,7 +6,7 @@ use crate::error::SplurgeError;
 pub struct Item {
     /// PDA of store account
     pub store: Pubkey, // 32
-    /// Price in atomic units of mint
+    /// Price in atomic units of mint with 6 decimals
     pub price: u64, // 8
     /// Remaining inventory count
     pub inventory_count: u32, // 4
