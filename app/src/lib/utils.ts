@@ -36,7 +36,12 @@ export function getElapsedTime(timestamp: number): string {
 
 export function atomicToUsd(
   atomic: number,
+  precision: number = 2,
   decimals: number = MINT_DECIMALS
 ): string {
-  return (atomic / 10 ** decimals).toFixed(2);
+  return (atomic / 10 ** decimals).toFixed(precision);
+}
+
+export function removeTrailingZeroes(price: string): string {
+  return price.replace(/\.?0+$/, '');
 }

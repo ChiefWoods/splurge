@@ -3,7 +3,7 @@
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
@@ -38,12 +38,15 @@ import {
   SelectValue,
 } from '../ui/select';
 import { z } from 'zod';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
+import { ACCEPTED_MINTS_METADATA, MINT_DECIMALS } from '@/lib/constants';
 import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { useShopper } from '@/providers/ShopperProvider';
-import { atomicToUsd } from '@/lib/utils';
+import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
+import { useConfig } from '@/providers/ConfigProvider';
+import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
+import { Skeleton } from '../ui/skeleton';
 
 export function CheckoutDialog({
   name,
@@ -68,11 +71,20 @@ export function CheckoutDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const { config } = useConfig();
   const { allItems } = useItem();
   const { shopper } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [orderTotal, setOrderTotal] = useState<number>(0);
+  const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
+
+  const platformFee = useMemo(() => {
+    return config.data
+      ? Math.floor(
+          (orderSubtotal * config.data.orderFeeBps) / MAX_FEE_BASIS_POINTS
+        )
+      : 0;
+  }, [config.data, orderSubtotal]);
 
   const createOrderSchema = z.object({
     amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
@@ -174,7 +186,7 @@ export function CheckoutDialog({
 
   useEffect(() => {
     if (isOpen) {
-      setOrderTotal(price * form.getValues('amount'));
+      setOrderSubtotal(price * form.getValues('amount'));
     }
   }, [isOpen, price, form]);
 
@@ -182,7 +194,7 @@ export function CheckoutDialog({
     const currentAmount = form.getValues('amount');
     if (currentAmount > maxAmount) {
       form.setValue('amount', maxAmount);
-      setOrderTotal(price * maxAmount);
+      setOrderSubtotal(price * maxAmount);
     }
   }, [maxAmount, price, form]);
 
@@ -219,7 +231,7 @@ export function CheckoutDialog({
             <h3 className="truncate">{name}</h3>
             <div className="flex w-full flex-col gap-y-2">
               <div className="flex justify-between gap-x-2">
-                <p className="text-sm font-semibold">Price</p>
+                <p className="text-sm">Price</p>
                 <p>{atomicToUsd(price)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
@@ -240,7 +252,7 @@ export function CheckoutDialog({
                             const value = parseInt(e.target.value);
                             field.onChange(isNaN(value) ? 0 : value);
                             if (!isNaN(value)) {
-                              setOrderTotal(price * value);
+                              setOrderSubtotal(price * value);
                             }
                           }}
                         />
@@ -290,9 +302,45 @@ export function CheckoutDialog({
                 />
               </div>
             </div>
-            <div className="flex justify-between gap-x-2">
-              <p className="text-sm font-semibold">Total</p>
-              <p className="font-semibold">{atomicToUsd(orderTotal)} USD</p>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between gap-x-2">
+                <p className="text-sm">Platform Fee</p>
+                {config.isLoading ? (
+                  <Skeleton className="w-[80px]" />
+                ) : (
+                  config.data && (
+                    <p>
+                      {removeTrailingZeroes(
+                        atomicToUsd(platformFee, MINT_DECIMALS)
+                      )}{' '}
+                      USD
+                    </p>
+                  )
+                )}
+              </div>
+              <div className="flex justify-between gap-x-2">
+                <p className="text-sm">Subtotal</p>
+                {config.isLoading ? (
+                  <Skeleton className="w-[80px]" />
+                ) : (
+                  config.data && <p>{atomicToUsd(orderSubtotal)} USD</p>
+                )}
+              </div>
+              <div className="flex justify-between gap-x-2">
+                <p className="text-sm font-semibold">Total</p>
+                {config.isLoading ? (
+                  <Skeleton className="w-[80px]" />
+                ) : (
+                  config.data && (
+                    <p className="font-semibold">
+                      {removeTrailingZeroes(
+                        atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)
+                      )}{' '}
+                      USD
+                    </p>
+                  )
+                )}
+              </div>
             </div>
             <DialogFooter className="flex w-full justify-end gap-4">
               <Button
