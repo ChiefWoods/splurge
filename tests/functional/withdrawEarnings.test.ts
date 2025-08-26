@@ -26,9 +26,9 @@ describe('withdrawEarnings', () => {
   );
 
   const itemName = 'Item A';
-  const itemPrice = 10e6; // $1
+  const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
-  const initShopperAtaBal = 10e9; // $100
+  const initShopperAtaBal = 1e8; // $100
   const tokenProgram = TOKEN_PROGRAM_ID;
   let storePda: PublicKey;
   let itemPda: PublicKey;

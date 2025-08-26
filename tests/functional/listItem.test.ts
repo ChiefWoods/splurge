@@ -67,7 +67,7 @@ describe('listItem', () => {
   });
 
   test('list an item', async () => {
-    const price = 10e6; // $1
+    const price = 1e6; // $1
     const inventoryCount = 10;
     const name = 'Item A';
     const image = 'https://example.com/item.png';
@@ -100,7 +100,7 @@ describe('listItem', () => {
   });
 
   test('throws if item name is empty', async () => {
-    const price = 10e6; // $1
+    const price = 1e6; // $1
     const inventoryCount = 10;
     const name = '';
     const image = 'https://example.com/item.png';
@@ -126,7 +126,7 @@ describe('listItem', () => {
   });
 
   test('throws if item name is too long', async () => {
-    const price = 10e6; // $1
+    const price = 1e6; // $1
     const inventoryCount = 10;
     const name = '_'.repeat(MAX_STORE_ITEM_NAME_LEN + 1);
     const image = 'https://example.com/item.png';

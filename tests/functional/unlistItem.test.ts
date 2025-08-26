@@ -64,7 +64,7 @@ describe('unlistItem', () => {
 
     await program.methods
       .listItem({
-        price: new BN(10e6), // $1
+        price: new BN(1e6), // $1
         inventoryCount: 10,
         name: itemName,
         image: 'https://example.com/item.png',
