@@ -128,12 +128,16 @@ impl CreateOrder<'_> {
             .checked_mul(&precise_number!(item.price.into()))
             .ok_or(SplurgeError::MathOverflow)?
             .checked_mul(&oracle_price)
+            .ok_or(SplurgeError::MathOverflow)?
+            .ceiling()
             .ok_or(SplurgeError::MathOverflow)?) as u64;
 
         let platform_fee = imprecise_number!(precise_number!(payment_subtotal.into())
             .checked_mul(&precise_number!(ctx.accounts.config.order_fee_bps.into()))
             .ok_or(SplurgeError::MathOverflow)?
             .checked_div(&precise_number!(MAX_FEE_BASIS_POINTS.into()))
+            .ok_or(SplurgeError::MathOverflow)?
+            .ceiling()
             .ok_or(SplurgeError::MathOverflow)?) as u64;
 
         let order = &mut ctx.accounts.order;
