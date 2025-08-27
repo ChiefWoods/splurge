@@ -1,12 +1,16 @@
 # Splurge
 
-On-chain e-commerce platform for PRJ3223 Capstone Project 2 and [Turbin3 Builders Cohort](https://turbin3.com/).
+On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders Cohort](https://turbin3.com/) and [School of Solana](https://ackee.xyz/school-of-solana).
 
-Note: Next.js app is still work in progress
-
-[Program on Solana Explorer](https://explorer.solana.com/address/4Vgt9GWkVtW5Pf8MNfGQYEVYRiAyen4QWnCXH5jeXnft?cluster=devnet)
+[Program on Solana Explorer](https://explorer.solana.com/address/SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A?cluster=devnet)
 
 [Source Repository](https://github.com/ChiefWoods/splurge)
+
+## Features
+
+- Manage store listings
+- Track and fulfill orders
+- Leave product reviews
 
 ## Built With
 
@@ -26,6 +30,7 @@ Note: Next.js app is still work in progress
 - [@solana/wallet-adapter-react](https://github.com/anza-xyz/wallet-adapter)
 - [@solana-developers/helpers](https://github.com/solana-developers/helpers)
 - [@irys/web-upload](https://irys.xyz/)
+- [@pythnetwork/hermes-client](https://www.pyth.network/)
 - [next](https://nextjs.org/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [zod](https://zod.dev/)
@@ -162,10 +167,12 @@ View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full 
 ### Resources
 
 - [Shields.io](https://shields.io/)
+- [USDC Faucet](https://faucet.circle.com/)
 
 ### API
 
 - [Helius](https://www.helius.dev/)
+- [Vercel](https://vercel.com/)
 
 ## Contact
 
