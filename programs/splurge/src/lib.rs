@@ -10,7 +10,7 @@ use anchor_lang::prelude::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("EbjBQN91GCKvTsgKqj9GyK27qDionoUEmZWtpDazM1zj");
+declare_id!("SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A");
 
 #[program]
 pub mod splurge {
