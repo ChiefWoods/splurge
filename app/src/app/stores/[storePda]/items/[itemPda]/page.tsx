@@ -55,7 +55,7 @@ export default function Page() {
   }, [publicKey, storePda, itemPda]);
 
   useEffect(() => {
-    if (publicKey && allOrders.data?.length && allReviews.data?.length) {
+    if (publicKey && allOrders.data && allReviews.data) {
       const itemOrders = allOrders.data.filter(
         (order) => order.item === itemPda
       );
