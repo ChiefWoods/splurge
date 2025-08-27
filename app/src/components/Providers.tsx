@@ -11,6 +11,7 @@ import { StoreProvider } from '@/providers/StoreProvider';
 import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import { TooltipProvider } from './ui/tooltip';
+import { PythProvider } from '@/providers/PythProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -23,17 +24,19 @@ export function Providers({ children }: { children: ReactNode }) {
     >
       <TooltipProvider>
         <SolanaProvider>
-          <ConfigProvider>
-            <ShopperProvider>
-              <StoreProvider>
-                <ItemProvider>
-                  <OrderProvider>
-                    <ReviewProvider>{children}</ReviewProvider>
-                  </OrderProvider>
-                </ItemProvider>
-              </StoreProvider>
-            </ShopperProvider>
-          </ConfigProvider>
+          <PythProvider>
+            <ConfigProvider>
+              <ShopperProvider>
+                <StoreProvider>
+                  <ItemProvider>
+                    <OrderProvider>
+                      <ReviewProvider>{children}</ReviewProvider>
+                    </OrderProvider>
+                  </ItemProvider>
+                </StoreProvider>
+              </ShopperProvider>
+            </ConfigProvider>
+          </PythProvider>
         </SolanaProvider>
       </TooltipProvider>
     </SWRConfig>

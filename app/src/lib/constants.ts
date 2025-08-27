@@ -3,12 +3,17 @@ import idl from '../idl/splurge.json';
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Program } from '@coral-xyz/anchor';
 import { Splurge } from '@/types/splurge';
+import { HermesClient } from '@pythnetwork/hermes-client';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;
 export const CONNECTION = new Connection(
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
   'confirmed'
+);
+
+export const HERMES_CLIENT = new HermesClient(
+  process.env.NEXT_PUBLIC_PYTH_HERMES_URL as string
 );
 
 export const SPLURGE_PROGRAM = new Program<Splurge>(idl, {
@@ -35,6 +40,7 @@ export const ACCEPTED_MINTS_METADATA = new Map<
     symbol: string;
     owner: PublicKey;
     priceUpdateV2: PublicKey;
+    id: string;
   }
 >([
   [
@@ -47,6 +53,7 @@ export const ACCEPTED_MINTS_METADATA = new Map<
       priceUpdateV2: new PublicKey(
         'Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX'
       ),
+      id: '0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
     },
   ],
   // [
@@ -57,6 +64,7 @@ export const ACCEPTED_MINTS_METADATA = new Map<
   //     symbol: 'PYUSD',
   //     owner: TOKEN_2022_PROGRAM_ID,
   //     priceUpdateV2: new PublicKey('9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k'),
+  //     id: "0xc1da1b73d7f01e7ddd54b3766cf7fcd644395ad14f70aa706ec5384c59e76692",
   //   },
   // ],
 ]);
