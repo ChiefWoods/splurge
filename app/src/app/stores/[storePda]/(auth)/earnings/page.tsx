@@ -2,6 +2,8 @@
 
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { MintIcon } from '@/components/MintIcon';
+import { TransactionToast } from '@/components/TransactionToast';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -11,10 +13,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
+import { withdrawEarningsIx } from '@/lib/instructions';
+import { getStorePda } from '@/lib/pda';
+import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStore } from '@/providers/StoreProvider';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+import { HandCoins } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface RowBalance {
   name: string;
@@ -23,10 +32,13 @@ interface RowBalance {
 }
 
 export default function Page() {
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
   const { storeTokenAccounts } = useStore();
   const { prices } = usePyth();
   const [balanceRows, setBalanceRows] = useState<RowBalance[]>([]);
   const [totalBalance, setTotalBalance] = useState<number>(0);
+  const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
 
   useEffect(() => {
     if (storeTokenAccounts.data) {
@@ -63,9 +75,80 @@ export default function Page() {
     }
   }, [storeTokenAccounts, prices]);
 
+  function onWithdraw() {
+    toast.promise(
+      async () => {
+        if (!publicKey) {
+          throw new Error('Wallet not connected.');
+        }
+
+        if (!storeTokenAccounts.data) {
+          throw new Error('No store associated token accounts found.');
+        }
+
+        setIsWithdrawing(true);
+
+        const tx = await buildTx(
+          await Promise.all(
+            storeTokenAccounts.data
+              .filter(({ amount }) => amount > 0)
+              .map(async ({ amount, ata, mint }) => {
+                const metadata = ACCEPTED_MINTS_METADATA.get(mint);
+
+                if (!metadata) {
+                  throw new Error(`Metadata not found for mint: ${mint}`);
+                }
+
+                return await withdrawEarningsIx({
+                  authority: publicKey,
+                  paymentMint: new PublicKey(mint),
+                  storePda: getStorePda(publicKey),
+                  tokenProgram: metadata.owner,
+                });
+              })
+          ),
+          publicKey
+        );
+
+        const signature = await sendTransaction(tx, connection);
+
+        return signature;
+      },
+      {
+        loading: 'Withdrawing...',
+        success: async (signature) => {
+          await storeTokenAccounts.mutate();
+          setIsWithdrawing(false);
+
+          return (
+            <TransactionToast
+              title="Earnings withdrawn!"
+              link={getTransactionLink(signature)}
+            />
+          );
+        },
+        error: (err) => {
+          console.error(err);
+          setIsWithdrawing(false);
+          return err.message;
+        },
+      }
+    );
+  }
+
   return (
     <section className="main-section flex-1">
-      <h2 className="w-full text-start">Your Earnings</h2>
+      <div className="flex w-full items-center justify-between">
+        <h2 className="w-full text-start">Your Earnings</h2>
+        <Button
+          size={'sm'}
+          onClick={onWithdraw}
+          disabled={isWithdrawing || !totalBalance}
+        >
+          <HandCoins />
+          Withdraw All
+        </Button>
+      </div>
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -79,7 +162,7 @@ export default function Page() {
         <TableBody>
           {storeTokenAccounts.isLoading || prices.isLoading ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center">
+              <TableCell colSpan={2} className="text-center">
                 Loading...
               </TableCell>
             </TableRow>
