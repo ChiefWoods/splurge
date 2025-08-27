@@ -47,6 +47,7 @@ import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
 import { useConfig } from '@/providers/ConfigProvider';
 import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
 import { Skeleton } from '../ui/skeleton';
+import { MintIcon } from '../MintIcon';
 
 export function CheckoutDialog({
   name,
@@ -282,13 +283,7 @@ export function CheckoutDialog({
                             ([mint, { name, image, symbol }]) => (
                               <SelectItem key={mint} value={mint}>
                                 <div className="flex items-center justify-start gap-x-2">
-                                  <Image
-                                    src={image}
-                                    alt={name}
-                                    width={20}
-                                    height={20}
-                                    className="rounded-full"
-                                  />
+                                  <MintIcon src={image} alt={name} />
                                   <p className="text-sm">{symbol}</p>
                                 </div>
                               </SelectItem>
