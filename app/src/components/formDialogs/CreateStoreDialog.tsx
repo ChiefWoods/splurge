@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CreateStoreFormData, createStoreSchema } from '@/lib/schema';
-import { Loader2, Store } from 'lucide-react';
+import { Store } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +39,6 @@ import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 
 export function CreateStoreDialog() {
-  const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { personalStore } = useStore();
@@ -203,7 +202,7 @@ export function CreateStoreDialog() {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -216,11 +215,7 @@ export function CreateStoreDialog() {
                 Cancel
               </Button>
               <Button type="submit" disabled={isUploading || isSubmitting}>
-                {isUploading || isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Store className="h-4 w-4" />
-                )}
+                <Store className="h-4 w-4" />
                 Create Store
               </Button>
             </DialogFooter>

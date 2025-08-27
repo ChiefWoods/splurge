@@ -5,7 +5,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -119,7 +119,7 @@ export function DeleteItemDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-6">
-          <DialogFooter className="flex justify-end gap-4">
+          <DialogFooter className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
@@ -134,11 +134,7 @@ export function DeleteItemDialog({
               variant={'destructive'}
               disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
+              <Trash2 className="h-4 w-4" />
               Delete Item
             </Button>
           </DialogFooter>

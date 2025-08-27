@@ -10,7 +10,7 @@ import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Button } from '../ui/button';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -189,7 +189,7 @@ export function AddReviewDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -201,11 +201,7 @@ export function AddReviewDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
+                <Plus className="h-4 w-4" />
                 Add Review
               </Button>
             </DialogFooter>

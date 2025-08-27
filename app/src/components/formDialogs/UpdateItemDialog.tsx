@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { WalletGuardButton } from '../WalletGuardButton';
 import { useState } from 'react';
 import {
@@ -35,7 +35,6 @@ import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
-import { atomicToUsd } from '@/lib/utils';
 
 export function UpdateItemDialog({
   name,
@@ -227,7 +226,7 @@ export function UpdateItemDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -239,11 +238,7 @@ export function UpdateItemDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Pencil className="h-4 w-4" />
-                )}
+                <Pencil className="h-4 w-4" />
                 Update Item
               </Button>
             </DialogFooter>

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CreateItemFormData, createItemSchema } from '@/lib/schema';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -282,7 +282,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -295,11 +295,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isUploading || isSubmitting}>
-                {isUploading || isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
+                <Plus className="h-4 w-4" />
                 Add Item
               </Button>
             </DialogFooter>

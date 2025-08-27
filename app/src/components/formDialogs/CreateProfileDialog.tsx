@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CreateProfileFormData, createProfileSchema } from '@/lib/schema';
-import { Loader2, UserRound } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +39,6 @@ import { getShopperPda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 
 export function CreateProfileDialog() {
-  const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { shopper } = useShopper();
@@ -203,7 +202,7 @@ export function CreateProfileDialog() {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-4">
+            <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -216,11 +215,7 @@ export function CreateProfileDialog() {
                 Cancel
               </Button>
               <Button type="submit" disabled={isUploading || isSubmitting}>
-                {isUploading || isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <UserRound className="h-4 w-4" />
-                )}
+                <UserRound className="h-4 w-4" />
                 Create Profile
               </Button>
             </DialogFooter>
