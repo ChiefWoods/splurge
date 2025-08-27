@@ -15,26 +15,20 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ACCEPTED_MINTS_METADATA, ORDER_TABS } from '@/lib/constants';
-import { getStorePda } from '@/lib/pda';
 import { getAccountLink } from '@/lib/solana-helpers';
 import { atomicToUsd, capitalizeFirstLetter } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
 import { useShopper } from '@/providers/ShopperProvider';
-import { useStore } from '@/providers/StoreProvider';
 import { ParsedOrder } from '@/types/accounts';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { ArrowDown, ArrowUp, SquareArrowOutUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
-  const { publicKey } = useWallet();
-  const router = useRouter();
-  const { store } = useStore();
   const { allOrders } = useOrder();
   const { allItems } = useItem();
   const { allShoppers } = useShopper();
@@ -44,14 +38,6 @@ export default function Page() {
   const [sortNameAsc, setSortNameAsc] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!publicKey) {
-      router.replace('/');
-    } else if (getStorePda(publicKey).toBase58() !== storePda) {
-      router.replace('/');
-    } else if (!store.isMutating && !store.data) {
-      router.replace('/stores/create');
-    }
-
     (async () => {
       await allOrders.trigger({
         storePda,
@@ -59,7 +45,7 @@ export default function Page() {
       await allItems.trigger({ storePda });
       await allShoppers.trigger();
     })();
-  }, [publicKey, router, storePda]);
+  }, [storePda]);
 
   useEffect(() => {
     if (allOrders.data && allItems.data) {
