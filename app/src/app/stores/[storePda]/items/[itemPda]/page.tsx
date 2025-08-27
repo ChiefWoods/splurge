@@ -38,10 +38,7 @@ export default function Page() {
     (async () => {
       await item.trigger({ publicKey: itemPda });
       await store.trigger({ publicKey: storePda });
-      await allOrders.trigger({
-        storePda,
-        shopperPda: publicKey ? getShopperPda(publicKey).toBase58() : undefined,
-      });
+      await allOrders.trigger({ storePda });
       await allReviews.trigger({ itemPda });
       await allShoppers.trigger();
 
@@ -56,11 +53,15 @@ export default function Page() {
 
   useEffect(() => {
     if (publicKey && allOrders.data && allReviews.data) {
-      const itemOrders = allOrders.data.filter(
-        (order) => order.item === itemPda
+      const completedShopperOrders = allOrders.data.filter(
+        (order) =>
+          order.item === itemPda &&
+          order.shopper === getShopperPda(publicKey).toBase58() &&
+          // @ts-expect-error status is a DecodeEnum but is actually a string
+          order.status === 'completed'
       );
 
-      for (const order of itemOrders) {
+      for (const order of completedShopperOrders) {
         if (
           !allReviews.data.find((review) => review.order === order.publicKey)
         ) {
