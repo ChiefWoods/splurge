@@ -1,6 +1,7 @@
 'use client';
 
 import { UpdateOrderDialog } from '@/components/formDialogs/UpdateOrderDialog';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -179,15 +180,20 @@ export default function Page() {
                     return (
                       <TableRow key={pda}>
                         <TableCell>
-                          <UpdateOrderDialog
-                            address={orderShopper.address}
-                            amount={amount}
-                            image={orderItem.image}
-                            name={orderItem.name}
+                          {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
+                          {status === 'pending' ? (
+                            <UpdateOrderDialog
+                              address={orderShopper.address}
+                              amount={amount}
+                              image={orderItem.image}
+                              name={orderItem.name}
+                              status={status}
+                              orderPda={pda}
+                            />
+                          ) : (
                             // @ts-expect-error status is a DecodeEnum but is actually a string
-                            status={status}
-                            orderPda={pda}
-                          />
+                            <StatusBadge status={status} />
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-x-4">

@@ -1,5 +1,6 @@
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
+import { ReactNode } from 'react';
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -18,14 +19,24 @@ export function StatusBadge({
   status,
   className,
   onClick,
+  children,
 }: {
   status: string;
   className?: string;
   onClick?: () => void;
+  children?: ReactNode;
 }) {
   return (
-    <Badge className={cn(getStatusColor(status), className)} onClick={onClick}>
+    <Badge
+      className={cn(
+        getStatusColor(status),
+        className,
+        'flex w-fit items-center gap-2'
+      )}
+      onClick={onClick}
+    >
       {capitalizeFirstLetter(status)}
+      {children}
     </Badge>
   );
 }

@@ -13,7 +13,7 @@ import {
 import { OrderStatus } from '@/types/accounts';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Truck } from 'lucide-react';
+import { Pencil, Truck } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
@@ -149,7 +149,9 @@ export function UpdateOrderDialog({
           status={status}
           className="cursor-pointer"
           onClick={() => checkAuth(() => setIsOpen(true))}
-        />
+        >
+          <Pencil size={12} />
+        </StatusBadge>
       </DialogTrigger>
       <DialogContent className="max-h-[500px] overflow-scroll sm:max-w-[425px]">
         <DialogHeader>
