@@ -27,6 +27,7 @@ import { useEffect, useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { StatusBadge } from '@/components/StatusBadge';
 import { NoResultText } from '@/components/NoResultText';
+import { TimestampTooltip } from '@/components/TimestampTooltip';
 
 export default function Page() {
   const { publicKey } = useWallet();
@@ -128,8 +129,9 @@ export default function Page() {
                 <TableHead>Amount</TableHead>
                 <TableHead className="flex items-center gap-2">
                   Total
-                  <InfoTooltip text="A small additional platform fee is applied on top of the order." />
+                  <InfoTooltip text="A small additional platform fee is applied on top of each order." />
                 </TableHead>
+                <TableHead>Created At</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -150,6 +152,7 @@ export default function Page() {
                     platformFee,
                     publicKey: orderPda,
                     status,
+                    timestamp,
                   }) => {
                     const orderItem = allItems.data?.find(
                       ({ publicKey }) => publicKey === item
@@ -194,6 +197,9 @@ export default function Page() {
                               height={20}
                             />
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <TimestampTooltip timestamp={timestamp} />
                         </TableCell>
                         <TableCell>
                           <Button

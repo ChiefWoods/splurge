@@ -2,6 +2,7 @@
 
 import { UpdateOrderDialog } from '@/components/formDialogs/UpdateOrderDialog';
 import { StatusBadge } from '@/components/StatusBadge';
+import { TimestampTooltip } from '@/components/TimestampTooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -138,6 +139,7 @@ export default function Page() {
               </TableHead>
               <TableHead>Amount</TableHead>
               <TableHead className="flex items-center gap-2">Total</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -159,6 +161,7 @@ export default function Page() {
                   publicKey: orderPda,
                   status,
                   shopper,
+                  timestamp,
                 }) => {
                   const orderItem = allItems.data?.find(
                     ({ publicKey }) => publicKey === item
@@ -223,6 +226,9 @@ export default function Page() {
                             height={20}
                           />
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <TimestampTooltip timestamp={timestamp} />
                       </TableCell>
                       <TableCell>
                         <Button

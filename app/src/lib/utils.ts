@@ -74,3 +74,45 @@ export async function validateProgramIx(
 
   return discriminator.equals(expected);
 }
+
+export function getRelativeTime(timestamp: number): string {
+  const now = new Date();
+  const date = new Date(timestamp * 1000);
+
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+
+  // Future dates
+  if (diffMs < 0) {
+    const absDiffSeconds = Math.abs(diffSeconds);
+    const absDiffMinutes = Math.abs(diffMinutes);
+    const absDiffHours = Math.abs(diffHours);
+    const absDiffDays = Math.abs(diffDays);
+
+    if (absDiffSeconds < 60) return 'in a few seconds';
+    if (absDiffMinutes < 60) return `in ${absDiffMinutes}m`;
+    if (absDiffHours < 24) return `in ${absDiffHours}h`;
+    if (absDiffDays < 7) return `in ${absDiffDays}d`;
+    return `in ${Math.floor(absDiffDays / 7)}w`;
+  }
+
+  // Past dates
+  if (diffSeconds < 30) return 'just now';
+  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 4) return `${diffWeeks}w ago`;
+  if (diffMonths < 12) return `${diffMonths}mo ago`;
+  return `${diffYears}y ago`;
+}
