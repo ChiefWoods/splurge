@@ -1,4 +1,4 @@
-import { getElapsedTime, truncateAddress } from '@/lib/utils';
+import { getRelativeTime, truncateAddress } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 
@@ -37,7 +37,7 @@ export function ReviewRow({
               <Star key={i} className="text-rating" size={12} />
             ))}
           </div>
-          <p className="muted-text">{getElapsedTime(timestamp)}</p>
+          <p className="muted-text">{getRelativeTime(timestamp)}</p>
         </div>
       </div>
       <p>{text}</p>

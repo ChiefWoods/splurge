@@ -86,8 +86,8 @@ export function AddReviewDialog({
       },
       {
         loading: 'Waiting for signature...',
-        success: (signature) => {
-          allReviews.trigger(
+        success: async (signature) => {
+          await allReviews.trigger(
             { itemPda },
             {
               optimisticData: (prev) => {
@@ -100,7 +100,7 @@ export function AddReviewDialog({
                       ).toBase58(),
                       order: orderPda,
                       rating: data.rating,
-                      timestamp: Date.now(),
+                      timestamp: Date.now() / 1000,
                       text: data.text,
                     },
                   ];
@@ -133,7 +133,7 @@ export function AddReviewDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="secondary" size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton variant="default" size={'sm'} setOpen={setIsOpen}>
           <Plus />
           Add Review
         </WalletGuardButton>
@@ -156,6 +156,7 @@ export function AddReviewDialog({
                     <div className="flex items-center space-x-4">
                       <span className="text-sm">1</span>
                       <Slider
+                        className="cursor-pointer"
                         min={1}
                         max={5}
                         step={1}
