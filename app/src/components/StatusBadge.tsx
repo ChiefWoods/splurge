@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter } from '@/lib/utils';
+import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 
 function getStatusColor(status: string) {
@@ -14,9 +14,17 @@ function getStatusColor(status: string) {
   }
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({
+  status,
+  className,
+  onClick,
+}: {
+  status: string;
+  className?: string;
+  onClick?: () => void;
+}) {
   return (
-    <Badge className={getStatusColor(status)}>
+    <Badge className={cn(getStatusColor(status), className)} onClick={onClick}>
       {capitalizeFirstLetter(status)}
     </Badge>
   );

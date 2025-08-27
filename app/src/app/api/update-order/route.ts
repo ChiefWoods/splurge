@@ -1,0 +1,47 @@
+import { VersionedTransaction } from '@solana/web3.js';
+import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_KEYPAIR } from '../constants';
+import { CONNECTION } from '@/lib/constants';
+import { confirmTransaction } from '@solana-developers/helpers';
+import { validateProgramIx } from '@/lib/utils';
+
+export async function POST(req: NextRequest) {
+  try {
+    const { transaction } = await req.json();
+
+    if (!transaction) {
+      return NextResponse.json(
+        { error: 'Serialized transaction is required.' },
+        { status: 400 }
+      );
+    }
+
+    const tx = VersionedTransaction.deserialize(
+      Buffer.from(transaction, 'base64')
+    );
+
+    if (!validateProgramIx(tx, 'update_order')) {
+      return NextResponse.json(
+        { error: 'Transaction does not contain the correct instruction.' },
+        { status: 400 }
+      );
+    }
+
+    tx.sign([ADMIN_KEYPAIR]);
+
+    const signature = await CONNECTION.sendTransaction(tx);
+
+    await confirmTransaction(CONNECTION, signature);
+
+    return NextResponse.json({ signature });
+  } catch (err) {
+    console.error(err);
+
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : 'Failed to update order.',
+      },
+      { status: 500 }
+    );
+  }
+}

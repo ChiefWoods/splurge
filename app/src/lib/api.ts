@@ -69,3 +69,20 @@ export async function sendTransaction(
 
   return data.result;
 }
+
+export async function updateOrder(tx: VersionedTransaction): Promise<string> {
+  const res = await fetch('/api/update-order', {
+    method: 'POST',
+    body: JSON.stringify({
+      transaction: Buffer.from(tx.serialize()).toString('base64'),
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error);
+  }
+
+  return data.signature;
+}
