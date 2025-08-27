@@ -27,7 +27,7 @@ export function ItemCard({
 }) {
   return (
     <Card className="box-content flex h-fit w-[200px] flex-col items-center gap-y-2 p-4">
-      <CardHeader className="flex flex-col gap-y-2 p-0">
+      <CardHeader className="flex w-full flex-col gap-y-2 p-0">
         <Link href={`/stores/${storePda}/items/${itemPda}`}>
           <Image
             src={itemImage}
@@ -45,9 +45,9 @@ export function ItemCard({
           storeName ? 'flex-col' : 'flex-row items-end'
         )}
       >
-        <div className="flex w-full flex-col gap-y-1 overflow-hidden">
+        <div className="flex w-full justify-between gap-y-1 overflow-hidden">
           <p className="muted-text">{atomicToUsd(price)} USD</p>
-          {!storeName && <p className="muted-text">{inventoryCount} left</p>}
+          <p className="muted-text">{inventoryCount} left</p>
         </div>
         {children}
       </CardContent>

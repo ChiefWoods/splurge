@@ -85,7 +85,7 @@ export default function Page() {
                     storeName={itemStore.name}
                     storePda={storePda}
                   >
-                    <div className="flex h-fit items-center justify-between">
+                    <div className="flex h-fit items-center justify-between gap-1">
                       <Link href={`/stores/${storePda}`}>
                         <div className="flex gap-x-2">
                           <Image
@@ -95,8 +95,8 @@ export default function Page() {
                             height={40}
                             className="rounded-full"
                           />
-                          <div className="flex flex-col">
-                            <p className="truncate text-sm font-semibold">
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <p className="w-full truncate text-sm font-semibold">
                               {itemStore.name}
                             </p>
                             <p className="muted-text text-sm">
