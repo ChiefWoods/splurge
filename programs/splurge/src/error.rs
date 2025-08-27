@@ -40,6 +40,8 @@ pub enum SplurgeError {
     OrderAlreadyCompleted,
     #[msg("Order not completed")]
     OrderNotCompleted,
+    #[msg("Order completion must be done through complete_order instruction")]
+    InvalidOrderStatus,
     #[msg("Rating must be between 1 and 5")]
     InvalidRating,
     #[msg("Math operation overflow")]

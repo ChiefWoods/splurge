@@ -45,7 +45,9 @@ impl UpdateOrder<'_> {
                     timestamp,
                 });
             }
-            _ => {}
+            _ => {
+                return Err(SplurgeError::InvalidOrderStatus.into());
+            }
         }
 
         Ok(())

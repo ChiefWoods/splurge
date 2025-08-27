@@ -186,4 +186,21 @@ describe('updateOrder', () => {
       expectAnchorError(err, 'UnauthorizedAdmin');
     }
   });
+
+  test('throws if updating with invalid status', async () => {
+    const status = { completed: {} };
+
+    try {
+      await program.methods
+        .updateOrder(status)
+        .accounts({
+          admin: admin.publicKey,
+          order: orderPda,
+        })
+        .signers([admin])
+        .rpc();
+    } catch (err) {
+      expectAnchorError(err, 'InvalidOrderStatus');
+    }
+  });
 });
