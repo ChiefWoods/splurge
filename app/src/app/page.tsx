@@ -3,19 +3,22 @@
 import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
+import { NoResultText } from '@/components/NoResultText';
 import { truncateAddress } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { useStore } from '@/providers/StoreProvider';
+import { ParsedItem } from '@/types/accounts';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Page() {
   const { shopper } = useShopper();
   const { allItems } = useItem();
-  const { allStores } = useStore();
+  const { allStores, personalStore } = useStore();
+  const [filteredItems, setFilteredItems] = useState<ParsedItem[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -23,6 +26,16 @@ export default function Page() {
       await allStores.trigger();
     })();
   }, []);
+
+  useEffect(() => {
+    if (allItems.data) {
+      const filteredItems = allItems.data
+        .filter(({ store }) => store !== personalStore.data?.publicKey)
+        .filter(({ inventoryCount }) => inventoryCount > 0);
+
+      setFilteredItems(filteredItems);
+    }
+  }, [allItems, personalStore]);
 
   return (
     <section className="main-section flex-1">
@@ -32,79 +45,86 @@ export default function Page() {
           : 'Welcome to Splurge!'}
       </h2>
       <div className="flex w-full flex-1 flex-wrap gap-6">
-        {allItems.isMutating || allStores.isMutating ? (
+        {allItems.isMutating ||
+        allStores.isMutating ||
+        personalStore.isLoading ? (
           <>
             {[...Array(6)].map((_, i) => (
               <ItemCardSkeleton key={i} />
             ))}
           </>
-        ) : allItems.data?.length && allStores.data?.length ? (
+        ) : allItems.data?.length &&
+          allStores.data?.length &&
+          filteredItems.length ? (
           <>
-            {allItems.data
-              .filter(({ inventoryCount }) => inventoryCount > 0)
-              .map(
-                ({ publicKey, name, image, inventoryCount, price, store }) => {
-                  const itemStore = allStores.data?.find(
-                    ({ publicKey }) => publicKey === store
-                  );
+            {filteredItems.map(
+              ({
+                publicKey: itemPda,
+                name,
+                image,
+                inventoryCount,
+                price,
+                store: storePda,
+              }) => {
+                const itemStore = allStores.data?.find(
+                  ({ publicKey }) => publicKey === storePda
+                );
 
-                  if (!itemStore) {
-                    throw new Error('Matching store not found for item.');
-                  }
-
-                  return (
-                    <ItemCard
-                      key={publicKey}
-                      itemPda={publicKey}
-                      itemName={name}
-                      itemImage={image}
-                      inventoryCount={inventoryCount}
-                      price={price}
-                      storeName={itemStore.name}
-                      storePda={store}
-                    >
-                      <div className="flex h-fit items-center justify-between">
-                        <Link href={`/stores/${store}`}>
-                          <div className="flex gap-x-2">
-                            <Image
-                              src={itemStore.image}
-                              alt={itemStore.name}
-                              width={40}
-                              height={40}
-                              className="rounded-full"
-                            />
-                            <div className="flex flex-col">
-                              <p className="truncate text-sm font-semibold">
-                                {itemStore.name}
-                              </p>
-                              <p className="muted-text text-sm">
-                                {truncateAddress(store)}
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                        <CheckoutDialog
-                          name={name}
-                          image={image}
-                          price={price}
-                          maxAmount={inventoryCount}
-                          storePda={store}
-                          itemPda={publicKey}
-                          btnVariant="default"
-                          btnSize="icon"
-                        >
-                          <ShoppingCart />
-                        </CheckoutDialog>
-                      </div>
-                    </ItemCard>
-                  );
+                if (!itemStore) {
+                  throw new Error('Matching store not found for item.');
                 }
-              )}
+
+                return (
+                  <ItemCard
+                    key={itemPda}
+                    itemPda={itemPda}
+                    itemName={name}
+                    itemImage={image}
+                    inventoryCount={inventoryCount}
+                    price={price}
+                    storeName={itemStore.name}
+                    storePda={storePda}
+                  >
+                    <div className="flex h-fit items-center justify-between">
+                      <Link href={`/stores/${storePda}`}>
+                        <div className="flex gap-x-2">
+                          <Image
+                            src={itemStore.image}
+                            alt={itemStore.name}
+                            width={40}
+                            height={40}
+                            className="rounded-full"
+                          />
+                          <div className="flex flex-col">
+                            <p className="truncate text-sm font-semibold">
+                              {itemStore.name}
+                            </p>
+                            <p className="muted-text text-sm">
+                              {truncateAddress(storePda)}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                      <CheckoutDialog
+                        name={name}
+                        image={image}
+                        price={price}
+                        maxAmount={inventoryCount}
+                        storePda={storePda}
+                        itemPda={itemPda}
+                        btnVariant="default"
+                        btnSize="icon"
+                      >
+                        <ShoppingCart />
+                      </CheckoutDialog>
+                    </div>
+                  </ItemCard>
+                );
+              }
+            )}
           </>
         ) : (
-          <p className="muted-text my-auto w-full text-center">
-            No items listed. Check back later!
-          </p>
+          <NoResultText text="No items listed. Check back later!" />
         )}
       </div>
     </section>
