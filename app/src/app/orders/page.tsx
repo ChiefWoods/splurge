@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { StatusBadge } from '@/components/StatusBadge';
+import { NoResultText } from '@/components/NoResultText';
 
 export default function Page() {
   const { publicKey } = useWallet();
@@ -53,7 +54,7 @@ export default function Page() {
         .filter((order) => {
           return tabValue === 'all'
             ? true
-            : // @ts-expect-error status is a DecodeEnum but safely parsed as a string
+            : // @ts-expect-error status is a DecodeEnum but is actually a string
               order.status === tabValue;
         })
         .filter((order) => {
@@ -147,9 +148,8 @@ export default function Page() {
                     paymentMint,
                     paymentSubtotal,
                     platformFee,
-                    publicKey: pda,
+                    publicKey: orderPda,
                     status,
-                    timestamp,
                   }) => {
                     const orderItem = allItems.data?.find(
                       ({ publicKey }) => publicKey === item
@@ -160,7 +160,7 @@ export default function Page() {
                     }
 
                     return (
-                      <TableRow key={pda}>
+                      <TableRow key={orderPda}>
                         <TableCell>
                           {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
                           <StatusBadge status={status} />
@@ -203,7 +203,10 @@ export default function Page() {
                             variant={'ghost'}
                             className="h-fit w-fit"
                           >
-                            <Link href={getAccountLink(pda)} target="_blank">
+                            <Link
+                              href={getAccountLink(orderPda)}
+                              target="_blank"
+                            >
                               <SquareArrowOutUpRight />
                             </Link>
                           </Button>
@@ -221,14 +224,12 @@ export default function Page() {
               )}
             </TableBody>
           </Table>
-          {sortedOrders && (
-            <p className="muted-text text-sm">
-              {sortedOrders.length} item(s) found.
-            </p>
-          )}
+          <p className="muted-text text-sm">
+            {sortedOrders.length} item(s) found.
+          </p>
         </Tabs>
       ) : (
-        <p className="my-auto">Connect your wallet</p>
+        <NoResultText text="Connect your wallet to view your orders." />
       )}
     </section>
   );

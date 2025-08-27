@@ -104,162 +104,156 @@ export default function Page() {
   return (
     <section className="main-section flex-1">
       <h2 className="w-full text-start">Manage Orders</h2>
-      {publicKey ? (
-        <Tabs
-          defaultValue="all"
-          value={tabValue}
-          onValueChange={(value) => setTabValue(value)}
-          className="flex w-full flex-1 flex-col gap-y-6"
-        >
-          <TabsList className="flex w-full">
-            {ORDER_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="flex-1">
-                {capitalizeFirstLetter(tab)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <Input
-            placeholder="Search..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Status</TableHead>
-                <TableHead>
-                  <Button
-                    size={'sm'}
-                    variant={'ghost'}
-                    onClick={() => setSortNameAsc(!sortNameAsc)}
-                  >
-                    Item
-                    {sortNameAsc ? <ArrowDown /> : <ArrowUp />}
-                  </Button>
-                </TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead className="flex items-center gap-2">Total</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+      <Tabs
+        defaultValue="all"
+        value={tabValue}
+        onValueChange={(value) => setTabValue(value)}
+        className="flex w-full flex-1 flex-col gap-y-6"
+      >
+        <TabsList className="flex w-full">
+          {ORDER_TABS.map((tab) => (
+            <TabsTrigger key={tab} value={tab} className="flex-1">
+              {capitalizeFirstLetter(tab)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <Input
+          placeholder="Search..."
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+        />
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Status</TableHead>
+              <TableHead>
+                <Button
+                  size={'sm'}
+                  variant={'ghost'}
+                  onClick={() => setSortNameAsc(!sortNameAsc)}
+                >
+                  Item
+                  {sortNameAsc ? <ArrowDown /> : <ArrowUp />}
+                </Button>
+              </TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead className="flex items-center gap-2">Total</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {allOrders.isMutating || allItems.isMutating ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Loading...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allOrders.isMutating || allItems.isMutating ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : allItems.data && sortedOrders.length ? (
-                sortedOrders.map(
-                  ({
-                    amount,
-                    item,
-                    paymentMint,
-                    paymentSubtotal,
-                    platformFee,
-                    publicKey: pda,
-                    status,
-                    shopper,
-                  }) => {
-                    const orderItem = allItems.data?.find(
-                      ({ publicKey }) => publicKey === item
-                    );
+            ) : allItems.data && sortedOrders.length ? (
+              sortedOrders.map(
+                ({
+                  amount,
+                  item,
+                  paymentMint,
+                  paymentSubtotal,
+                  platformFee,
+                  publicKey: orderPda,
+                  status,
+                  shopper,
+                }) => {
+                  const orderItem = allItems.data?.find(
+                    ({ publicKey }) => publicKey === item
+                  );
 
-                    if (!orderItem) {
-                      throw new Error('Matching item not found for order.');
-                    }
-
-                    const orderShopper = allShoppers.data?.find(
-                      ({ publicKey }) => publicKey === shopper
-                    );
-
-                    if (!orderShopper) {
-                      throw new Error('Matching shopper not found for order.');
-                    }
-
-                    return (
-                      <TableRow key={pda}>
-                        <TableCell>
-                          {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
-                          {status === 'pending' ? (
-                            <UpdateOrderDialog
-                              address={orderShopper.address}
-                              amount={amount}
-                              image={orderItem.image}
-                              name={orderItem.name}
-                              status={status}
-                              orderPda={pda}
-                            />
-                          ) : (
-                            // @ts-expect-error status is a DecodeEnum but is actually a string
-                            <StatusBadge status={status} />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-x-4">
-                            <div className="h-12 w-12 rounded-lg border bg-[#f4f4f5] p-1">
-                              <Image
-                                src={orderItem.image}
-                                alt={orderItem.name}
-                                width={40}
-                                height={40}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <span className="text-md">{orderItem.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{amount}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-x-2">
-                            <span>
-                              {atomicToUsd(paymentSubtotal + platformFee)}
-                            </span>
-                            <Image
-                              src={
-                                ACCEPTED_MINTS_METADATA.get(paymentMint)!.image
-                              }
-                              alt="payment token"
-                              width={20}
-                              height={20}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            asChild
-                            size={'icon'}
-                            type="button"
-                            variant={'ghost'}
-                            className="h-fit w-fit"
-                          >
-                            <Link href={getAccountLink(pda)} target="_blank">
-                              <SquareArrowOutUpRight />
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
+                  if (!orderItem) {
+                    throw new Error('Matching item not found for order.');
                   }
-                )
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    No orders found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          {sortedOrders && (
-            <p className="muted-text text-sm">
-              {sortedOrders.length} item(s) found.
-            </p>
-          )}
-        </Tabs>
-      ) : (
-        <p className="my-auto">Connect your wallet</p>
-      )}
+
+                  const orderShopper = allShoppers.data?.find(
+                    ({ publicKey }) => publicKey === shopper
+                  );
+
+                  if (!orderShopper) {
+                    throw new Error('Matching shopper not found for order.');
+                  }
+
+                  return (
+                    <TableRow key={orderPda}>
+                      <TableCell>
+                        {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
+                        {status === 'pending' ? (
+                          <UpdateOrderDialog
+                            address={orderShopper.address}
+                            amount={amount}
+                            image={orderItem.image}
+                            name={orderItem.name}
+                            status={status}
+                            orderPda={orderPda}
+                          />
+                        ) : (
+                          // @ts-expect-error status is a DecodeEnum but is actually a string
+                          <StatusBadge status={status} />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-x-4">
+                          <div className="h-12 w-12 rounded-lg border bg-[#f4f4f5] p-1">
+                            <Image
+                              src={orderItem.image}
+                              alt={orderItem.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <span className="text-md">{orderItem.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{amount}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-x-2">
+                          <span>
+                            {atomicToUsd(paymentSubtotal + platformFee)}
+                          </span>
+                          <Image
+                            src={
+                              ACCEPTED_MINTS_METADATA.get(paymentMint)!.image
+                            }
+                            alt="payment token"
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          asChild
+                          size={'icon'}
+                          type="button"
+                          variant={'ghost'}
+                          className="h-fit w-fit"
+                        >
+                          <Link href={getAccountLink(orderPda)} target="_blank">
+                            <SquareArrowOutUpRight />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+              )
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No orders found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <p className="muted-text text-sm">
+          {sortedOrders.length} item(s) found.
+        </p>
+      </Tabs>
     </section>
   );
 }
