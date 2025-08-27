@@ -58,15 +58,19 @@ export default {
         },
         pending: {
           DEFAULT: 'var(--order-pending)',
+          hover: 'var(--order-pending-hover)',
         },
         shipping: {
           DEFAULT: 'var(--order-shipping)',
+          hover: 'var(--order-shipping-hover)',
         },
         completed: {
           DEFAULT: 'var(--order-completed)',
+          hover: 'var(--order-completed-hover)',
         },
         cancelled: {
           DEFAULT: 'var(--order-cancelled)',
+          hover: 'var(--order-cancelled-hover)',
         },
       },
       borderRadius: {

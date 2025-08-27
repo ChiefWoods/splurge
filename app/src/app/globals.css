@@ -36,9 +36,13 @@ body {
     --info-blue: hsl(217, 91%, 60%);
     --rating-yellow: hsl(48, 96%, 53%);
     --order-pending: hsl(45, 93%, 47%);
+    --order-pending-hover: hsl(45, 93%, 37%);
     --order-shipping: hsl(25, 95%, 53%);
+    --order-shipping-hover: hsl(25, 95%, 43%);
     --order-completed: hsl(142, 71%, 45%);
+    --order-completed-hover: hsl(142, 71%, 35%);
     --order-cancelled: hsl(0, 84%, 60%);
+    --order-cancelled-hover: hsl(0, 84%, 50%);
   }
   .dark {
     --background: 0 0% 3.9%;

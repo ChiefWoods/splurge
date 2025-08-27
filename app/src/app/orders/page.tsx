@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ParsedOrder } from '@/types/accounts';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
+import { ACCEPTED_MINTS_METADATA, ORDER_TABS } from '@/lib/constants';
 import { getShopperPda } from '@/lib/pda';
 import { atomicToUsd, capitalizeFirstLetter } from '@/lib/utils';
 import { getAccountLink } from '@/lib/solana-helpers';
@@ -26,15 +25,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-pending hover:bg-pending',
-  shipping: 'bg-shipping hover:bg-shipping',
-  completed: 'bg-completed hover:bg-completed',
-  cancelled: 'bg-cancelled hover:bg-cancelled',
-};
-
-const tabs = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
+import { StatusBadge } from '@/components/StatusBadge';
 
 export default function Page() {
   const { publicKey } = useWallet();
@@ -43,7 +34,7 @@ export default function Page() {
   const [sortedOrders, setSortedOrders] = useState<ParsedOrder[]>([]);
   const [tabValue, setTabValue] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
-  const [showNameAsc, setShowNameAsc] = useState<boolean>(true);
+  const [sortNameAsc, setSortNameAsc] = useState<boolean>(true);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -88,14 +79,14 @@ export default function Page() {
             throw new Error('Matching item not found for order.');
           }
 
-          return showNameAsc
+          return sortNameAsc
             ? itemA.name.localeCompare(itemB.name)
             : itemB.name.localeCompare(itemA.name);
         });
 
       setSortedOrders(sortedOrders ?? []);
     }
-  }, [allOrders, allItems, tabValue, searchValue, showNameAsc]);
+  }, [allOrders, allItems, tabValue, searchValue, sortNameAsc]);
 
   return (
     <section className="main-section flex-1">
@@ -108,7 +99,7 @@ export default function Page() {
           className="flex w-full flex-1 flex-col gap-y-6"
         >
           <TabsList className="flex w-full">
-            {tabs.map((tab) => (
+            {ORDER_TABS.map((tab) => (
               <TabsTrigger key={tab} value={tab} className="flex-1">
                 {capitalizeFirstLetter(tab)}
               </TabsTrigger>
@@ -127,10 +118,10 @@ export default function Page() {
                   <Button
                     size={'sm'}
                     variant={'ghost'}
-                    onClick={() => setShowNameAsc(!showNameAsc)}
+                    onClick={() => setSortNameAsc(!sortNameAsc)}
                   >
                     Item
-                    {showNameAsc ? <ArrowDown /> : <ArrowUp />}
+                    {sortNameAsc ? <ArrowDown /> : <ArrowUp />}
                   </Button>
                 </TableHead>
                 <TableHead>Amount</TableHead>
@@ -171,11 +162,8 @@ export default function Page() {
                     return (
                       <TableRow key={pda}>
                         <TableCell>
-                          {/* @ts-expect-error status is a DecodeEnum but safely parsed as a string */}
-                          <Badge className={`${statusColors[status]}`}>
-                            {/* @ts-expect-error status is a DecodeEnum but safely parsed as a string */}
-                            {capitalizeFirstLetter(status)}
-                          </Badge>
+                          {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
+                          <StatusBadge status={status} />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-x-4">

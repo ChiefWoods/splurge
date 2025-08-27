@@ -64,3 +64,11 @@ export const ACCEPTED_MINTS_METADATA = new Map<
 export const DISCRIMINATOR_SIZE = 8;
 
 export const MINT_DECIMALS = 6;
+
+export const ORDER_TABS = [
+  'all',
+  'pending',
+  'shipping',
+  'completed',
+  'cancelled',
+];
