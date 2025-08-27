@@ -23,10 +23,6 @@ export function Header() {
 
   const navLinks = [
     {
-      name: 'Browse Stores',
-      href: '/stores',
-    },
-    {
       name: 'My Store',
       href: personalStore.data
         ? `/stores/${personalStore.data.publicKey}`
