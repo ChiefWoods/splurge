@@ -1,14 +1,14 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from './ui/button';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
 
 export function WalletGuardButton({
   variant = 'default',
   size = 'default',
+  className,
   setOpen,
   children,
 }: {
@@ -20,25 +20,21 @@ export function WalletGuardButton({
     | 'ghost'
     | 'link';
   size?: 'default' | 'icon' | 'sm' | 'lg';
+  className?: string;
   setOpen: (open: boolean) => void;
   children: ReactNode;
 }) {
-  const { publicKey } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { checkAuth } = useWalletAuth();
 
   return (
     <Button
       variant={variant}
       size={size}
-      className={cn(size === 'icon' ? 'aspect-square' : '')}
+      className={cn(size === 'icon' ? 'aspect-square' : '', className)}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!publicKey) {
-          setVisible(true);
-        } else {
-          setOpen(true);
-        }
+        checkAuth(() => setOpen(true));
       }}
     >
       {children}
