@@ -19,14 +19,12 @@ use crate::{
 pub struct CompleteOrder<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
-    pub treasury: SystemAccount<'info>,
     #[account(mut)]
     pub authority: SystemAccount<'info>,
     #[account(
         seeds = [CONFIG_SEED],
         bump = config.bump,
         has_one = admin @ SplurgeError::UnauthorizedAdmin,
-        has_one = treasury,
     )]
     pub config: Account<'info, Config>,
     #[account(

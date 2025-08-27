@@ -13,12 +13,9 @@ use crate::{
 pub struct WithdrawEarnings<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
-    #[account(mut)]
-    pub treasury: SystemAccount<'info>,
     #[account(
         seeds = [CONFIG_SEED],
         bump = config.bump,
-        has_one = treasury,
     )]
     pub config: Account<'info, Config>,
     #[account(
