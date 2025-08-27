@@ -13,7 +13,7 @@ import {
 import { OrderStatus } from '@/types/accounts';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Pencil, Truck } from 'lucide-react';
+import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
@@ -196,7 +196,7 @@ export function UpdateOrderDialog({
               disabled={isSubmitting}
               className="bg-cancelled hover:bg-cancelled-hover"
             >
-              <Truck className="h-4 w-4" />
+              <X className="h-4 w-4" />
               Reject
             </Button>
           </DialogFooter>
