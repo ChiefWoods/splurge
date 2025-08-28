@@ -42,34 +42,6 @@ export async function wrappedFetch(url: string) {
   return data;
 }
 
-export async function sendTransaction(
-  tx: VersionedTransaction
-): Promise<string> {
-  const res = await fetch('/api/rpc', {
-    method: 'POST',
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: self.crypto.randomUUID(),
-      method: 'sendTransaction',
-      params: [
-        Buffer.from(tx.serialize()).toString('base64'),
-        {
-          encoding: 'base64',
-          preflightCommitment: 'confirmed',
-        },
-      ],
-    }),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
-
-  return data.result;
-}
-
 export async function updateOrder(tx: VersionedTransaction): Promise<string> {
   const res = await fetch('/api/update-order', {
     method: 'POST',
