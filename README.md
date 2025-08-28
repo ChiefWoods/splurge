@@ -1,6 +1,10 @@
 # Splurge
 
+![Preview](preview.png)
+
 On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders Cohort](https://turbin3.com/) and [School of Solana](https://ackee.xyz/school-of-solana).
+
+[Live Website](https://splurge-psi.vercel.app/)
 
 [Program on Solana Explorer](https://explorer.solana.com/address/SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A?cluster=devnet)
 
@@ -88,16 +92,16 @@ solana-keygen new -o splurge-wallet.json
 solana airdrop 10 -k splurge-wallet.json
 ```
 
-5. In root and `/app`, install dependencies
+5. Install dependencies
 
 ```bash
 bun i
 ```
 
-6. In `/app`, configure `.env` files
+6. Configure `.env` files
 
 ```bash
-cp .env.example .env.development; cp .env.example .env.production
+cp .env.example .env
 ```
 
 #### Program
@@ -134,12 +138,12 @@ anchor deploy
 anchor idl init -f target/idl/splurge.json <PROGRAM_ID>
 ```
 
-#### App
+#### Sync IDL with App
 
-In `/app`, start development server.
+IDL files in `/app` may need to be updated on every program build.
 
 ```bash
-bun run dev
+bun run idl:sync
 ```
 
 #### Accounts
@@ -169,10 +173,12 @@ View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full 
 - [Shields.io](https://shields.io/)
 - [USDC Faucet](https://faucet.circle.com/)
 
-### API
+### Hosting API
 
-- [Helius](https://www.helius.dev/)
 - [Vercel](https://vercel.com/)
+- [Helius](https://www.helius.dev/)
+- [Dicebear](https://www.dicebear.com/)
+- [Pyth](https://www.pyth.network/)
 
 ## Contact
 
