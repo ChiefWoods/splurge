@@ -56,17 +56,19 @@ export const ACCEPTED_MINTS_METADATA = new Map<
       id: '0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
     },
   ],
-  // [
-  //   'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
-  //   {
-  //     name: 'Paypal USD',
-  //     image: '/accepted_mint/pyusd.png',
-  //     symbol: 'PYUSD',
-  //     owner: TOKEN_2022_PROGRAM_ID,
-  //     priceUpdateV2: new PublicKey('9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k'),
-  //     id: "0xc1da1b73d7f01e7ddd54b3766cf7fcd644395ad14f70aa706ec5384c59e76692",
-  //   },
-  // ],
+  [
+    'CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM',
+    {
+      name: 'Paypal USD',
+      image: '/accepted_mint/pyusd.png',
+      symbol: 'PYUSD',
+      owner: TOKEN_2022_PROGRAM_ID,
+      priceUpdateV2: new PublicKey(
+        '9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k'
+      ),
+      id: '0xc1da1b73d7f01e7ddd54b3766cf7fcd644395ad14f70aa706ec5384c59e76692',
+    },
+  ],
 ]);
 
 export const DISCRIMINATOR_SIZE = 8;
