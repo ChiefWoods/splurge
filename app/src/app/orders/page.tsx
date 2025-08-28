@@ -20,7 +20,7 @@ import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
 import { Tabs } from '@radix-ui/react-tabs';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { ArrowDown, ArrowUp, SquareArrowOutUpRight } from 'lucide-react';
+import { SquareArrowOutUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -28,6 +28,14 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { StatusBadge } from '@/components/StatusBadge';
 import { NoResultText } from '@/components/NoResultText';
 import { TimestampTooltip } from '@/components/TimestampTooltip';
+import { SortButton } from '@/components/SortButton';
+
+enum SortOption {
+  Name,
+  Amount,
+  Total,
+  Date,
+}
 
 export default function Page() {
   const { publicKey } = useWallet();
@@ -37,6 +45,12 @@ export default function Page() {
   const [tabValue, setTabValue] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
   const [sortNameAsc, setSortNameAsc] = useState<boolean>(true);
+  const [sortAmountAsc, setSortAmountAsc] = useState<boolean>(false);
+  const [sortTotalAsc, setSortTotalAsc] = useState<boolean>(false);
+  const [sortDateAsc, setSortDateAsc] = useState<boolean>(false);
+  const [activeSortColumn, setActiveSortColumn] = useState<SortOption>(
+    SortOption.Name
+  );
 
   useEffect(() => {
     if (!publicKey) return;
@@ -70,25 +84,52 @@ export default function Page() {
           return item.name.toLowerCase().includes(searchValue.toLowerCase());
         })
         .sort((a, b) => {
-          const itemA = allItems.data?.find(
-            ({ publicKey }) => publicKey === a.item
-          );
-          const itemB = allItems.data?.find(
-            ({ publicKey }) => publicKey === b.item
-          );
+          switch (activeSortColumn) {
+            case SortOption.Amount:
+              return sortAmountAsc ? a.amount - b.amount : b.amount - a.amount;
 
-          if (!itemA || !itemB) {
-            throw new Error('Matching item not found for order.');
+            case SortOption.Total:
+              const totalA = a.paymentSubtotal + a.platformFee;
+              const totalB = b.paymentSubtotal + b.platformFee;
+              return sortTotalAsc ? totalA - totalB : totalB - totalA;
+
+            case SortOption.Date:
+              return sortDateAsc
+                ? a.timestamp - b.timestamp
+                : b.timestamp - a.timestamp;
+
+            case SortOption.Name:
+            default:
+              const itemA = allItems.data?.find(
+                ({ publicKey }) => publicKey === a.item
+              );
+              const itemB = allItems.data?.find(
+                ({ publicKey }) => publicKey === b.item
+              );
+
+              if (!itemA || !itemB) {
+                throw new Error('Matching item not found for order.');
+              }
+
+              return sortNameAsc
+                ? itemA.name.localeCompare(itemB.name)
+                : itemB.name.localeCompare(itemA.name);
           }
-
-          return sortNameAsc
-            ? itemA.name.localeCompare(itemB.name)
-            : itemB.name.localeCompare(itemA.name);
         });
 
       setSortedOrders(sortedOrders ?? []);
     }
-  }, [allOrders, allItems, tabValue, searchValue, sortNameAsc]);
+  }, [
+    allOrders,
+    allItems,
+    tabValue,
+    searchValue,
+    sortNameAsc,
+    sortAmountAsc,
+    sortTotalAsc,
+    sortDateAsc,
+    activeSortColumn,
+  ]);
 
   return (
     <section className="main-section flex-1">
@@ -117,21 +158,50 @@ export default function Page() {
               <TableRow className="hover:bg-transparent">
                 <TableHead>Status</TableHead>
                 <TableHead>
-                  <Button
-                    size={'sm'}
-                    variant={'ghost'}
-                    onClick={() => setSortNameAsc(!sortNameAsc)}
+                  <SortButton
+                    onClick={() => {
+                      setActiveSortColumn(SortOption.Name);
+                      setSortNameAsc(!sortNameAsc);
+                    }}
+                    state={sortNameAsc}
                   >
                     Item
-                    {sortNameAsc ? <ArrowDown /> : <ArrowUp />}
-                  </Button>
+                  </SortButton>
                 </TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>
+                  <SortButton
+                    onClick={() => {
+                      setActiveSortColumn(SortOption.Amount);
+                      setSortAmountAsc(!sortAmountAsc);
+                    }}
+                    state={sortAmountAsc}
+                  >
+                    Amount
+                  </SortButton>
+                </TableHead>
                 <TableHead className="flex items-center gap-2">
-                  Total
+                  <SortButton
+                    onClick={() => {
+                      setActiveSortColumn(SortOption.Total);
+                      setSortTotalAsc(!sortTotalAsc);
+                    }}
+                    state={sortTotalAsc}
+                  >
+                    Total
+                  </SortButton>
                   <InfoTooltip text="A small additional platform fee is applied on top of each order." />
                 </TableHead>
-                <TableHead>Created At</TableHead>
+                <TableHead>
+                  <SortButton
+                    onClick={() => {
+                      setActiveSortColumn(SortOption.Date);
+                      setSortDateAsc(!sortDateAsc);
+                    }}
+                    state={sortDateAsc}
+                  >
+                    Created At
+                  </SortButton>
+                </TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
