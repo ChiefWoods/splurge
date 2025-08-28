@@ -4,7 +4,7 @@ import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { NoResultText } from '@/components/NoResultText';
-import { truncateAddress } from '@/lib/utils';
+import { atomicToUsd, truncateAddress } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { useStore } from '@/providers/StoreProvider';
@@ -80,44 +80,48 @@ export default function Page() {
                     itemPda={itemPda}
                     itemName={name}
                     itemImage={image}
-                    inventoryCount={inventoryCount}
-                    price={price}
                     storeName={itemStore.name}
                     storePda={storePda}
                   >
-                    <div className="flex h-fit items-center justify-between gap-1">
-                      <Link href={`/stores/${storePda}`}>
-                        <div className="flex gap-x-2">
-                          <Image
-                            src={itemStore.image}
-                            alt={itemStore.name}
-                            width={40}
-                            height={40}
-                            className="rounded-full"
-                          />
-                          <div className="flex min-w-0 flex-1 flex-col">
-                            <p className="w-full truncate text-sm font-semibold">
-                              {itemStore.name}
-                            </p>
-                            <p className="muted-text text-sm">
-                              {truncateAddress(storePda)}
-                            </p>
+                    <>
+                      <div className="flex w-full justify-between gap-y-1 overflow-hidden">
+                        <p className="muted-text">{atomicToUsd(price)} USD</p>
+                        <p className="muted-text">{inventoryCount} left</p>
+                      </div>
+                      <div className="flex h-fit items-center justify-between gap-1">
+                        <Link href={`/stores/${storePda}`}>
+                          <div className="flex gap-x-2">
+                            <Image
+                              src={itemStore.image}
+                              alt={itemStore.name}
+                              width={40}
+                              height={40}
+                              className="rounded-full"
+                            />
+                            <div className="flex min-w-0 flex-1 flex-col">
+                              <p className="w-full truncate text-sm font-semibold">
+                                {itemStore.name}
+                              </p>
+                              <p className="muted-text text-sm">
+                                {truncateAddress(storePda)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                      <CheckoutDialog
-                        name={name}
-                        image={image}
-                        price={price}
-                        maxAmount={inventoryCount}
-                        storePda={storePda}
-                        itemPda={itemPda}
-                        btnVariant="default"
-                        btnSize="icon"
-                      >
-                        <ShoppingCart />
-                      </CheckoutDialog>
-                    </div>
+                        </Link>
+                        <CheckoutDialog
+                          name={name}
+                          image={image}
+                          price={price}
+                          maxAmount={inventoryCount}
+                          storePda={storePda}
+                          itemPda={itemPda}
+                          btnVariant="default"
+                          btnSize="icon"
+                        >
+                          <ShoppingCart />
+                        </CheckoutDialog>
+                      </div>
+                    </>
                   </ItemCard>
                 );
               }

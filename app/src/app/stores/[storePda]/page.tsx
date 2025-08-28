@@ -20,6 +20,7 @@ import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { atomicToUsd } from '@/lib/utils';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
@@ -114,45 +115,49 @@ export default function Page() {
                     itemPda={pda}
                     itemName={name}
                     itemImage={image}
-                    inventoryCount={inventoryCount}
-                    price={price}
                     storePda={storePda}
                   >
-                    {publicKey &&
-                    store.data.publicKey ===
-                      getStorePda(publicKey).toBase58() ? (
-                      <div className="flex items-end gap-x-2">
-                        <UpdateItemDialog
-                          name={name}
-                          image={image}
-                          description={description}
-                          price={price}
-                          inventoryCount={inventoryCount}
-                          itemPda={pda}
-                          storePda={storePda}
-                        />
-                        <DeleteItemDialog
-                          name={name}
-                          itemPda={pda}
-                          storePda={storePda}
-                        />
+                    <>
+                      <div className="flex w-full flex-col justify-between overflow-hidden">
+                        <p className="muted-text">{atomicToUsd(price)} USD</p>
+                        <p className="muted-text">{inventoryCount} left</p>
                       </div>
-                    ) : (
-                      inventoryCount > 0 && (
-                        <CheckoutDialog
-                          name={name}
-                          image={image}
-                          price={price}
-                          maxAmount={inventoryCount}
-                          storePda={storePda}
-                          itemPda={pda}
-                          btnVariant="default"
-                          btnSize="icon"
-                        >
-                          <ShoppingCart />
-                        </CheckoutDialog>
-                      )
-                    )}
+                      {publicKey &&
+                      store.data.publicKey ===
+                        getStorePda(publicKey).toBase58() ? (
+                        <div className="flex items-end gap-x-2">
+                          <UpdateItemDialog
+                            name={name}
+                            image={image}
+                            description={description}
+                            price={price}
+                            inventoryCount={inventoryCount}
+                            itemPda={pda}
+                            storePda={storePda}
+                          />
+                          <DeleteItemDialog
+                            name={name}
+                            itemPda={pda}
+                            storePda={storePda}
+                          />
+                        </div>
+                      ) : (
+                        inventoryCount > 0 && (
+                          <CheckoutDialog
+                            name={name}
+                            image={image}
+                            price={price}
+                            maxAmount={inventoryCount}
+                            storePda={storePda}
+                            itemPda={pda}
+                            btnVariant="default"
+                            btnSize="icon"
+                          >
+                            <ShoppingCart />
+                          </CheckoutDialog>
+                        )
+                      )}
+                    </>
                   </ItemCard>
                 )
             )

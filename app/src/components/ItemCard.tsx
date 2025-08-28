@@ -3,15 +3,13 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import Link from 'next/link';
-import { atomicToUsd, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
 export function ItemCard({
   itemPda,
   itemName,
   itemImage,
-  inventoryCount,
-  price,
   storeName,
   storePda,
   children,
@@ -19,8 +17,6 @@ export function ItemCard({
   itemPda: string;
   itemName: string;
   itemImage: string;
-  inventoryCount: number;
-  price: number;
   storeName?: string;
   storePda: string;
   children: ReactNode;
@@ -45,10 +41,6 @@ export function ItemCard({
           storeName ? 'flex-col' : 'flex-row items-end'
         )}
       >
-        <div className="flex w-full justify-between gap-y-1 overflow-hidden">
-          <p className="muted-text">{atomicToUsd(price)} USD</p>
-          <p className="muted-text">{inventoryCount} left</p>
-        </div>
         {children}
       </CardContent>
     </Card>
