@@ -1,5 +1,5 @@
-import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
-import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
+import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import { admin, connection, program, treasury } from "../setup";
 
 console.log("Initializing config...")
@@ -10,6 +10,10 @@ const acceptedMints = [
     mint: USDC_MINT,
     priceUpdateV2: USDC_PRICE_UPDATE_V2,
   },
+  {
+    mint: PYUSD_MINT,
+    priceUpdateV2: PYUSD_PRICE_UPDATE_V2,
+  }
 ];
 const orderFeeBps = 250;
 
@@ -33,18 +37,30 @@ console.log("Initializing treasury ATAs...")
 for (const { mint } of acceptedMints) {
   const { owner } = await connection.getAccountInfo(mint);
 
-  const { address } = await getOrCreateAssociatedTokenAccount(
-    connection,
-    admin,
+  const ata = getAssociatedTokenAddressSync(
     mint,
     treasury.publicKey,
-    false,
-    "confirmed",
-    {
-      commitment: "confirmed"
-    },
-    owner,
-  )
+    true,
+    owner
+  );
 
-  console.log(`Treasury ATA for ${mint.toBase58()} initialized: ${address.toBase58()}`);
+  const ataAcc = await connection.getAccountInfo(ata);
+
+  if (!ataAcc) {
+    await getOrCreateAssociatedTokenAccount(
+      connection,
+      admin,
+      mint,
+      treasury.publicKey,
+      false,
+      "confirmed",
+      {
+        commitment: "confirmed"
+      },
+      owner,
+    )
+  
+    console.log(`Treasury ATA for ${mint.toBase58()} initialized: ${ata.toBase58()}`);
+  
+  }
 }
