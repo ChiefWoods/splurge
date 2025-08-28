@@ -14,7 +14,7 @@ export function SortButton({
   return (
     <Button size={'sm'} variant={'ghost'} onClick={onClick}>
       {children}
-      {state ? <ArrowDown /> : <ArrowUp />}
+      {state ? <ArrowUp /> : <ArrowDown />}
     </Button>
   );
 }
