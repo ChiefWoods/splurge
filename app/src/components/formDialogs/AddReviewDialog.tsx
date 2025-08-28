@@ -3,7 +3,7 @@
 import { CreateReviewFormData, createReviewSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
@@ -56,79 +56,90 @@ export function AddReviewDialog({
     },
   });
 
-  function onSubmit(data: CreateReviewFormData) {
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
+  const onSubmit = useCallback(
+    (data: CreateReviewFormData) => {
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
+
+          setIsSubmitting(true);
+
+          const tx = await buildTx(
+            [
+              await createReviewIx({
+                text: data.text,
+                rating: data.rating,
+                authority: publicKey,
+                shopperPda: getShopperPda(publicKey),
+                orderPda: new PublicKey(orderPda),
+              }),
+            ],
+            publicKey
+          );
+
+          const signature = await sendTransaction(tx, connection);
+
+          await confirmTransaction(connection, signature);
+
+          return signature;
+        },
+        {
+          loading: 'Waiting for signature...',
+          success: async (signature) => {
+            await allReviews.trigger(
+              { itemPda },
+              {
+                optimisticData: (prev) => {
+                  if (prev) {
+                    return [
+                      ...prev,
+                      {
+                        publicKey: getReviewPda(
+                          new PublicKey(orderPda)
+                        ).toBase58(),
+                        order: orderPda,
+                        rating: data.rating,
+                        timestamp: Date.now() / 1000,
+                        text: data.text,
+                      },
+                    ];
+                  } else {
+                    return [];
+                  }
+                },
+              }
+            );
+            form.reset();
+            setIsSubmitting(false);
+            setIsOpen(false);
+
+            return (
+              <TransactionToast
+                title="Review added!"
+                link={getTransactionLink(signature)}
+              />
+            );
+          },
+          error: (err) => {
+            console.error(err);
+            setIsSubmitting(false);
+            return err.message;
+          },
         }
-
-        setIsSubmitting(true);
-
-        const tx = await buildTx(
-          [
-            await createReviewIx({
-              text: data.text,
-              rating: data.rating,
-              authority: publicKey,
-              shopperPda: getShopperPda(publicKey),
-              orderPda: new PublicKey(orderPda),
-            }),
-          ],
-          publicKey
-        );
-
-        const signature = await sendTransaction(tx, connection);
-
-        await confirmTransaction(connection, signature);
-
-        return signature;
-      },
-      {
-        loading: 'Waiting for signature...',
-        success: async (signature) => {
-          await allReviews.trigger(
-            { itemPda },
-            {
-              optimisticData: (prev) => {
-                if (prev) {
-                  return [
-                    ...prev,
-                    {
-                      publicKey: getReviewPda(
-                        new PublicKey(orderPda)
-                      ).toBase58(),
-                      order: orderPda,
-                      rating: data.rating,
-                      timestamp: Date.now() / 1000,
-                      text: data.text,
-                    },
-                  ];
-                } else {
-                  return [];
-                }
-              },
-            }
-          );
-          form.reset();
-          setIsSubmitting(false);
-          setIsOpen(false);
-
-          return (
-            <TransactionToast
-              title="Review added!"
-              link={getTransactionLink(signature)}
-            />
-          );
-        },
-        error: (err) => {
-          console.error(err);
-          setIsSubmitting(false);
-          return err.message;
-        },
-      }
-    );
-  }
+      );
+    },
+    [
+      allReviews,
+      connection,
+      form,
+      itemPda,
+      orderPda,
+      publicKey,
+      sendTransaction,
+    ]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

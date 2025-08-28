@@ -2,7 +2,7 @@
 
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
 import { Trash2 } from 'lucide-react';
@@ -37,69 +37,72 @@ export function DeleteItemDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const onSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
+
+          setIsSubmitting(true);
+
+          const tx = await buildTx(
+            [
+              await unlistItemIx({
+                authority: publicKey,
+                itemPda: new PublicKey(itemPda),
+                storePda: new PublicKey(storePda),
+              }),
+            ],
+            publicKey
+          );
+
+          const signature = await sendTransaction(tx, connection);
+
+          await confirmTransaction(connection, signature);
+
+          return signature;
+        },
+        {
+          loading: 'Waiting for signature...',
+          success: async (signature) => {
+            await allItems.trigger(
+              { storePda },
+              {
+                optimisticData: (prev) => {
+                  if (prev) {
+                    return prev.filter((item) => {
+                      return item.publicKey !== itemPda;
+                    });
+                  } else {
+                    return [];
+                  }
+                },
+              }
+            );
+            setIsSubmitting(false);
+            setIsOpen(false);
+
+            return (
+              <TransactionToast
+                title="Item deleted!"
+                link={getTransactionLink(signature)}
+              />
+            );
+          },
+          error: (err) => {
+            console.error(err);
+            setIsSubmitting(false);
+            return err.message;
+          },
         }
-
-        setIsSubmitting(true);
-
-        const tx = await buildTx(
-          [
-            await unlistItemIx({
-              authority: publicKey,
-              itemPda: new PublicKey(itemPda),
-              storePda: new PublicKey(storePda),
-            }),
-          ],
-          publicKey
-        );
-
-        const signature = await sendTransaction(tx, connection);
-
-        await confirmTransaction(connection, signature);
-
-        return signature;
-      },
-      {
-        loading: 'Waiting for signature...',
-        success: async (signature) => {
-          await allItems.trigger(
-            { storePda },
-            {
-              optimisticData: (prev) => {
-                if (prev) {
-                  return prev.filter((item) => {
-                    return item.publicKey !== itemPda;
-                  });
-                } else {
-                  return [];
-                }
-              },
-            }
-          );
-          setIsSubmitting(false);
-          setIsOpen(false);
-
-          return (
-            <TransactionToast
-              title="Item deleted!"
-              link={getTransactionLink(signature)}
-            />
-          );
-        },
-        error: (err) => {
-          console.error(err);
-          setIsSubmitting(false);
-          return err.message;
-        },
-      }
-    );
-  }
+      );
+    },
+    [allItems, connection, itemPda, publicKey, sendTransaction, storePda]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

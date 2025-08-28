@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { CreateItemFormData, createItemSchema } from '@/lib/schema';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
@@ -61,111 +61,114 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
     },
   });
 
-  function onSubmit(data: CreateItemFormData) {
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
-        }
+  const onSubmit = useCallback(
+    (data: CreateItemFormData) => {
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
 
-        setIsUploading(true);
-        const imageUri = await upload(
-          data.image ??
-            (await getDicebearFile(
-              'item',
-              publicKey.toBase58() + new Date().toString()
-            ))
-        );
-
-        return { imageUri, publicKey };
-      },
-      {
-        loading: 'Uploading image...',
-        success: ({ imageUri, publicKey }) => {
-          toast.promise(
-            async () => {
-              setIsSubmitting(true);
-
-              const tx = await buildTx(
-                [
-                  await listItemIx({
-                    price: new BN(data.price * 10 ** MINT_DECIMALS),
-                    inventoryCount: data.inventoryCount,
-                    name: data.name,
-                    image: imageUri,
-                    description: data.description,
-                    authority: publicKey,
-                  }),
-                ],
-                publicKey
-              );
-
-              const signature = await sendTransaction(tx, connection);
-
-              await confirmTransaction(connection, signature);
-
-              return signature;
-            },
-            {
-              loading: 'Waiting for signature...',
-              success: async (signature) => {
-                await allItems.trigger(
-                  { storePda },
-                  {
-                    optimisticData: (prev) => {
-                      if (prev) {
-                        return [
-                          ...prev,
-                          {
-                            publicKey: getItemPda(
-                              new PublicKey(storePda),
-                              data.name
-                            ).toBase58(),
-                            store: storePda,
-                            price: data.price * 10 ** MINT_DECIMALS,
-                            inventoryCount: data.inventoryCount,
-                            name: data.name,
-                            image: imageUri,
-                            description: data.description,
-                          },
-                        ];
-                      } else {
-                        return [];
-                      }
-                    },
-                  }
-                );
-                form.reset();
-                setIsSubmitting(false);
-                setIsOpen(false);
-                setImagePreview('');
-
-                return (
-                  <TransactionToast
-                    title="Item added!"
-                    link={getTransactionLink(signature)}
-                  />
-                );
-              },
-              error: (err) => {
-                console.error(err);
-                setIsSubmitting(false);
-                return err.message;
-              },
-            }
+          setIsUploading(true);
+          const imageUri = await upload(
+            data.image ??
+              (await getDicebearFile(
+                'item',
+                publicKey.toBase58() + new Date().toString()
+              ))
           );
 
-          setIsUploading(false);
-          return 'Image uploaded!';
+          return { imageUri, publicKey };
         },
-        error: (err) => {
-          console.error(err);
-          setIsUploading(false);
-          return err.message;
-        },
-      }
-    );
-  }
+        {
+          loading: 'Uploading image...',
+          success: ({ imageUri, publicKey }) => {
+            toast.promise(
+              async () => {
+                setIsSubmitting(true);
+
+                const tx = await buildTx(
+                  [
+                    await listItemIx({
+                      price: new BN(data.price * 10 ** MINT_DECIMALS),
+                      inventoryCount: data.inventoryCount,
+                      name: data.name,
+                      image: imageUri,
+                      description: data.description,
+                      authority: publicKey,
+                    }),
+                  ],
+                  publicKey
+                );
+
+                const signature = await sendTransaction(tx, connection);
+
+                await confirmTransaction(connection, signature);
+
+                return signature;
+              },
+              {
+                loading: 'Waiting for signature...',
+                success: async (signature) => {
+                  await allItems.trigger(
+                    { storePda },
+                    {
+                      optimisticData: (prev) => {
+                        if (prev) {
+                          return [
+                            ...prev,
+                            {
+                              publicKey: getItemPda(
+                                new PublicKey(storePda),
+                                data.name
+                              ).toBase58(),
+                              store: storePda,
+                              price: data.price * 10 ** MINT_DECIMALS,
+                              inventoryCount: data.inventoryCount,
+                              name: data.name,
+                              image: imageUri,
+                              description: data.description,
+                            },
+                          ];
+                        } else {
+                          return [];
+                        }
+                      },
+                    }
+                  );
+                  form.reset();
+                  setIsSubmitting(false);
+                  setIsOpen(false);
+                  setImagePreview('');
+
+                  return (
+                    <TransactionToast
+                      title="Item added!"
+                      link={getTransactionLink(signature)}
+                    />
+                  );
+                },
+                error: (err) => {
+                  console.error(err);
+                  setIsSubmitting(false);
+                  return err.message;
+                },
+              }
+            );
+
+            setIsUploading(false);
+            return 'Image uploaded!';
+          },
+          error: (err) => {
+            console.error(err);
+            setIsUploading(false);
+            return err.message;
+          },
+        }
+      );
+    },
+    [upload, publicKey, connection, sendTransaction, allItems, storePda, form]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

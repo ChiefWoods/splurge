@@ -2,7 +2,7 @@
 
 import { Pencil } from 'lucide-react';
 import { WalletGuardButton } from '../WalletGuardButton';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -67,85 +67,88 @@ export function UpdateItemDialog({
     },
   });
 
-  function onSubmit(data: UpdateItemFormData) {
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
+  const onSubmit = useCallback(
+    (data: UpdateItemFormData) => {
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
+
+          setIsSubmitting(true);
+
+          const tx = await buildTx(
+            [
+              await updateItemIx({
+                price: new BN(Number(data.price.toFixed(2))),
+                inventoryCount: data.inventoryCount,
+                authority: publicKey,
+                itemPda: new PublicKey(itemPda),
+                storePda: new PublicKey(storePda),
+              }),
+            ],
+            publicKey
+          );
+
+          const signature = await sendTransaction(tx, connection);
+
+          await confirmTransaction(connection, signature);
+
+          return {
+            signature,
+            inventoryCount: data.inventoryCount,
+            price: data.price,
+          };
+        },
+        {
+          loading: 'Waiting for signature...',
+          success: async ({ signature, inventoryCount, price }) => {
+            await allItems.trigger(
+              { storePda },
+              {
+                optimisticData: (prev) => {
+                  if (prev) {
+                    return prev.map((item) => {
+                      if (item.publicKey === itemPda) {
+                        return {
+                          ...item,
+                          price: Number(data.price.toFixed(2)),
+                          inventoryCount:
+                            item.inventoryCount - data.inventoryCount,
+                        };
+                      }
+                      return item;
+                    });
+                  } else {
+                    return [];
+                  }
+                },
+              }
+            );
+            form.reset({
+              inventoryCount,
+              price,
+            });
+            setIsSubmitting(false);
+            setIsOpen(false);
+
+            return (
+              <TransactionToast
+                title="Item updated!"
+                link={getTransactionLink(signature)}
+              />
+            );
+          },
+          error: (err) => {
+            console.error(err);
+            setIsSubmitting(false);
+            return err.message;
+          },
         }
-
-        setIsSubmitting(true);
-
-        const tx = await buildTx(
-          [
-            await updateItemIx({
-              price: new BN(Number(data.price.toFixed(2))),
-              inventoryCount: data.inventoryCount,
-              authority: publicKey,
-              itemPda: new PublicKey(itemPda),
-              storePda: new PublicKey(storePda),
-            }),
-          ],
-          publicKey
-        );
-
-        const signature = await sendTransaction(tx, connection);
-
-        await confirmTransaction(connection, signature);
-
-        return {
-          signature,
-          inventoryCount: data.inventoryCount,
-          price: data.price,
-        };
-      },
-      {
-        loading: 'Waiting for signature...',
-        success: async ({ signature, inventoryCount, price }) => {
-          await allItems.trigger(
-            { storePda },
-            {
-              optimisticData: (prev) => {
-                if (prev) {
-                  return prev.map((item) => {
-                    if (item.publicKey === itemPda) {
-                      return {
-                        ...item,
-                        price: Number(data.price.toFixed(2)),
-                        inventoryCount:
-                          item.inventoryCount - data.inventoryCount,
-                      };
-                    }
-                    return item;
-                  });
-                } else {
-                  return [];
-                }
-              },
-            }
-          );
-          form.reset({
-            inventoryCount,
-            price,
-          });
-          setIsSubmitting(false);
-          setIsOpen(false);
-
-          return (
-            <TransactionToast
-              title="Item updated!"
-              link={getTransactionLink(signature)}
-            />
-          );
-        },
-        error: (err) => {
-          console.error(err);
-          setIsSubmitting(false);
-          return err.message;
-        },
-      }
-    );
-  }
+      );
+    },
+    [allItems, connection, form, itemPda, publicKey, sendTransaction, storePda]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

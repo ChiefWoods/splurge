@@ -3,7 +3,7 @@
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
@@ -102,88 +102,100 @@ export function CheckoutDialog({
     },
   });
 
-  function onSubmit(data: CreateOrderFormData) {
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
-        }
+  const onSubmit = useCallback(
+    (data: CreateOrderFormData) => {
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
 
-        if (!shopper.data) {
-          throw new Error('Shopper account not created.');
-        }
+          if (!shopper.data) {
+            throw new Error('Shopper account not created.');
+          }
 
-        setIsSubmitting(true);
+          setIsSubmitting(true);
 
-        const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
+          const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
 
-        if (!token) {
-          throw new Error('Payment mint not found.');
-        }
+          if (!token) {
+            throw new Error('Payment mint not found.');
+          }
 
-        const tx = await buildTx(
-          [
-            await createOrderIx({
-              amount: data.amount,
-              authority: publicKey,
-              storePda: new PublicKey(storePda),
-              itemPda: new PublicKey(itemPda),
-              priceUpdateV2: token.priceUpdateV2,
-              paymentMint: new PublicKey(data.paymentMint),
-              tokenProgram: token.owner,
-            }),
-          ],
-          publicKey
-        );
-
-        const signature = await sendTransaction(tx, connection);
-
-        await confirmTransaction(connection, signature);
-
-        return signature;
-      },
-      {
-        loading: 'Waiting for signature...',
-        success: async (signature) => {
-          await allItems.trigger(
-            {},
-            {
-              optimisticData: (prev) => {
-                if (prev) {
-                  return prev.map((item) => {
-                    if (item.publicKey === itemPda) {
-                      return {
-                        ...item,
-                        inventoryCount: item.inventoryCount - data.amount,
-                      };
-                    }
-                    return item;
-                  });
-                } else {
-                  return [];
-                }
-              },
-            }
+          const tx = await buildTx(
+            [
+              await createOrderIx({
+                amount: data.amount,
+                authority: publicKey,
+                storePda: new PublicKey(storePda),
+                itemPda: new PublicKey(itemPda),
+                priceUpdateV2: token.priceUpdateV2,
+                paymentMint: new PublicKey(data.paymentMint),
+                tokenProgram: token.owner,
+              }),
+            ],
+            publicKey
           );
-          form.reset();
-          setIsSubmitting(false);
-          setIsOpen(false);
 
-          return (
-            <TransactionToast
-              title="Order created!"
-              link={getTransactionLink(signature)}
-            />
-          );
+          const signature = await sendTransaction(tx, connection);
+
+          await confirmTransaction(connection, signature);
+
+          return signature;
         },
-        error: (err) => {
-          console.error(err);
-          setIsSubmitting(false);
-          return err.message;
-        },
-      }
-    );
-  }
+        {
+          loading: 'Waiting for signature...',
+          success: async (signature) => {
+            await allItems.trigger(
+              {},
+              {
+                optimisticData: (prev) => {
+                  if (prev) {
+                    return prev.map((item) => {
+                      if (item.publicKey === itemPda) {
+                        return {
+                          ...item,
+                          inventoryCount: item.inventoryCount - data.amount,
+                        };
+                      }
+                      return item;
+                    });
+                  } else {
+                    return [];
+                  }
+                },
+              }
+            );
+            form.reset();
+            setIsSubmitting(false);
+            setIsOpen(false);
+
+            return (
+              <TransactionToast
+                title="Order created!"
+                link={getTransactionLink(signature)}
+              />
+            );
+          },
+          error: (err) => {
+            console.error(err);
+            setIsSubmitting(false);
+            return err.message;
+          },
+        }
+      );
+    },
+    [
+      publicKey,
+      shopper.data,
+      storePda,
+      itemPda,
+      sendTransaction,
+      connection,
+      allItems,
+      form,
+    ]
+  );
 
   useEffect(() => {
     if (isOpen) {

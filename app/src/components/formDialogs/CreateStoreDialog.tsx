@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { CreateStoreFormData, createStoreSchema } from '@/lib/schema';
 import { Store } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
@@ -56,92 +56,95 @@ export function CreateStoreDialog() {
     },
   });
 
-  function onSubmit(data: CreateStoreFormData) {
-    toast.promise(
-      async () => {
-        if (!publicKey) {
-          throw new Error('Wallet not connected.');
-        }
+  const onSubmit = useCallback(
+    (data: CreateStoreFormData) => {
+      toast.promise(
+        async () => {
+          if (!publicKey) {
+            throw new Error('Wallet not connected.');
+          }
 
-        setIsUploading(true);
-        const imageUri = await upload(
-          data.image ?? (await getDicebearFile('store', publicKey.toBase58()))
-        );
-
-        return { imageUri, publicKey };
-      },
-      {
-        loading: 'Uploading image...',
-        success: ({ imageUri, publicKey }) => {
-          toast.promise(
-            async () => {
-              setIsSubmitting(true);
-
-              const tx = await buildTx(
-                [
-                  await createStoreIx({
-                    name: data.name,
-                    image: imageUri,
-                    about: data.about,
-                    authority: publicKey,
-                  }),
-                ],
-                publicKey
-              );
-
-              const signature = await sendTransaction(tx, connection);
-
-              await confirmTransaction(connection, signature);
-
-              return signature;
-            },
-            {
-              loading: 'Waiting for signature...',
-              success: async (signature) => {
-                setIsSubmitting(false);
-                setIsOpen(false);
-                form.reset();
-                setImagePreview('');
-
-                await personalStore.mutate(
-                  {
-                    about: data.about,
-                    authority: publicKey.toBase58(),
-                    image: imageUri,
-                    name: data.name,
-                    publicKey: getStorePda(publicKey).toBase58(),
-                  },
-                  {
-                    revalidate: false,
-                  }
-                );
-
-                return (
-                  <TransactionToast
-                    title="Store created! Redirecting..."
-                    link={getTransactionLink(signature)}
-                  />
-                );
-              },
-              error: (err) => {
-                console.error(err);
-                setIsSubmitting(false);
-                return err.message;
-              },
-            }
+          setIsUploading(true);
+          const imageUri = await upload(
+            data.image ?? (await getDicebearFile('store', publicKey.toBase58()))
           );
 
-          setIsUploading(false);
-          return 'Image uploaded!';
+          return { imageUri, publicKey };
         },
-        error: (err) => {
-          console.error(err);
-          setIsUploading(false);
-          return err.message;
-        },
-      }
-    );
-  }
+        {
+          loading: 'Uploading image...',
+          success: ({ imageUri, publicKey }) => {
+            toast.promise(
+              async () => {
+                setIsSubmitting(true);
+
+                const tx = await buildTx(
+                  [
+                    await createStoreIx({
+                      name: data.name,
+                      image: imageUri,
+                      about: data.about,
+                      authority: publicKey,
+                    }),
+                  ],
+                  publicKey
+                );
+
+                const signature = await sendTransaction(tx, connection);
+
+                await confirmTransaction(connection, signature);
+
+                return signature;
+              },
+              {
+                loading: 'Waiting for signature...',
+                success: async (signature) => {
+                  setIsSubmitting(false);
+                  setIsOpen(false);
+                  form.reset();
+                  setImagePreview('');
+
+                  await personalStore.mutate(
+                    {
+                      about: data.about,
+                      authority: publicKey.toBase58(),
+                      image: imageUri,
+                      name: data.name,
+                      publicKey: getStorePda(publicKey).toBase58(),
+                    },
+                    {
+                      revalidate: false,
+                    }
+                  );
+
+                  return (
+                    <TransactionToast
+                      title="Store created! Redirecting..."
+                      link={getTransactionLink(signature)}
+                    />
+                  );
+                },
+                error: (err) => {
+                  console.error(err);
+                  setIsSubmitting(false);
+                  return err.message;
+                },
+              }
+            );
+
+            setIsUploading(false);
+            return 'Image uploaded!';
+          },
+          error: (err) => {
+            console.error(err);
+            setIsUploading(false);
+            return err.message;
+          },
+        }
+      );
+    },
+    [connection, form, personalStore, publicKey, sendTransaction, upload]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

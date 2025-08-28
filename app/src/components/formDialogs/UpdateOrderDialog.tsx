@@ -1,7 +1,7 @@
 'use client';
 
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -52,95 +52,98 @@ export function UpdateOrderDialog({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  function onSubmit(status: OrderStatus) {
-    toast.promise(
-      async () => {
-        if (!signMessage) {
-          throw new Error('Wallet not connected.');
-        }
+  const onSubmit = useCallback(
+    (status: OrderStatus) => {
+      toast.promise(
+        async () => {
+          if (!signMessage) {
+            throw new Error('Wallet not connected.');
+          }
 
-        if (!config.data) {
-          throw new Error('Config account not created.');
-        }
+          if (!config.data) {
+            throw new Error('Config account not created.');
+          }
 
-        if (!personalStore.data) {
-          throw new Error('Store account not created.');
-        }
+          if (!personalStore.data) {
+            throw new Error('Store account not created.');
+          }
 
-        setIsSubmitting(true);
+          setIsSubmitting(true);
 
-        const admin = new PublicKey(config.data.admin);
+          const admin = new PublicKey(config.data.admin);
 
-        const tx = await buildTx(
-          [
-            await updateOrderIx({
-              status,
-              admin,
-              orderPda: new PublicKey(orderPda),
-            }),
-          ],
-          admin
-        );
+          const tx = await buildTx(
+            [
+              await updateOrderIx({
+                status,
+                admin,
+                orderPda: new PublicKey(orderPda),
+              }),
+            ],
+            admin
+          );
 
-        await signMessage(
-          new TextEncoder().encode(
-            `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(Object.keys(status)[0])}' status.`
-          )
-        );
+          await signMessage(
+            new TextEncoder().encode(
+              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(Object.keys(status)[0])}' status.`
+            )
+          );
 
-        const signature = await updateOrder(tx);
+          const signature = await updateOrder(tx);
 
-        await confirmTransaction(connection, signature);
+          await confirmTransaction(connection, signature);
 
-        return {
-          signature,
-          storePda: personalStore.data.publicKey,
-        };
-      },
-      {
-        loading: 'Waiting for signature...',
-        success: async ({ signature, storePda }) => {
-          await allOrders.trigger(
-            {
-              storePda,
-            },
-            {
-              optimisticData: (prev) => {
-                if (prev) {
-                  return prev.map((order) => {
-                    if (order.publicKey === orderPda) {
-                      return {
-                        ...order,
-                        status,
-                      };
-                    }
-                    return order;
-                  });
-                } else {
-                  return [];
-                }
+          return {
+            signature,
+            storePda: personalStore.data.publicKey,
+          };
+        },
+        {
+          loading: 'Waiting for signature...',
+          success: async ({ signature, storePda }) => {
+            await allOrders.trigger(
+              {
+                storePda,
               },
-            }
-          );
+              {
+                optimisticData: (prev) => {
+                  if (prev) {
+                    return prev.map((order) => {
+                      if (order.publicKey === orderPda) {
+                        return {
+                          ...order,
+                          status,
+                        };
+                      }
+                      return order;
+                    });
+                  } else {
+                    return [];
+                  }
+                },
+              }
+            );
 
-          setIsSubmitting(false);
-          setIsOpen(false);
+            setIsSubmitting(false);
+            setIsOpen(false);
 
-          return (
-            <TransactionToast
-              title="Order updated!"
-              link={getTransactionLink(signature)}
-            />
-          );
-        },
-        error: (err) => {
-          console.error(err);
-          setIsSubmitting(false);
-          return err.message;
-        },
-      }
-    );
-  }
+            return (
+              <TransactionToast
+                title="Order updated!"
+                link={getTransactionLink(signature)}
+              />
+            );
+          },
+          error: (err) => {
+            console.error(err);
+            setIsSubmitting(false);
+            return err.message;
+          },
+        }
+      );
+    },
+    [allOrders, connection, config, orderPda, personalStore, signMessage]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
