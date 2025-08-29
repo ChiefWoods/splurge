@@ -172,6 +172,7 @@ View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full 
 
 - [Shields.io](https://shields.io/)
 - [USDC Faucet](https://faucet.circle.com/)
+- [PYUSD Faucet](https://faucet.paxos.com/)
 
 ### Hosting API
 
