@@ -20,3 +20,5 @@ pub const MAX_STORE_NAME_LEN: u8 = 64;
 pub const MAX_ITEM_NAME_LEN: u8 = 32;
 #[constant]
 pub const MAX_ORACLE_STALENESS: u8 = 60;
+#[constant]
+pub const TASK_TRIGGER_DELAY: u16 = 60;

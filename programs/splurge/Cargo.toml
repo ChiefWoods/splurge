@@ -24,3 +24,4 @@ num-derive = "0.4.2"
 num-traits = "0.2.19"
 pyth-solana-receiver-sdk = "0.6.1"
 spl-math = { version = "0.3.0", features = ["no-entrypoint"] }
+tuktuk-program = "0.3.2"

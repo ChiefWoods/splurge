@@ -2656,6 +2656,7 @@ dependencies = [
  "num-traits",
  "pyth-solana-receiver-sdk",
  "spl-math",
+ "tuktuk-program",
 ]
 
 [[package]]
@@ -2788,6 +2789,15 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "winnow",
+]
+
+[[package]]
+name = "tuktuk-program"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "902b147e0b1c2e5510fc189c7a41a7c2b81ebb098980710ca620e58883389eef"
+dependencies = [
+ "anchor-lang",
 ]
 
 [[package]]

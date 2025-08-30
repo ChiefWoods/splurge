@@ -57,8 +57,12 @@ pub mod splurge {
         CreateOrder::handler(ctx, amount, timestamp)
     }
 
-    pub fn update_order(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
-        UpdateOrder::handler(ctx, status)
+    pub fn update_order(
+        ctx: Context<UpdateOrder>,
+        status: OrderStatus,
+        task_id: u16,
+    ) -> Result<()> {
+        UpdateOrder::handler(ctx, status, task_id)
     }
 
     pub fn complete_order(ctx: Context<CompleteOrder>) -> Result<()> {
