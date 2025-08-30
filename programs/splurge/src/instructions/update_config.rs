@@ -43,7 +43,7 @@ impl UpdateConfig<'_> {
             accepted_mints,
         } = args;
 
-        let config = &mut ctx.accounts.config;
+        let UpdateConfig { config, .. } = ctx.accounts;
 
         if let Some(new_admin) = new_admin {
             config.admin = new_admin;

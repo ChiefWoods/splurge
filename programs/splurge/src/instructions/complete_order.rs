@@ -75,16 +75,23 @@ pub struct CompleteOrder<'info> {
 
 impl CompleteOrder<'_> {
     pub fn handler(ctx: Context<CompleteOrder>) -> Result<()> {
-        let config = &ctx.accounts.config;
-        let payment_mint = &ctx.accounts.payment_mint;
+        let CompleteOrder {
+            authority,
+            config,
+            item,
+            order,
+            order_token_account,
+            payment_mint,
+            shopper,
+            store_token_account,
+            token_program,
+            ..
+        } = ctx.accounts;
 
         config.validate_mint(payment_mint.key())?;
 
-        let order = &mut ctx.accounts.order;
-        let order_ata = &ctx.accounts.order_token_account;
-
-        let shopper_key = ctx.accounts.shopper.key();
-        let item_key = ctx.accounts.item.key();
+        let shopper_key = shopper.key();
+        let item_key = item.key();
         let order_timestamp = order.timestamp.to_le_bytes();
 
         let signer_seeds: &[&[u8]] =
@@ -92,26 +99,26 @@ impl CompleteOrder<'_> {
 
         transfer_checked(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                token_program.to_account_info(),
                 TransferChecked {
                     authority: order.to_account_info(),
                     mint: payment_mint.to_account_info(),
-                    from: order_ata.to_account_info(),
-                    to: ctx.accounts.store_token_account.to_account_info(),
+                    from: order_token_account.to_account_info(),
+                    to: store_token_account.to_account_info(),
                 },
             )
             .with_signer(&[signer_seeds]),
-            order_ata.amount,
+            order_token_account.amount,
             payment_mint.decimals,
         )?;
 
         close_account(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                token_program.to_account_info(),
                 CloseAccount {
                     authority: order.to_account_info(),
-                    account: order_ata.to_account_info(),
-                    destination: ctx.accounts.authority.to_account_info(),
+                    account: order_token_account.to_account_info(),
+                    destination: authority.to_account_info(),
                 },
             )
             .with_signer(&[signer_seeds]),

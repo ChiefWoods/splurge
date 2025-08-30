@@ -54,11 +54,11 @@ impl ListItem<'_> {
             SplurgeError::ItemNameTooLong
         );
 
-        let item = &mut ctx.accounts.item;
+        let ListItem { item, store, .. } = ctx.accounts;
 
         item.set_inner(Item {
             bump: ctx.bumps.item,
-            store: ctx.accounts.store.key(),
+            store: store.key(),
             price,
             inventory_count,
             name,

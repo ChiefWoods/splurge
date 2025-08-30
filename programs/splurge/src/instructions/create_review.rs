@@ -45,11 +45,11 @@ impl CreateReview<'_> {
 
         require!(rating >= 1 && rating <= 5, SplurgeError::InvalidRating);
 
-        let review = &mut ctx.accounts.review;
+        let CreateReview { order, review, .. } = ctx.accounts;
 
         review.set_inner(Review {
             bump: ctx.bumps.review,
-            order: ctx.accounts.order.key(),
+            order: order.key(),
             rating,
             timestamp: Clock::get()?.unix_timestamp,
             text,

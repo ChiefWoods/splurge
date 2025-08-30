@@ -33,7 +33,7 @@ impl UpdateItem<'_> {
             inventory_count,
         } = args;
 
-        let item = &mut ctx.accounts.item;
+        let UpdateItem { item, .. } = ctx.accounts;
 
         if let Some(price) = price {
             item.price = price;

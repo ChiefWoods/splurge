@@ -40,20 +40,24 @@ impl InitializeStore<'_> {
             SplurgeError::StoreNameTooLong
         );
 
-        ctx.accounts.store.set_inner(Store {
+        let InitializeStore {
+            authority, store, ..
+        } = ctx.accounts;
+
+        store.set_inner(Store {
             bump: ctx.bumps.store,
-            authority: ctx.accounts.authority.key(),
+            authority: authority.key(),
             name,
             image,
             about,
         });
 
         emit!(StoreInitialized {
-            store: ctx.accounts.store.key(),
-            authority: ctx.accounts.authority.key(),
+            store: store.key(),
+            authority: authority.key(),
             timestamp: Clock::get()?.unix_timestamp,
         });
 
-        Store::invariant(&ctx.accounts.store)
+        Store::invariant(&store)
     }
 }

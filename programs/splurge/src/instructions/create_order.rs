@@ -86,13 +86,22 @@ pub struct CreateOrder<'info> {
 
 impl CreateOrder<'_> {
     pub fn handler(ctx: Context<CreateOrder>, amount: u32, timestamp: i64) -> Result<()> {
-        let config = &ctx.accounts.config;
-        let payment_mint = &ctx.accounts.payment_mint;
+        let CreateOrder {
+            authority,
+            authority_token_account,
+            config,
+            item,
+            order,
+            order_token_account,
+            payment_mint,
+            price_update_v2,
+            shopper,
+            token_program,
+            treasury_token_account,
+            ..
+        } = ctx.accounts;
 
         config.validate_mint(payment_mint.key())?;
-
-        let price_update_v2 = &ctx.accounts.price_update_v2;
-
         config.validate_price_update_v2(price_update_v2.key())?;
 
         let PriceFeedMessage {
@@ -122,8 +131,6 @@ impl CreateOrder<'_> {
         )
         .unwrap();
 
-        let item = &mut ctx.accounts.item;
-
         let payment_subtotal = imprecise_number!(precise_number!(amount.into())
             .checked_mul(&precise_number!(item.price.into()))
             .ok_or(SplurgeError::MathOverflow)?
@@ -133,18 +140,16 @@ impl CreateOrder<'_> {
             .ok_or(SplurgeError::MathOverflow)?) as u64;
 
         let platform_fee = imprecise_number!(precise_number!(payment_subtotal.into())
-            .checked_mul(&precise_number!(ctx.accounts.config.order_fee_bps.into()))
+            .checked_mul(&precise_number!(config.order_fee_bps.into()))
             .ok_or(SplurgeError::MathOverflow)?
             .checked_div(&precise_number!(MAX_FEE_BASIS_POINTS.into()))
             .ok_or(SplurgeError::MathOverflow)?
             .ceiling()
             .ok_or(SplurgeError::MathOverflow)?) as u64;
 
-        let order = &mut ctx.accounts.order;
-
         order.set_inner(Order {
             bump: ctx.bumps.order,
-            shopper: ctx.accounts.shopper.key(),
+            shopper: shopper.key(),
             item: item.key(),
             timestamp,
             status: OrderStatus::default(),
@@ -158,12 +163,12 @@ impl CreateOrder<'_> {
 
         transfer_checked(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                token_program.to_account_info(),
                 TransferChecked {
-                    authority: ctx.accounts.authority.to_account_info(),
+                    authority: authority.to_account_info(),
                     mint: payment_mint.to_account_info(),
-                    from: ctx.accounts.authority_token_account.to_account_info(),
-                    to: ctx.accounts.order_token_account.to_account_info(),
+                    from: authority_token_account.to_account_info(),
+                    to: order_token_account.to_account_info(),
                 },
             ),
             payment_subtotal,
@@ -172,12 +177,12 @@ impl CreateOrder<'_> {
 
         transfer_checked(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                token_program.to_account_info(),
                 TransferChecked {
-                    authority: ctx.accounts.authority.to_account_info(),
+                    authority: authority.to_account_info(),
                     mint: payment_mint.to_account_info(),
-                    from: ctx.accounts.authority_token_account.to_account_info(),
-                    to: ctx.accounts.treasury_token_account.to_account_info(),
+                    from: authority_token_account.to_account_info(),
+                    to: treasury_token_account.to_account_info(),
                 },
             ),
             platform_fee,

@@ -45,20 +45,24 @@ impl InitializeShopper<'_> {
         );
         require!(!address.is_empty(), SplurgeError::ShopperAddressRequired);
 
-        ctx.accounts.shopper.set_inner(Shopper {
+        let InitializeShopper {
+            authority, shopper, ..
+        } = ctx.accounts;
+
+        shopper.set_inner(Shopper {
             bump: ctx.bumps.shopper,
-            authority: ctx.accounts.authority.key(),
+            authority: authority.key(),
             name,
             image,
             address,
         });
 
         emit!(ShopperInitialized {
-            shopper: ctx.accounts.shopper.key(),
-            authority: ctx.accounts.authority.key(),
+            shopper: shopper.key(),
+            authority: authority.key(),
             timestamp: Clock::get()?.unix_timestamp,
         });
 
-        Shopper::invariant(&ctx.accounts.shopper)
+        Shopper::invariant(&shopper)
     }
 }

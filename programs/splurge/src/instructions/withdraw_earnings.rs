@@ -49,29 +49,33 @@ pub struct WithdrawEarnings<'info> {
 
 impl WithdrawEarnings<'_> {
     pub fn handler(ctx: Context<WithdrawEarnings>) -> Result<()> {
-        let config = &ctx.accounts.config;
-        let payment_mint = &ctx.accounts.payment_mint;
+        let WithdrawEarnings {
+            authority_token_account,
+            config,
+            payment_mint,
+            store,
+            store_token_account,
+            token_program,
+            ..
+        } = ctx.accounts;
 
         config.validate_mint(payment_mint.key())?;
 
-        let store_ata = &ctx.accounts.store_token_account;
-        let store = &ctx.accounts.store;
-
-        let authority_key = ctx.accounts.store.authority.key();
+        let authority_key = store.authority.key();
         let signer_seeds: &[&[u8]] = &[STORE_SEED, authority_key.as_ref(), &[store.bump]];
 
         transfer_checked(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                token_program.to_account_info(),
                 TransferChecked {
-                    from: store_ata.to_account_info(),
+                    from: store_token_account.to_account_info(),
                     authority: store.to_account_info(),
                     mint: payment_mint.to_account_info(),
-                    to: ctx.accounts.authority_token_account.to_account_info(),
+                    to: authority_token_account.to_account_info(),
                 },
             )
             .with_signer(&[signer_seeds]),
-            store_ata.amount,
+            store_token_account.amount,
             payment_mint.decimals,
         )
     }

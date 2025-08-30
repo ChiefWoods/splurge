@@ -27,7 +27,7 @@ pub struct UpdateOrder<'info> {
 
 impl UpdateOrder<'_> {
     pub fn handler(ctx: Context<UpdateOrder>, status: OrderStatus) -> Result<()> {
-        let order = &mut ctx.accounts.order;
+        let UpdateOrder { order, .. } = ctx.accounts;
 
         order.status = status;
         let timestamp = Clock::get()?.unix_timestamp;
@@ -35,13 +35,13 @@ impl UpdateOrder<'_> {
         match status {
             OrderStatus::Shipping => {
                 emit!(OrderShipped {
-                    order: ctx.accounts.order.key(),
+                    order: order.key(),
                     timestamp,
                 });
             }
             OrderStatus::Cancelled => {
                 emit!(OrderCancelled {
-                    order: ctx.accounts.order.key(),
+                    order: order.key(),
                     timestamp,
                 });
             }

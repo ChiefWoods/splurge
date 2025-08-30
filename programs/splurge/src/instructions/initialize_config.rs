@@ -37,7 +37,9 @@ impl InitializeConfig<'_> {
 
         accepted_mints.dedup_by(|a, b| a.mint == b.mint);
 
-        ctx.accounts.config.set_inner(Config {
+        let InitializeConfig { config, .. } = ctx.accounts;
+
+        config.set_inner(Config {
             bump: ctx.bumps.config,
             admin,
             treasury,
@@ -47,6 +49,6 @@ impl InitializeConfig<'_> {
             reserved: [0; 64],
         });
 
-        Config::invariant(&ctx.accounts.config)
+        Config::invariant(&config)
     }
 }
