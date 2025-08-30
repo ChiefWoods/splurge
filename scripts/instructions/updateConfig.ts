@@ -1,5 +1,5 @@
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { admin, program } from "../setup";
+import { admin, splurgeProgram } from "../setup";
 
 console.log("Updating config...")
 
@@ -19,7 +19,7 @@ const newAdmin = null;
 const orderFeeBps = null;
 const treasury = null;
 
-const signature = await program.methods
+const signature = await splurgeProgram.methods
   .updateConfig({
     acceptedMints,
     isPaused,

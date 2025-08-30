@@ -19,6 +19,8 @@
     "@coral-xyz/anchor": "^0.31.1"
   },
   "devDependencies": {
+    "@helium/tuktuk-idls": "^0.0.9",
+    "@helium/tuktuk-sdk": "^0.0.9",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.2",
     "@types/bn.js": "^5.2.0",

@@ -1,6 +1,6 @@
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { admin, connection, program, treasury } from "../setup";
+import { admin, connection, splurgeProgram, treasury } from "../setup";
 
 console.log("Initializing config...")
 
@@ -17,7 +17,7 @@ const acceptedMints = [
 ];
 const orderFeeBps = 250;
 
-const signature = await program.methods
+const signature = await splurgeProgram.methods
   .initializeConfig({
     acceptedMints,
     admin: admin.publicKey,

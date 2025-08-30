@@ -1,7 +1,10 @@
 import { PublicKey } from "@solana/web3.js";
-import { admin, program } from "../setup";
+import { admin, connection, splurgeProgram, tuktukProgram } from "../setup";
 import { IdlTypes } from "@coral-xyz/anchor";
 import { Splurge } from "../../target/types/splurge";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { TASK_QUEUE, TUKTUK_PROGRAM_ID } from "../constants";
+import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
 
 type OrderStatus = IdlTypes<Splurge>['orderStatus'];
 
@@ -9,13 +12,39 @@ console.log("Updating order...")
 
 // Params
 const status: OrderStatus = { shipping: {} };
+const authorityPubkey = new PublicKey("");
 const orderPda = new PublicKey("");
+const itemPda = new PublicKey("");
+const paymentMint = new PublicKey("");
+const shopperPda = new PublicKey("");
+const storePda = new PublicKey("");
 
-const signature = await program.methods
-  .updateOrder(status)
-  .accounts({
-    authority: admin.publicKey,
+const { owner: tokenProgram } = await connection.getAccountInfo(paymentMint);
+const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram);
+const storeAta = getAssociatedTokenAddressSync(paymentMint, storePda, true, tokenProgram);
+// Tuktuk accounts don't matter if status is "cancelled"
+const taskQueueAcc = await tuktukProgram.account.taskQueueV0.fetchNullable(TASK_QUEUE);
+if (!taskQueueAcc) throw new Error("Task queue not found");
+const taskId = nextAvailableTaskIds(taskQueueAcc.taskBitmap, 1, false)[0];
+const [taskPda] = taskKey(TASK_QUEUE, taskId, TUKTUK_PROGRAM_ID);
+const [taskQueueAuthorityPda] = taskQueueAuthorityKey(TASK_QUEUE, admin.publicKey);
+
+const signature = await splurgeProgram.methods
+  .updateOrder(status, taskId)
+  .accountsPartial({
     order: orderPda,
+    authority: authorityPubkey,
+    item: itemPda,
+    orderTokenAccount: orderAta,
+    paymentMint,
+    shopper: shopperPda,
+    store: storePda,
+    storeTokenAccount: storeAta,
+    task: taskPda,
+    taskQueue: TASK_QUEUE,
+    tokenProgram,
+    tuktuk: TUKTUK_PROGRAM_ID,
+    taskQueueAuthority: taskQueueAuthorityPda,
   })
   .signers([admin])
   .rpc();

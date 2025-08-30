@@ -1,6 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { admin, program } from "../setup";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { admin, connection, splurgeProgram } from "../setup";
 
 console.log("Completing order...")
 
@@ -9,9 +8,12 @@ const shopperPda = new PublicKey("");
 const storePda = new PublicKey("");
 const itemPda = new PublicKey("");
 const orderPda = new PublicKey("");
-const tokenProgram = TOKEN_PROGRAM_ID;
 
-const signature = await program.methods
+const orderAcc = await splurgeProgram.account.order.fetchNullable(orderPda);
+if (!orderAcc) throw new Error("Order not found");
+const { owner: tokenProgram } = await connection.getAccountInfo(orderAcc.paymentMint);
+
+const signature = await splurgeProgram.methods
   .completeOrder()
   .accountsPartial({
     admin: admin.publicKey,
