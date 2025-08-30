@@ -40,7 +40,7 @@ impl InitializeShopper<'_> {
 
         require!(!name.is_empty(), SplurgeError::ShopperNameRequired);
         require!(
-            name.len() <= MAX_SHOPPER_NAME_LEN,
+            name.len() <= MAX_SHOPPER_NAME_LEN as usize,
             SplurgeError::ShopperNameTooLong
         );
         require!(!address.is_empty(), SplurgeError::ShopperAddressRequired);

@@ -50,7 +50,7 @@ impl ListItem<'_> {
 
         require!(!name.is_empty(), SplurgeError::ItemNameRequired);
         require!(
-            name.len() <= MAX_ITEM_NAME_LEN,
+            name.len() <= MAX_ITEM_NAME_LEN as usize,
             SplurgeError::ItemNameTooLong
         );
 

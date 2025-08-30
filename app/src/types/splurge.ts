@@ -2506,6 +2506,51 @@ export type Splurge = {
       "name": "configSeed",
       "type": "bytes",
       "value": "[99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "itemSeed",
+      "type": "bytes",
+      "value": "[105, 116, 101, 109]"
+    },
+    {
+      "name": "maxItemNameLen",
+      "type": "u8",
+      "value": "32"
+    },
+    {
+      "name": "maxOracleStaleness",
+      "type": "u8",
+      "value": "60"
+    },
+    {
+      "name": "maxShopperNameLen",
+      "type": "u8",
+      "value": "64"
+    },
+    {
+      "name": "maxStoreNameLen",
+      "type": "u8",
+      "value": "64"
+    },
+    {
+      "name": "orderSeed",
+      "type": "bytes",
+      "value": "[111, 114, 100, 101, 114]"
+    },
+    {
+      "name": "reviewSeed",
+      "type": "bytes",
+      "value": "[114, 101, 118, 105, 101, 119]"
+    },
+    {
+      "name": "shopperSeed",
+      "type": "bytes",
+      "value": "[115, 104, 111, 112, 112, 101, 114]"
+    },
+    {
+      "name": "storeSeed",
+      "type": "bytes",
+      "value": "[115, 116, 111, 114, 101]"
     }
   ]
 };

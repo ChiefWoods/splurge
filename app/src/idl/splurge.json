@@ -2500,6 +2500,51 @@
       "name": "CONFIG_SEED",
       "type": "bytes",
       "value": "[99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "ITEM_SEED",
+      "type": "bytes",
+      "value": "[105, 116, 101, 109]"
+    },
+    {
+      "name": "MAX_ITEM_NAME_LEN",
+      "type": "u8",
+      "value": "32"
+    },
+    {
+      "name": "MAX_ORACLE_STALENESS",
+      "type": "u8",
+      "value": "60"
+    },
+    {
+      "name": "MAX_SHOPPER_NAME_LEN",
+      "type": "u8",
+      "value": "64"
+    },
+    {
+      "name": "MAX_STORE_NAME_LEN",
+      "type": "u8",
+      "value": "64"
+    },
+    {
+      "name": "ORDER_SEED",
+      "type": "bytes",
+      "value": "[111, 114, 100, 101, 114]"
+    },
+    {
+      "name": "REVIEW_SEED",
+      "type": "bytes",
+      "value": "[114, 101, 118, 105, 101, 119]"
+    },
+    {
+      "name": "SHOPPER_SEED",
+      "type": "bytes",
+      "value": "[115, 104, 111, 112, 112, 101, 114]"
+    },
+    {
+      "name": "STORE_SEED",
+      "type": "bytes",
+      "value": "[115, 116, 111, 114, 101]"
     }
   ]
 }

@@ -36,7 +36,7 @@ impl InitializeStore<'_> {
 
         require!(!name.is_empty(), SplurgeError::StoreNameRequired);
         require!(
-            name.len() <= MAX_STORE_NAME_LEN,
+            name.len() <= MAX_STORE_NAME_LEN as usize,
             SplurgeError::StoreNameTooLong
         );
 
