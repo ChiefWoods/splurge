@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@helium/tuktuk-idls": "^0.0.9",
+    "@helium/tuktuk-sdk": "^0.0.9",
     "@hookform/resolvers": "^3.9.1",
     "@irys/web-upload": "^0.0.15",
     "@irys/web-upload-solana": "^0.1.8",

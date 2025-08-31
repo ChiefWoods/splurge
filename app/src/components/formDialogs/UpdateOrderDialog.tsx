@@ -27,6 +27,7 @@ import { capitalizeFirstLetter, truncateAddress } from '@/lib/utils';
 import { useOrder } from '@/providers/OrderProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { TransactionToast } from '../TransactionToast';
+import { getShopperPda } from '@/lib/pda';
 
 export function UpdateOrderDialog({
   name,
@@ -35,6 +36,10 @@ export function UpdateOrderDialog({
   address,
   status,
   orderPda,
+  itemPda,
+  paymentMint,
+  storePda,
+  authority,
 }: {
   name: string;
   image: string;
@@ -42,6 +47,10 @@ export function UpdateOrderDialog({
   address: string;
   status: string;
   orderPda: string;
+  itemPda: string;
+  paymentMint: string;
+  storePda: string;
+  authority: string;
 }) {
   const { connection } = useConnection();
   const { signMessage } = useWallet();
@@ -71,6 +80,7 @@ export function UpdateOrderDialog({
           setIsSubmitting(true);
 
           const admin = new PublicKey(configData.admin);
+          const authorityPubkey = new PublicKey(authority);
 
           const tx = await buildTx(
             [
@@ -78,6 +88,11 @@ export function UpdateOrderDialog({
                 status,
                 admin,
                 orderPda: new PublicKey(orderPda),
+                authority: authorityPubkey,
+                itemPda: new PublicKey(itemPda),
+                paymentMint: new PublicKey(paymentMint),
+                shopperPda: getShopperPda(authorityPubkey),
+                storePda: new PublicKey(storePda),
               }),
             ],
             admin
@@ -149,6 +164,10 @@ export function UpdateOrderDialog({
       orderPda,
       personalStoreData,
       signMessage,
+      itemPda,
+      paymentMint,
+      storePda,
+      authority,
     ]
   );
 

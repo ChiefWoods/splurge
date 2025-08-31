@@ -1,5 +1,10 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { SPLURGE_PROGRAM } from './constants';
+import {
+  CONNECTION,
+  SPLURGE_PROGRAM,
+  TASK_QUEUE,
+  TUKTUK_PROGRAM,
+} from './constants';
 import {
   CreateReviewArgs,
   InitializeShopperArgs,
@@ -9,6 +14,12 @@ import {
   UpdateItemArgs,
 } from '../types/accounts';
 import { BN } from '@coral-xyz/anchor';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import {
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+} from '@helium/tuktuk-sdk';
 
 export async function createShopperIx({
   name,
@@ -154,16 +165,61 @@ export async function updateOrderIx({
   status,
   admin,
   orderPda,
+  authority,
+  itemPda,
+  paymentMint,
+  shopperPda,
+  storePda,
 }: {
   status: OrderStatus;
   admin: PublicKey;
   orderPda: PublicKey;
+  authority: PublicKey;
+  itemPda: PublicKey;
+  paymentMint: PublicKey;
+  shopperPda: PublicKey;
+  storePda: PublicKey;
 }): Promise<TransactionInstruction> {
+  const mint = await CONNECTION.getAccountInfo(paymentMint);
+  if (!mint) throw new Error('Mint account not found.');
+  const tokenProgram = mint.owner;
+  const orderAta = getAssociatedTokenAddressSync(
+    paymentMint,
+    orderPda,
+    true,
+    tokenProgram
+  );
+  const storeAta = getAssociatedTokenAddressSync(
+    paymentMint,
+    storePda,
+    true,
+    tokenProgram
+  );
+  // Tuktuk accounts don't matter if status is "cancelled"
+  const taskQueueAcc =
+    await TUKTUK_PROGRAM.account.taskQueueV0.fetchNullable(TASK_QUEUE);
+  if (!taskQueueAcc) throw new Error('Task queue not found.');
+  const taskId = nextAvailableTaskIds(taskQueueAcc.taskBitmap, 1, false)[0];
+  const [taskPda] = taskKey(TASK_QUEUE, taskId, TUKTUK_PROGRAM.programId);
+  const [taskQueueAuthorityPda] = taskQueueAuthorityKey(TASK_QUEUE, admin);
+
   return await SPLURGE_PROGRAM.methods
-    .updateOrder(status)
-    .accounts({
+    .updateOrder(status, taskId)
+    .accountsPartial({
       admin,
       order: orderPda,
+      authority,
+      item: itemPda,
+      orderTokenAccount: orderAta,
+      paymentMint,
+      shopper: shopperPda,
+      store: storePda,
+      storeTokenAccount: storeAta,
+      task: taskPda,
+      taskQueue: TASK_QUEUE,
+      tokenProgram,
+      tuktuk: TUKTUK_PROGRAM.programId,
+      taskQueueAuthority: taskQueueAuthorityPda,
     })
     .instruction();
 }

@@ -39,7 +39,7 @@ export default function Page() {
         }
         sortedOrdersMapper={({
           amount,
-          item,
+          item: itemPda,
           paymentMint,
           paymentSubtotal,
           platformFee,
@@ -49,7 +49,7 @@ export default function Page() {
           timestamp,
         }) => {
           const orderItem = allItemsData?.find(
-            ({ publicKey }) => publicKey === item
+            ({ publicKey }) => publicKey === itemPda
           );
 
           if (!orderItem) {
@@ -79,6 +79,10 @@ export default function Page() {
                       name={orderItem.name}
                       status={status}
                       orderPda={orderPda}
+                      itemPda={itemPda}
+                      paymentMint={paymentMint}
+                      storePda={storePda}
+                      authority={orderShopper.authority}
                     />
                   ) : (
                     // @ts-expect-error status is a DecodeEnum but is actually a string

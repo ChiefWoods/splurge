@@ -1,9 +1,11 @@
 import { Cluster, clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import idl from '../idl/splurge.json';
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { Program } from '@coral-xyz/anchor';
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { Splurge } from '@/types/splurge';
 import { HermesClient } from '@pythnetwork/hermes-client';
+import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
+import tuktukIdl from '@/idl/tuktuk.json';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;
@@ -16,9 +18,9 @@ export const HERMES_CLIENT = new HermesClient(
   process.env.NEXT_PUBLIC_PYTH_HERMES_URL as string
 );
 
-export const SPLURGE_PROGRAM = new Program<Splurge>(idl, {
-  connection: CONNECTION,
-});
+const provider = { connection: CONNECTION } as AnchorProvider;
+export const SPLURGE_PROGRAM = new Program<Splurge>(idl, provider);
+export const TUKTUK_PROGRAM = new Program<Tuktuk>(tuktukIdl, provider);
 
 export const MAX_SHOPPER_NAME_LENGTH = 64;
 export const MAX_STORE_NAME_LENGTH = 64;
@@ -82,3 +84,7 @@ export const ORDER_TABS = [
   'completed',
   'cancelled',
 ];
+
+export const TASK_QUEUE = new PublicKey(
+  process.env.NEXT_PUBLIC_SPLURGE_TASK_QUEUE as string
+);
