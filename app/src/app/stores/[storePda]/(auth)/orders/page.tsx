@@ -32,6 +32,9 @@ export default function Page() {
       <OrderTable
         allItems={allItems}
         allOrders={allOrders}
+        isFetching={
+          allOrders.isMutating || allItems.isMutating || allShoppers.isMutating
+        }
         sortedOrdersMapper={({
           amount,
           item,

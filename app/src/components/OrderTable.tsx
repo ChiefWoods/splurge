@@ -29,6 +29,7 @@ enum SortOption {
 export function OrderTable({
   allOrders,
   allItems,
+  isFetching,
   showTotalTooltip = false,
   sortedOrdersMapper,
 }: {
@@ -49,6 +50,7 @@ export function OrderTable({
       storePda?: string;
     }
   >;
+  isFetching: boolean;
   showTotalTooltip?: boolean;
   sortedOrdersMapper: (sortedOrders: ParsedOrder) => ReactNode;
 }) {
@@ -205,7 +207,7 @@ export function OrderTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allOrders.isMutating || allItems.isMutating ? (
+          {isFetching ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center">
                 Loading...
