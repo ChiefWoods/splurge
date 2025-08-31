@@ -1123,6 +1123,7 @@
       "accounts": [
         {
           "name": "admin",
+          "writable": true,
           "signer": true,
           "relations": [
             "config"
@@ -1163,13 +1164,11 @@
               },
               {
                 "kind": "account",
-                "path": "order.shopper",
-                "account": "Order"
+                "path": "shopper"
               },
               {
                 "kind": "account",
-                "path": "order.item",
-                "account": "Order"
+                "path": "item"
               },
               {
                 "kind": "account",
@@ -1178,6 +1177,108 @@
               }
             ]
           }
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "authority",
+          "writable": true
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "order_token_account",
+          "writable": true
+        },
+        {
+          "name": "payment_mint"
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "store"
+        },
+        {
+          "name": "store_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "store"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "tuktuk"
+        },
+        {
+          "name": "task_queue",
+          "writable": true
+        },
+        {
+          "name": "task",
+          "writable": true
+        },
+        {
+          "name": "task_queue_authority"
         }
       ],
       "args": [
@@ -1188,6 +1289,10 @@
               "name": "OrderStatus"
             }
           }
+        },
+        {
+          "name": "task_id",
+          "type": "u16"
         }
       ]
     },
@@ -2545,6 +2650,11 @@
       "name": "STORE_SEED",
       "type": "bytes",
       "value": "[115, 116, 111, 114, 101]"
+    },
+    {
+      "name": "TASK_TRIGGER_DELAY",
+      "type": "u16",
+      "value": "60"
     }
   ]
 }

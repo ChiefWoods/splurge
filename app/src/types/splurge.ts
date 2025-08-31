@@ -1129,6 +1129,7 @@ export type Splurge = {
       "accounts": [
         {
           "name": "admin",
+          "writable": true,
           "signer": true,
           "relations": [
             "config"
@@ -1169,13 +1170,11 @@ export type Splurge = {
               },
               {
                 "kind": "account",
-                "path": "order.shopper",
-                "account": "order"
+                "path": "shopper"
               },
               {
                 "kind": "account",
-                "path": "order.item",
-                "account": "order"
+                "path": "item"
               },
               {
                 "kind": "account",
@@ -1184,6 +1183,108 @@ export type Splurge = {
               }
             ]
           }
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "authority",
+          "writable": true
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "orderTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "paymentMint"
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "store"
+        },
+        {
+          "name": "storeTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "store"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "tuktuk"
+        },
+        {
+          "name": "taskQueue",
+          "writable": true
+        },
+        {
+          "name": "task",
+          "writable": true
+        },
+        {
+          "name": "taskQueueAuthority"
         }
       ],
       "args": [
@@ -1194,6 +1295,10 @@ export type Splurge = {
               "name": "orderStatus"
             }
           }
+        },
+        {
+          "name": "taskId",
+          "type": "u16"
         }
       ]
     },
@@ -2551,6 +2656,11 @@ export type Splurge = {
       "name": "storeSeed",
       "type": "bytes",
       "value": "[115, 116, 111, 114, 101]"
+    },
+    {
+      "name": "taskTriggerDelay",
+      "type": "u16",
+      "value": "60"
     }
   ]
 };
