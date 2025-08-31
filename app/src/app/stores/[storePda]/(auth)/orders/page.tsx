@@ -18,11 +18,11 @@ export default function Page() {
 
   useEffect(() => {
     (async () => {
+      await allItems.trigger({ storePda });
+      await allShoppers.trigger();
       await allOrders.trigger({
         storePda,
       });
-      await allItems.trigger({ storePda });
-      await allShoppers.trigger();
     })();
   }, [storePda]);
 

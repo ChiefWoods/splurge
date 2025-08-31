@@ -41,7 +41,7 @@ export default function Page() {
   const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
 
   useEffect(() => {
-    if (storeTokenAccounts.data) {
+    if (storeTokenAccounts.data && prices.data) {
       let totalBalance = 0;
 
       setBalanceRows(
