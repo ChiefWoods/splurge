@@ -66,7 +66,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const storeTokenAccounts = useSWR(
-    personalStore.data && config.data
+    publicKey && personalStore.data && config.data
       ? {
           acceptedMints: config.data.acceptedMints,
           storePda: personalStore.data.publicKey,
