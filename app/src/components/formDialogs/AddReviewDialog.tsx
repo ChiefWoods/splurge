@@ -44,7 +44,7 @@ export function AddReviewDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { allReviews } = useReview();
+  const { allReviewsTrigger } = useReview();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -88,7 +88,7 @@ export function AddReviewDialog({
         {
           loading: 'Waiting for signature...',
           success: async (signature) => {
-            await allReviews.trigger(
+            await allReviewsTrigger(
               { itemPda },
               {
                 optimisticData: (prev) => {
@@ -131,7 +131,7 @@ export function AddReviewDialog({
       );
     },
     [
-      allReviews,
+      allReviewsTrigger,
       connection,
       form,
       itemPda,

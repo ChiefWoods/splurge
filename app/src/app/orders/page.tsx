@@ -12,18 +12,19 @@ import { OrderTableRow } from '@/components/OrderTableRow';
 
 export default function Page() {
   const { publicKey } = useWallet();
-  const { allOrders } = useOrder();
-  const { allItems } = useItem();
+  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
+  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
 
   useEffect(() => {
     if (!publicKey) return;
 
     (async () => {
-      await allOrders.trigger({
+      await allOrdersTrigger({
         shopperPda: getShopperPda(publicKey).toBase58(),
       });
-      await allItems.trigger({});
+      await allItemsTrigger({});
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicKey]);
 
   return (
@@ -31,9 +32,9 @@ export default function Page() {
       <h2 className="w-full text-start">My Orders</h2>
       {publicKey ? (
         <OrderTable
-          allItems={allItems}
-          allOrders={allOrders}
-          isFetching={allOrders.isMutating || allItems.isMutating}
+          allItemsData={allItemsData}
+          allOrdersData={allOrdersData}
+          isFetching={allOrdersIsMutating || allItemsIsMutating}
           sortedOrdersMapper={({
             amount,
             item,
@@ -44,7 +45,7 @@ export default function Page() {
             status,
             timestamp,
           }) => {
-            const orderItem = allItems.data?.find(
+            const orderItem = allItemsData?.find(
               ({ publicKey }) => publicKey === item
             );
 

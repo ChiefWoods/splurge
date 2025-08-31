@@ -12,28 +12,30 @@ import { useEffect } from 'react';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
-  const { allOrders } = useOrder();
-  const { allItems } = useItem();
-  const { allShoppers } = useShopper();
+  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
+  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
+  const { allShoppersData, allShoppersIsMutating, allShoppersTrigger } =
+    useShopper();
 
   useEffect(() => {
     (async () => {
-      await allItems.trigger({ storePda });
-      await allShoppers.trigger();
-      await allOrders.trigger({
+      await allItemsTrigger({ storePda });
+      await allShoppersTrigger();
+      await allOrdersTrigger({
         storePda,
       });
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storePda]);
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full text-start">Manage Orders</h2>
       <OrderTable
-        allItems={allItems}
-        allOrders={allOrders}
+        allItemsData={allItemsData}
+        allOrdersData={allOrdersData}
         isFetching={
-          allOrders.isMutating || allItems.isMutating || allShoppers.isMutating
+          allOrdersIsMutating || allItemsIsMutating || allShoppersIsMutating
         }
         sortedOrdersMapper={({
           amount,
@@ -46,7 +48,7 @@ export default function Page() {
           shopper,
           timestamp,
         }) => {
-          const orderItem = allItems.data?.find(
+          const orderItem = allItemsData?.find(
             ({ publicKey }) => publicKey === item
           );
 
@@ -54,7 +56,7 @@ export default function Page() {
             throw new Error('Matching item not found for order.');
           }
 
-          const orderShopper = allShoppers.data?.find(
+          const orderShopper = allShoppersData?.find(
             ({ publicKey }) => publicKey === shopper
           );
 

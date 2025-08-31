@@ -41,7 +41,7 @@ import { ImageInputLabel } from '../ImageInputLabel';
 export function CreateStoreDialog() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { personalStore } = useStore();
+  const { personalStoreMutate } = useStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -104,7 +104,7 @@ export function CreateStoreDialog() {
                   form.reset();
                   setImagePreview('');
 
-                  await personalStore.mutate(
+                  await personalStoreMutate(
                     {
                       about: data.about,
                       authority: publicKey.toBase58(),
@@ -143,7 +143,7 @@ export function CreateStoreDialog() {
         }
       );
     },
-    [connection, form, personalStore, publicKey, sendTransaction, upload]
+    [connection, form, personalStoreMutate, publicKey, sendTransaction, upload]
   );
 
   return (

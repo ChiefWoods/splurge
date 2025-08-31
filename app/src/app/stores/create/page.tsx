@@ -9,15 +9,15 @@ import { useEffect } from 'react';
 
 export default function Page() {
   const router = useRouter();
-  const { personalStore } = useStore();
+  const { personalStoreData, personalStoreIsLoading } = useStore();
 
   useEffect(() => {
-    if (personalStore.data) {
-      router.replace(`/stores/${personalStore.data.publicKey}`);
+    if (personalStoreData) {
+      router.replace(`/stores/${personalStoreData.publicKey}`);
     }
-  }, [personalStore.data, router]);
+  }, [personalStoreData, router]);
 
-  if (personalStore.isLoading) {
+  if (personalStoreIsLoading) {
     return <Spinner />;
   }
 

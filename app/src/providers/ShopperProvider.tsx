@@ -5,12 +5,16 @@ import { wrappedFetch } from '@/lib/api';
 import { getShopperPda } from '@/lib/pda';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { SWRResponse } from 'swr';
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
+import useSWR, { KeyedMutator } from 'swr';
+import useSWRMutation, { TriggerWithoutArgs } from 'swr/mutation';
 
 interface ShopperContextType {
-  allShoppers: SWRMutationResponse<ParsedShopper[], any, string, never>;
-  shopper: SWRResponse<ParsedShopper, any, any>;
+  allShoppersData: ParsedShopper[] | undefined;
+  allShoppersIsMutating: boolean;
+  allShoppersTrigger: TriggerWithoutArgs<ParsedShopper[], any, string, never>;
+  shopperData: ParsedShopper | undefined;
+  shopperIsLoading: boolean;
+  shopperMutate: KeyedMutator<ParsedShopper>;
 }
 
 const ShopperContext = createContext<ShopperContextType>(
@@ -26,11 +30,19 @@ export function useShopper() {
 export function ShopperProvider({ children }: { children: ReactNode }) {
   const { publicKey } = useWallet();
 
-  const allShoppers = useSWRMutation(apiEndpoint, async (url) => {
+  const {
+    data: allShoppersData,
+    isMutating: allShoppersIsMutating,
+    trigger: allShoppersTrigger,
+  } = useSWRMutation(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).shoppers as ParsedShopper[];
   });
 
-  const shopper = useSWR(
+  const {
+    data: shopperData,
+    isLoading: shopperIsLoading,
+    mutate: shopperMutate,
+  } = useSWR(
     publicKey ? { url: apiEndpoint, publicKey } : null,
     async ({ url, publicKey }) => {
       return (
@@ -42,8 +54,12 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
   return (
     <ShopperContext.Provider
       value={{
-        allShoppers,
-        shopper,
+        allShoppersData,
+        allShoppersIsMutating,
+        allShoppersTrigger,
+        shopperData,
+        shopperIsLoading,
+        shopperMutate,
       }}
     >
       {children}

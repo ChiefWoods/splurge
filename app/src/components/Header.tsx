@@ -14,8 +14,8 @@ import { getDicebearEndpoint } from '@/lib/api';
 
 export function Header() {
   const { publicKey } = useWallet();
-  const { shopper } = useShopper();
-  const { personalStore } = useStore();
+  const { shopperData, shopperIsLoading } = useShopper();
+  const { personalStoreData } = useStore();
 
   const avatarSeed = useMemo(() => {
     return publicKey?.toBase58() ?? Keypair.generate().publicKey.toBase58();
@@ -24,13 +24,13 @@ export function Header() {
   const navLinks = [
     {
       name: 'My Store',
-      href: personalStore.data
-        ? `/stores/${personalStore.data.publicKey}`
+      href: personalStoreData
+        ? `/stores/${personalStoreData.publicKey}`
         : '/stores/create',
     },
     {
       name: 'My Orders',
-      href: shopper.data ? `/orders` : '/shoppers/create',
+      href: shopperData ? `/orders` : '/shoppers/create',
     },
   ];
 
@@ -52,18 +52,18 @@ export function Header() {
         </ul>
         <Link
           href={
-            shopper.data
-              ? `/shoppers/${shopper.data.publicKey}`
+            shopperData
+              ? `/shoppers/${shopperData.publicKey}`
               : '/shoppers/create'
           }
         >
           <Avatar>
-            {shopper.isLoading ? (
+            {shopperIsLoading ? (
               <Skeleton className="h-full w-full" />
             ) : (
               <AvatarImage
                 src={
-                  shopper.data?.image ??
+                  shopperData?.image ??
                   `${getDicebearEndpoint('shopper')}?seed=${avatarSeed}`
                 }
                 className="bg-white"

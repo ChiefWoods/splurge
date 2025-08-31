@@ -2,7 +2,7 @@
 
 import { ACCEPTED_MINTS_METADATA, HERMES_CLIENT } from '@/lib/constants';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { SWRResponse } from 'swr';
+import useSWR, { KeyedMutator } from 'swr';
 
 interface Price {
   mint: string;
@@ -10,7 +10,14 @@ interface Price {
 }
 
 interface PythContextType {
-  prices: SWRResponse<Price[], any, any>;
+  pricesData: Price[] | undefined;
+  pricesIsLoading: boolean;
+  pricesMutate: KeyedMutator<
+    {
+      mint: string;
+      price: number;
+    }[]
+  >;
 }
 
 const PythContext = createContext<PythContextType>({} as PythContextType);
@@ -20,7 +27,11 @@ export function usePyth() {
 }
 
 export function PythProvider({ children }: { children: ReactNode }) {
-  const prices = useSWR('/pyth', async () => {
+  const {
+    data: pricesData,
+    isLoading: pricesIsLoading,
+    mutate: pricesMutate,
+  } = useSWR('pyth', async () => {
     // TODO: id should be stored and fetched from config account
     const ids = Array.from(ACCEPTED_MINTS_METADATA.values()).map(
       (metadata) => metadata.id
@@ -43,7 +54,9 @@ export function PythProvider({ children }: { children: ReactNode }) {
   return (
     <PythContext.Provider
       value={{
-        prices,
+        pricesData,
+        pricesIsLoading,
+        pricesMutate,
       }}
     >
       {children}

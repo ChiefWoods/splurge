@@ -25,18 +25,19 @@ import { atomicToUsd } from '@/lib/utils';
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useWallet();
-  const { store } = useStore();
-  const { allItems } = useItem();
+  const { storeData, storeIsMutating, storeTrigger } = useStore();
+  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
 
   useEffect(() => {
     (async () => {
-      await store.trigger({ publicKey: storePda });
-      await allItems.trigger({ storePda });
+      await storeTrigger({ publicKey: storePda });
+      await allItemsTrigger({ storePda });
 
-      if (!store.isMutating && !allItems.isMutating && !store.data) {
+      if (!storeIsMutating && !allItemsIsMutating && !storeData) {
         notFound();
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storePda]);
 
   const buttons = [
@@ -54,20 +55,20 @@ export default function Page() {
 
   return (
     <section className="main-section flex-1">
-      {store.isMutating ? (
+      {storeIsMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        store.data && (
+        storeData && (
           <AccountSection
             key={storePda}
-            title={store.data.name}
-            image={store.data.image}
+            title={storeData.name}
+            image={storeData.image}
             prefix="Store ID:"
             address={storePda}
-            content={<p className="text-primary">{store.data.about}</p>}
+            content={<p className="text-primary">{storeData.about}</p>}
             buttons={
               publicKey &&
-              store.data.publicKey === getStorePda(publicKey).toBase58() && (
+              storeData.publicKey === getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, icon, text }) => (
@@ -93,14 +94,14 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
-          {allItems.isMutating || store.isMutating ? (
+          {allItemsIsMutating || storeIsMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ItemCardSkeleton key={i} />
               ))}
             </>
-          ) : allItems.data?.length ? (
-            allItems.data.map(
+          ) : allItemsData?.length ? (
+            allItemsData.map(
               ({
                 publicKey: pda,
                 name,
@@ -109,7 +110,7 @@ export default function Page() {
                 inventoryCount,
                 price,
               }) =>
-                store.data && (
+                storeData && (
                   <ItemCard
                     key={pda}
                     itemPda={pda}
@@ -123,7 +124,7 @@ export default function Page() {
                         <p className="muted-text">{inventoryCount} left</p>
                       </div>
                       {publicKey &&
-                      store.data.publicKey ===
+                      storeData.publicKey ===
                         getStorePda(publicKey).toBase58() ? (
                         <div className="flex items-end gap-x-2">
                           <UpdateItemDialog

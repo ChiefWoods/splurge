@@ -3,10 +3,12 @@
 import { ParsedItem } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
+import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface ItemContextType {
-  allItems: SWRMutationResponse<
+  allItemsData: ParsedItem[] | undefined;
+  allItemsIsMutating: boolean;
+  allItemsTrigger: TriggerWithArgs<
     ParsedItem[],
     any,
     string,
@@ -14,7 +16,9 @@ interface ItemContextType {
       storePda?: string;
     }
   >;
-  item: SWRMutationResponse<
+  itemData: ParsedItem | undefined;
+  itemIsMutating: boolean;
+  itemTrigger: TriggerWithArgs<
     ParsedItem,
     any,
     string,
@@ -33,7 +37,11 @@ export function useItem() {
 }
 
 export function ItemProvider({ children }: { children: ReactNode }) {
-  const allItems = useSWRMutation(
+  const {
+    data: allItemsData,
+    isMutating: allItemsIsMutating,
+    trigger: allItemsTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { storePda?: string } }) => {
       const { storePda } = arg;
@@ -48,7 +56,11 @@ export function ItemProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const item = useSWRMutation(
+  const {
+    data: itemData,
+    isMutating: itemIsMutating,
+    trigger: itemTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -59,8 +71,12 @@ export function ItemProvider({ children }: { children: ReactNode }) {
   return (
     <ItemContext.Provider
       value={{
-        allItems,
-        item,
+        allItemsData,
+        allItemsIsMutating,
+        allItemsTrigger,
+        itemData,
+        itemIsMutating,
+        itemTrigger,
       }}
     >
       {children}

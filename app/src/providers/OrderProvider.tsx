@@ -3,10 +3,12 @@
 import { ParsedOrder } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
+import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface OrderContextType {
-  allOrders: SWRMutationResponse<
+  allOrdersData: ParsedOrder[] | undefined;
+  allOrdersIsMutating: boolean;
+  allOrdersTrigger: TriggerWithArgs<
     ParsedOrder[],
     any,
     string,
@@ -15,7 +17,9 @@ interface OrderContextType {
       storePda?: string;
     }
   >;
-  order: SWRMutationResponse<
+  orderData: ParsedOrder | undefined;
+  orderIsMutating: boolean;
+  orderTrigger: TriggerWithArgs<
     ParsedOrder,
     any,
     string,
@@ -34,7 +38,11 @@ export function useOrder() {
 }
 
 export function OrderProvider({ children }: { children: ReactNode }) {
-  const allOrders = useSWRMutation(
+  const {
+    data: allOrdersData,
+    isMutating: allOrdersIsMutating,
+    trigger: allOrdersTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (
       url,
@@ -56,7 +64,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const order = useSWRMutation(
+  const {
+    data: orderData,
+    isMutating: orderIsMutating,
+    trigger: orderTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -67,8 +79,12 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   return (
     <OrderContext.Provider
       value={{
-        allOrders,
-        order,
+        allOrdersData,
+        allOrdersIsMutating,
+        allOrdersTrigger,
+        orderData,
+        orderIsMutating,
+        orderTrigger,
       }}
     >
       {children}

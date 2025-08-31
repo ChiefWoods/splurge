@@ -10,17 +10,17 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { storePda } = useParams<{ storePda: string }>();
   const router = useRouter();
   const { publicKey } = useWallet();
-  const { store } = useStore();
+  const { storeData, storeIsMutating } = useStore();
 
   useEffect(() => {
     if (!publicKey) {
       router.replace('/');
     } else if (getStorePda(publicKey).toBase58() !== storePda) {
       router.replace('/');
-    } else if (!store.isMutating && !store.data) {
+    } else if (!storeIsMutating && !storeData) {
       router.replace('/stores/create');
     }
-  }, [router, publicKey, storePda]);
+  }, [router, publicKey, storePda, storeData, storeIsMutating]);
 
   return <>{children}</>;
 }

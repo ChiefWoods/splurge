@@ -3,10 +3,12 @@
 import { ParsedReview } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
+import useSWRMutation, { TriggerWithArgs } from 'swr/mutation';
 
 interface ReviewContextType {
-  allReviews: SWRMutationResponse<
+  allReviewsData: ParsedReview[] | undefined;
+  allReviewsIsMutating: boolean;
+  allReviewsTrigger: TriggerWithArgs<
     ParsedReview[],
     any,
     string,
@@ -14,13 +16,13 @@ interface ReviewContextType {
       itemPda?: string;
     }
   >;
-  review: SWRMutationResponse<
+  reviewData: ParsedReview | undefined;
+  reviewIsMutating: boolean;
+  reviewTrigger: TriggerWithArgs<
     ParsedReview,
     any,
     string,
-    {
-      publicKey: string;
-    }
+    { publicKey: string }
   >;
 }
 
@@ -33,7 +35,11 @@ export function useReview() {
 }
 
 export function ReviewProvider({ children }: { children: ReactNode }) {
-  const allReviews = useSWRMutation(
+  const {
+    data: allReviewsData,
+    isMutating: allReviewsIsMutating,
+    trigger: allReviewsTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { itemPda?: string } }) => {
       const { itemPda } = arg;
@@ -48,7 +54,11 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const review = useSWRMutation(
+  const {
+    data: reviewData,
+    isMutating: reviewIsMutating,
+    trigger: reviewTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -59,8 +69,12 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   return (
     <ReviewContext.Provider
       value={{
-        allReviews,
-        review,
+        allReviewsData,
+        allReviewsIsMutating,
+        allReviewsTrigger,
+        reviewData,
+        reviewIsMutating,
+        reviewTrigger,
       }}
     >
       {children}

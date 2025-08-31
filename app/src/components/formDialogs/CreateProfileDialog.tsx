@@ -41,7 +41,7 @@ import { ImageInputLabel } from '../ImageInputLabel';
 export function CreateProfileDialog() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { shopper } = useShopper();
+  const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -105,7 +105,7 @@ export function CreateProfileDialog() {
                   form.reset();
                   setImagePreview('');
 
-                  await shopper.mutate(
+                  await shopperMutate(
                     {
                       address: data.address,
                       authority: publicKey.toBase58(),
@@ -144,7 +144,7 @@ export function CreateProfileDialog() {
         }
       );
     },
-    [connection, form, sendTransaction, shopper, upload, publicKey]
+    [connection, form, sendTransaction, shopperMutate, upload, publicKey]
   );
 
   return (

@@ -15,37 +15,35 @@ export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
   const router = useRouter();
   const { publicKey } = useWallet();
-  const { shopper } = useShopper();
+  const { shopperData, shopperIsLoading } = useShopper();
 
   useEffect(() => {
     if (!publicKey) {
       router.replace('/shoppers/create');
     } else if (
       shopperPda !== getShopperPda(publicKey).toBase58() &&
-      !shopper.isLoading
+      !shopperIsLoading
     ) {
       router.replace(
-        shopper.data
-          ? `/shoppers/${shopper.data.publicKey}`
-          : '/shoppers/create'
+        shopperData ? `/shoppers/${shopperData.publicKey}` : '/shoppers/create'
       );
     }
-  }, [publicKey, router, shopperPda, shopper]);
+  }, [publicKey, router, shopperPda, shopperData, shopperIsLoading]);
 
   return (
     <section className="main-section flex-1">
-      {shopper.isLoading ? (
+      {shopperIsLoading ? (
         <AccountSectionSkeleton header={true} />
       ) : (
-        shopper.data && (
+        shopperData && (
           <AccountSection
             key={shopperPda}
             header="My Profile"
-            title={shopper.data.name}
-            image={shopper.data.image}
+            title={shopperData.name}
+            image={shopperData.image}
             prefix="Shopper ID:"
             address={shopperPda}
-            content={<p className="text-primary">{shopper.data.address}</p>}
+            content={<p className="text-primary">{shopperData.address}</p>}
             buttons={
               <Button asChild variant={'secondary'} size={'sm'}>
                 <Link href="/orders">

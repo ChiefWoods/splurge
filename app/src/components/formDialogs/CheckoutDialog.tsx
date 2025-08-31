@@ -72,20 +72,20 @@ export function CheckoutDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { config } = useConfig();
-  const { allItems } = useItem();
-  const { shopper } = useShopper();
+  const { configData, configIsLoading } = useConfig();
+  const { allItemsTrigger } = useItem();
+  const { shopperData } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
 
   const platformFee = useMemo(() => {
-    return config.data
+    return configData
       ? Math.floor(
-          (orderSubtotal * config.data.orderFeeBps) / MAX_FEE_BASIS_POINTS
+          (orderSubtotal * configData.orderFeeBps) / MAX_FEE_BASIS_POINTS
         )
       : 0;
-  }, [config.data, orderSubtotal]);
+  }, [configData, orderSubtotal]);
 
   const createOrderSchema = z.object({
     amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
@@ -110,7 +110,7 @@ export function CheckoutDialog({
             throw new Error('Wallet not connected.');
           }
 
-          if (!shopper.data) {
+          if (!shopperData) {
             throw new Error('Shopper account not created.');
           }
 
@@ -146,7 +146,7 @@ export function CheckoutDialog({
         {
           loading: 'Waiting for signature...',
           success: async (signature) => {
-            await allItems.trigger(
+            await allItemsTrigger(
               {},
               {
                 optimisticData: (prev) => {
@@ -187,12 +187,12 @@ export function CheckoutDialog({
     },
     [
       publicKey,
-      shopper.data,
+      shopperData,
       storePda,
       itemPda,
       sendTransaction,
       connection,
-      allItems,
+      allItemsTrigger,
       form,
     ]
   );
@@ -312,10 +312,10 @@ export function CheckoutDialog({
             <div className="flex flex-col gap-1">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Platform Fee</p>
-                {config.isLoading ? (
+                {configIsLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
-                  config.data && (
+                  configData && (
                     <p>
                       {removeTrailingZeroes(
                         atomicToUsd(platformFee, MINT_DECIMALS)
@@ -327,18 +327,18 @@ export function CheckoutDialog({
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Subtotal</p>
-                {config.isLoading ? (
+                {configIsLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
-                  config.data && <p>{atomicToUsd(orderSubtotal)} USD</p>
+                  configData && <p>{atomicToUsd(orderSubtotal)} USD</p>
                 )}
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm font-semibold">Total</p>
-                {config.isLoading ? (
+                {configIsLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
-                  config.data && (
+                  configData && (
                     <p className="font-semibold">
                       {removeTrailingZeroes(
                         atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)

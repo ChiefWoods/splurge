@@ -46,9 +46,9 @@ export function UpdateOrderDialog({
   const { connection } = useConnection();
   const { signMessage } = useWallet();
   const { checkAuth } = useWalletAuth();
-  const { config } = useConfig();
-  const { personalStore } = useStore();
-  const { allOrders } = useOrder();
+  const { configData } = useConfig();
+  const { personalStoreData } = useStore();
+  const { allOrdersTrigger } = useOrder();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -60,17 +60,17 @@ export function UpdateOrderDialog({
             throw new Error('Wallet not connected.');
           }
 
-          if (!config.data) {
+          if (!configData) {
             throw new Error('Config account not created.');
           }
 
-          if (!personalStore.data) {
+          if (!personalStoreData) {
             throw new Error('Store account not created.');
           }
 
           setIsSubmitting(true);
 
-          const admin = new PublicKey(config.data.admin);
+          const admin = new PublicKey(configData.admin);
 
           const tx = await buildTx(
             [
@@ -95,13 +95,13 @@ export function UpdateOrderDialog({
 
           return {
             signature,
-            storePda: personalStore.data.publicKey,
+            storePda: personalStoreData.publicKey,
           };
         },
         {
           loading: 'Waiting for signature...',
           success: async ({ signature, storePda }) => {
-            await allOrders.trigger(
+            await allOrdersTrigger(
               {
                 storePda,
               },
@@ -142,7 +142,14 @@ export function UpdateOrderDialog({
         }
       );
     },
-    [allOrders, connection, config, orderPda, personalStore, signMessage]
+    [
+      allOrdersTrigger,
+      connection,
+      configData,
+      orderPda,
+      personalStoreData,
+      signMessage,
+    ]
   );
 
   return (

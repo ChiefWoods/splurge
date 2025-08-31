@@ -45,7 +45,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { upload } = useIrysUploader();
-  const { allItems } = useItem();
+  const { allItemsTrigger } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -110,7 +110,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
-                  await allItems.trigger(
+                  await allItemsTrigger(
                     { storePda },
                     {
                       optimisticData: (prev) => {
@@ -167,7 +167,15 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
         }
       );
     },
-    [upload, publicKey, connection, sendTransaction, allItems, storePda, form]
+    [
+      upload,
+      publicKey,
+      connection,
+      sendTransaction,
+      allItemsTrigger,
+      storePda,
+      form,
+    ]
   );
 
   return (

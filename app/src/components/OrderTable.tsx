@@ -14,7 +14,6 @@ import {
 import { SortButton } from './SortButton';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { ParsedItem, ParsedOrder } from '@/types/accounts';
-import { SWRMutationResponse } from 'swr/mutation';
 import { InfoTooltip } from './InfoTooltip';
 
 const ORDER_TABS = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
@@ -27,29 +26,14 @@ enum SortOption {
 }
 
 export function OrderTable({
-  allOrders,
-  allItems,
+  allOrdersData,
+  allItemsData,
   isFetching,
   showTotalTooltip = false,
   sortedOrdersMapper,
 }: {
-  allOrders: SWRMutationResponse<
-    ParsedOrder[],
-    any,
-    string,
-    {
-      shopperPda?: string;
-      storePda?: string;
-    }
-  >;
-  allItems: SWRMutationResponse<
-    ParsedItem[],
-    any,
-    string,
-    {
-      storePda?: string;
-    }
-  >;
+  allOrdersData: ParsedOrder[] | undefined;
+  allItemsData: ParsedItem[] | undefined;
   isFetching: boolean;
   showTotalTooltip?: boolean;
   sortedOrdersMapper: (sortedOrders: ParsedOrder) => ReactNode;
@@ -66,8 +50,8 @@ export function OrderTable({
   );
 
   useEffect(() => {
-    if (allOrders.data && allItems.data) {
-      const sortedOrders = allOrders.data
+    if (allOrdersData && allItemsData) {
+      const sortedOrders = allOrdersData
         .filter((order) => {
           return tabValue === 'all'
             ? true
@@ -75,7 +59,7 @@ export function OrderTable({
               order.status === tabValue;
         })
         .filter((order) => {
-          const item = allItems.data?.find(
+          const item = allItemsData?.find(
             ({ publicKey }) => publicKey === order.item
           );
 
@@ -102,10 +86,10 @@ export function OrderTable({
 
             case SortOption.Name:
             default:
-              const itemA = allItems.data?.find(
+              const itemA = allItemsData?.find(
                 ({ publicKey }) => publicKey === a.item
               );
-              const itemB = allItems.data?.find(
+              const itemB = allItemsData?.find(
                 ({ publicKey }) => publicKey === b.item
               );
 
@@ -122,8 +106,8 @@ export function OrderTable({
       setSortedOrders(sortedOrders ?? []);
     }
   }, [
-    allOrders,
-    allItems,
+    allOrdersData,
+    allItemsData,
     tabValue,
     searchValue,
     sortNameAsc,
@@ -213,7 +197,7 @@ export function OrderTable({
                 Loading...
               </TableCell>
             </TableRow>
-          ) : allItems.data && sortedOrders.length ? (
+          ) : allItemsData && sortedOrders.length ? (
             sortedOrders.map(sortedOrdersMapper)
           ) : (
             <TableRow>

@@ -9,15 +9,15 @@ import { useEffect } from 'react';
 
 export default function Page() {
   const router = useRouter();
-  const { shopper } = useShopper();
+  const { shopperData, shopperIsLoading } = useShopper();
 
   useEffect(() => {
-    if (shopper.data) {
-      router.replace(`/shoppers/${shopper.data.publicKey}`);
+    if (shopperData) {
+      router.replace(`/shoppers/${shopperData.publicKey}`);
     }
-  }, [shopper.data, router]);
+  }, [shopperData, router]);
 
-  if (shopper.isLoading) {
+  if (shopperIsLoading) {
     return <Spinner />;
   }
 

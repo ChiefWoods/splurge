@@ -28,32 +28,32 @@ export default function Page() {
   }>();
   const { publicKey } = useWallet();
   const [reviewOrderPda, setReviewOrderPda] = useState<string>('');
-  const { item } = useItem();
-  const { store } = useStore();
-  const { allOrders } = useOrder();
-  const { allReviews } = useReview();
-  const { allShoppers } = useShopper();
+  const { itemData, itemIsMutating, itemTrigger } = useItem();
+  const { storeData, storeIsMutating, storeTrigger } = useStore();
+  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
+  const { allReviewsData, allReviewsIsMutating, allReviewsTrigger } =
+    useReview();
+  const { allShoppersData, allShoppersIsMutating, allShoppersTrigger } =
+    useShopper();
 
   useEffect(() => {
     (async () => {
-      await item.trigger({ publicKey: itemPda });
-      await store.trigger({ publicKey: storePda });
-      await allOrders.trigger({ storePda });
-      await allReviews.trigger({ itemPda });
-      await allShoppers.trigger();
+      await itemTrigger({ publicKey: itemPda });
+      await storeTrigger({ publicKey: storePda });
+      await allOrdersTrigger({ storePda });
+      await allReviewsTrigger({ itemPda });
+      await allShoppersTrigger();
 
-      if (
-        (!item.isMutating && !item.data) ||
-        (!store.isMutating && !store.data)
-      ) {
+      if ((!itemIsMutating && !itemData) || (!storeIsMutating && !storeData)) {
         notFound();
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicKey, storePda, itemPda]);
 
   useEffect(() => {
-    if (publicKey && allOrders.data && allReviews.data) {
-      const completedShopperOrders = allOrders.data.filter(
+    if (publicKey && allOrdersData && allReviewsData) {
+      const completedShopperOrders = allOrdersData.filter(
         (order) =>
           order.item === itemPda &&
           order.shopper === getShopperPda(publicKey).toBase58() &&
@@ -63,7 +63,7 @@ export default function Page() {
 
       for (const order of completedShopperOrders) {
         if (
-          !allReviews.data.find((review) => review.order === order.publicKey)
+          !allReviewsData.find((review) => review.order === order.publicKey)
         ) {
           setReviewOrderPda(order.publicKey);
           return;
@@ -72,41 +72,41 @@ export default function Page() {
     }
 
     setReviewOrderPda('');
-  }, [publicKey, itemPda, allOrders, allReviews]);
+  }, [publicKey, itemPda, allOrdersData, allReviewsData]);
 
   return (
     <section className="main-section flex-1">
-      {item.isMutating ? (
+      {itemIsMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        item.data && (
+        itemData && (
           <AccountSection
-            key={item.data.publicKey}
-            title={item.data.name}
-            image={item.data.image}
+            key={itemData.publicKey}
+            title={itemData.name}
+            image={itemData.image}
             prefix="Item ID:"
             address={storePda}
             content={
               <>
-                <p className="truncate text-primary">{item.data.description}</p>
+                <p className="truncate text-primary">{itemData.description}</p>
                 <p className="font-semibold text-primary">
-                  {atomicToUsd(item.data.price)} USD
+                  {atomicToUsd(itemData.price)} USD
                 </p>
                 <p className="muted-text">
-                  {item.data.inventoryCount} in inventory
+                  {itemData.inventoryCount} in inventory
                 </p>
               </>
             }
             buttons={
               publicKey &&
               getStorePda(publicKey).toBase58() !== storePda &&
-              item.data.inventoryCount > 0 && (
+              itemData.inventoryCount > 0 && (
                 <AccountSectionButtonTab>
                   <CheckoutDialog
-                    name={item.data.name}
-                    image={item.data.image}
-                    price={item.data.price}
-                    maxAmount={item.data.inventoryCount}
+                    name={itemData.name}
+                    image={itemData.image}
+                    price={itemData.price}
+                    maxAmount={itemData.inventoryCount}
                     storePda={storePda}
                     itemPda={itemPda}
                   >
@@ -123,25 +123,25 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <div className="flex w-full items-center justify-between">
           <h2>Reviews</h2>
-          {item && reviewOrderPda && (
+          {itemData && reviewOrderPda && (
             <AddReviewDialog itemPda={itemPda} orderPda={reviewOrderPda} />
           )}
         </div>
         <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
-          {allOrders.isMutating ||
-          allShoppers.isMutating ||
-          allReviews.isMutating ||
-          store.isMutating ||
-          item.isMutating ? (
+          {allOrdersIsMutating ||
+          allShoppersIsMutating ||
+          allReviewsIsMutating ||
+          storeIsMutating ||
+          itemIsMutating ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ReviewRowSkeleton key={i} />
               ))}
             </>
-          ) : allOrders.data && allShoppers.data && allReviews.data?.length ? (
-            allReviews.data.map(
+          ) : allOrdersData && allShoppersData && allReviewsData?.length ? (
+            allReviewsData.map(
               ({ publicKey, order, rating, timestamp, text }) => {
-                const reviewOrder = allOrders.data?.find(
+                const reviewOrder = allOrdersData?.find(
                   ({ publicKey }) => publicKey === order
                 );
 
@@ -149,7 +149,7 @@ export default function Page() {
                   throw new Error('Matching order not found for review.');
                 }
 
-                const shopper = allShoppers.data?.find(
+                const shopper = allShoppersData?.find(
                   (shopper) => shopper.publicKey === reviewOrder.shopper
                 );
 

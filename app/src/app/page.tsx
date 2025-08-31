@@ -15,46 +15,50 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 export default function Page() {
-  const { shopper } = useShopper();
-  const { allItems } = useItem();
-  const { allStores, personalStore } = useStore();
+  const { shopperData } = useShopper();
+  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
+  const {
+    allStoresData,
+    allStoresIsMutating,
+    allStoresTrigger,
+    personalStoreData,
+    personalStoreIsLoading,
+  } = useStore();
   const [filteredItems, setFilteredItems] = useState<ParsedItem[]>([]);
 
   useEffect(() => {
     (async () => {
-      await allItems.trigger({});
-      await allStores.trigger();
+      await allItemsTrigger({});
+      await allStoresTrigger();
     })();
-  }, []);
+  }, [allItemsTrigger, allStoresTrigger]);
 
   useEffect(() => {
-    if (allItems.data) {
-      const filteredItems = allItems.data
-        .filter(({ store }) => store !== personalStore.data?.publicKey)
+    if (allItemsData) {
+      const filteredItems = allItemsData
+        .filter(({ store }) => store !== personalStoreData?.publicKey)
         .filter(({ inventoryCount }) => inventoryCount > 0);
 
       setFilteredItems(filteredItems);
     }
-  }, [allItems, personalStore]);
+  }, [allItemsData, personalStoreData]);
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full">
-        {shopper.data?.name
-          ? `Welcome back, ${shopper.data.name}`
+        {shopperData?.name
+          ? `Welcome back, ${shopperData.name}`
           : 'Welcome to Splurge!'}
       </h2>
       <div className="flex w-full flex-1 flex-wrap gap-6">
-        {allItems.isMutating ||
-        allStores.isMutating ||
-        personalStore.isLoading ? (
+        {allItemsIsMutating || allStoresIsMutating || personalStoreIsLoading ? (
           <>
             {[...Array(6)].map((_, i) => (
               <ItemCardSkeleton key={i} />
             ))}
           </>
-        ) : allItems.data?.length &&
-          allStores.data?.length &&
+        ) : allItemsData?.length &&
+          allStoresData?.length &&
           filteredItems.length ? (
           <>
             {filteredItems.map(
@@ -66,7 +70,7 @@ export default function Page() {
                 price,
                 store: storePda,
               }) => {
-                const itemStore = allStores.data?.find(
+                const itemStore = allStoresData?.find(
                   ({ publicKey }) => publicKey === storePda
                 );
 

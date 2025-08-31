@@ -3,8 +3,11 @@
 import { ParsedStore } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation';
-import useSWR, { SWRResponse } from 'swr';
+import useSWRMutation, {
+  TriggerWithArgs,
+  TriggerWithoutArgs,
+} from 'swr/mutation';
+import useSWR, { KeyedMutator } from 'swr';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { getStorePda } from '@/lib/pda';
 import { useConfig } from './ConfigProvider';
@@ -19,8 +22,12 @@ interface StoreTokenAccount {
 }
 
 interface StoreContextType {
-  allStores: SWRMutationResponse<ParsedStore[], any, string, never>;
-  store: SWRMutationResponse<
+  allStoresData: ParsedStore[] | undefined;
+  allStoresIsMutating: boolean;
+  allStoresTrigger: TriggerWithoutArgs<ParsedStore[], any, string, never>;
+  storeData: ParsedStore | undefined;
+  storeIsMutating: boolean;
+  storeTrigger: TriggerWithArgs<
     ParsedStore,
     any,
     string,
@@ -28,8 +35,18 @@ interface StoreContextType {
       publicKey: string;
     }
   >;
-  personalStore: SWRResponse<ParsedStore, any, any>;
-  storeTokenAccounts: SWRResponse<StoreTokenAccount[], any, any>;
+  personalStoreData: ParsedStore | undefined;
+  personalStoreIsLoading: boolean;
+  personalStoreMutate: KeyedMutator<ParsedStore>;
+  storeTokenAccountsData: StoreTokenAccount[] | undefined;
+  storeTokenAccountsIsLoading: boolean;
+  storeTokenAccountsMutate: KeyedMutator<
+    {
+      mint: string;
+      ata: string;
+      amount: number;
+    }[]
+  >;
 }
 
 const StoreContext = createContext<StoreContextType>({} as StoreContextType);
@@ -42,13 +59,21 @@ export function useStore() {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { publicKey } = useWallet();
-  const { config } = useConfig();
+  const { configData } = useConfig();
 
-  const allStores = useSWRMutation(apiEndpoint, async (url) => {
+  const {
+    data: allStoresData,
+    isMutating: allStoresIsMutating,
+    trigger: allStoresTrigger,
+  } = useSWRMutation(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).stores as ParsedStore[];
   });
 
-  const store = useSWRMutation(
+  const {
+    data: storeData,
+    isMutating: storeIsMutating,
+    trigger: storeTrigger,
+  } = useSWRMutation(
     apiEndpoint,
     async (url, { arg }: { arg: { publicKey: string } }) => {
       return (await wrappedFetch(`${url}?pda=${arg.publicKey}`))
@@ -56,7 +81,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const personalStore = useSWR(
+  const {
+    data: personalStoreData,
+    isLoading: personalStoreIsLoading,
+    mutate: personalStoreMutate,
+  } = useSWR(
     publicKey ? { url: apiEndpoint, publicKey } : null,
     async ({ url, publicKey }) => {
       return (
@@ -65,15 +94,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const storeTokenAccounts = useSWR(
-    publicKey && personalStore.data && config.data
+  const {
+    data: storeTokenAccountsData,
+    isLoading: storeTokenAccountsIsLoading,
+    mutate: storeTokenAccountsMutate,
+  } = useSWR(
+    publicKey && personalStoreData && configData
       ? {
-          acceptedMints: config.data.acceptedMints,
-          storePda: personalStore.data.publicKey,
+          acceptedMints: configData.acceptedMints,
+          storePda: personalStoreData.publicKey,
         }
       : null,
     async ({ acceptedMints, storePda }) => {
-      return Promise.all(
+      return await Promise.all(
         acceptedMints.map(async ({ mint }) => {
           const mintPubkey = new PublicKey(mint);
           const mintAcc = await CONNECTION.getAccountInfo(mintPubkey);
@@ -117,10 +150,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <StoreContext.Provider
       value={{
-        allStores,
-        store,
-        personalStore,
-        storeTokenAccounts,
+        allStoresData,
+        allStoresIsMutating,
+        allStoresTrigger,
+        storeData,
+        storeIsMutating,
+        storeTrigger,
+        personalStoreData,
+        personalStoreIsLoading,
+        personalStoreMutate,
+        storeTokenAccountsData,
+        storeTokenAccountsIsLoading,
+        storeTokenAccountsMutate,
       }}
     >
       {children}

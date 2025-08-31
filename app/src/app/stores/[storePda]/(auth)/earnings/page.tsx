@@ -35,25 +35,29 @@ interface RowBalance {
 export default function Page() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { storeTokenAccounts } = useStore();
-  const { prices } = usePyth();
+  const {
+    storeTokenAccountsData,
+    storeTokenAccountsIsLoading,
+    storeTokenAccountsMutate,
+  } = useStore();
+  const { pricesData, pricesIsLoading } = usePyth();
   const [balanceRows, setBalanceRows] = useState<RowBalance[]>([]);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
 
   useEffect(() => {
-    if (storeTokenAccounts.data && prices.data) {
+    if (storeTokenAccountsData && pricesData) {
       let totalBalance = 0;
 
       setBalanceRows(
-        storeTokenAccounts.data.map(({ amount, mint }) => {
+        storeTokenAccountsData.map(({ amount, mint }) => {
           const metadata = ACCEPTED_MINTS_METADATA.get(mint);
 
           if (!metadata) {
             throw new Error(`Metadata not found for mint: ${mint}`);
           }
 
-          const mintPrice = prices.data?.find((p) => {
+          const mintPrice = pricesData?.find((p) => {
             return p.mint === mint;
           });
 
@@ -74,7 +78,7 @@ export default function Page() {
 
       setTotalBalance(totalBalance);
     }
-  }, [storeTokenAccounts, prices]);
+  }, [storeTokenAccountsData, pricesData]);
 
   function onWithdraw() {
     toast.promise(
@@ -83,7 +87,7 @@ export default function Page() {
           throw new Error('Wallet not connected.');
         }
 
-        if (!storeTokenAccounts.data) {
+        if (!storeTokenAccountsData) {
           throw new Error('No store associated token accounts found.');
         }
 
@@ -91,7 +95,7 @@ export default function Page() {
 
         const tx = await buildTx(
           await Promise.all(
-            storeTokenAccounts.data
+            storeTokenAccountsData
               .filter(({ amount }) => amount > 0)
               .map(async ({ mint }) => {
                 const metadata = ACCEPTED_MINTS_METADATA.get(mint);
@@ -120,7 +124,7 @@ export default function Page() {
       {
         loading: 'Withdrawing...',
         success: async (signature) => {
-          await storeTokenAccounts.mutate();
+          await storeTokenAccountsMutate();
           setIsWithdrawing(false);
 
           return (
@@ -163,7 +167,7 @@ export default function Page() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {storeTokenAccounts.isLoading || prices.isLoading ? (
+          {storeTokenAccountsIsLoading || pricesIsLoading ? (
             <TableRow>
               <TableCell colSpan={2} className="text-center">
                 Loading...
