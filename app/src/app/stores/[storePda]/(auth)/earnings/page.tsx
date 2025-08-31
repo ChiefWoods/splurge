@@ -19,6 +19,7 @@ import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStore } from '@/providers/StoreProvider';
+import { confirmTransaction } from '@solana-developers/helpers';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
@@ -92,7 +93,7 @@ export default function Page() {
           await Promise.all(
             storeTokenAccounts.data
               .filter(({ amount }) => amount > 0)
-              .map(async ({ amount, ata, mint }) => {
+              .map(async ({ mint }) => {
                 const metadata = ACCEPTED_MINTS_METADATA.get(mint);
 
                 if (!metadata) {
@@ -111,6 +112,8 @@ export default function Page() {
         );
 
         const signature = await sendTransaction(tx, connection);
+
+        await confirmTransaction(connection, signature);
 
         return signature;
       },
