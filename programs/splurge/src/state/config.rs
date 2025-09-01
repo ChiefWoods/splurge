@@ -4,8 +4,6 @@ use crate::error::SplurgeError;
 
 #[account]
 pub struct Config {
-    /// Address to which platform fees are sent to
-    pub treasury: Pubkey, // 32
     /// Fee charged on each order in basis points
     pub order_fee_bps: u16, // 2
     /// Address that has authority over the config
@@ -14,6 +12,8 @@ pub struct Config {
     pub is_paused: bool, // 1
     /// Bump used for seed derivation
     pub bump: u8, // 1
+    /// Bump used for seed derivation
+    pub treasury_bump: u8, // 1
     /// List of stablecoin mints accepted as payment
     pub accepted_mints: Vec<AcceptedMint>, // 4
     /// Reserved for future upgrades
@@ -25,9 +25,9 @@ impl Config {
 
     pub fn space(accepted_mints: &Vec<AcceptedMint>) -> usize {
         Config::DISCRIMINATOR.len()
-            + 32
             + 2
             + 32
+            + 1
             + 1
             + 1
             + 4
@@ -57,12 +57,6 @@ impl Config {
 
     pub fn invariant(&self) -> Result<()> {
         require_keys_neq!(self.admin, Pubkey::default(), SplurgeError::InvalidAddress);
-
-        require_keys_neq!(
-            self.treasury,
-            Pubkey::default(),
-            SplurgeError::InvalidAddress
-        );
 
         require!(
             !self.accepted_mints.is_empty(),

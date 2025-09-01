@@ -13,6 +13,13 @@ macro_rules! imprecise_number {
 }
 
 #[macro_export]
+macro_rules! treasury_signer {
+    ($bump: expr) => {
+        &[TREASURY_SEED, &[$bump]]
+    };
+}
+
+#[macro_export]
 macro_rules! shopper_signer {
     ($authority_key: expr, $bump: expr) => {
         &[SHOPPER_SEED, $authority_key.as_ref(), &[$bump]]

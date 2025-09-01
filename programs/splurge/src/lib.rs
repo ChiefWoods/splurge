@@ -76,4 +76,8 @@ pub mod splurge {
     pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>) -> Result<()> {
         WithdrawEarnings::handler(ctx)
     }
+
+    pub fn withdraw_treasury(ctx: Context<WithdrawTreasury>) -> Result<()> {
+        WithdrawTreasury::handler(ctx)
+    }
 }

@@ -22,7 +22,6 @@ const signature = await splurgeProgram.methods
     acceptedMints,
     admin: admin.publicKey,
     orderFeeBps,
-    treasury: treasury.publicKey,
   })
   .accounts({
     authority: admin.publicKey,
@@ -39,7 +38,7 @@ for (const { mint } of acceptedMints) {
 
   const ata = getAssociatedTokenAddressSync(
     mint,
-    treasury.publicKey,
+    treasury,
     true,
     owner
   );
@@ -51,7 +50,7 @@ for (const { mint } of acceptedMints) {
       connection,
       admin,
       mint,
-      treasury.publicKey,
+      treasury,
       false,
       "confirmed",
       {

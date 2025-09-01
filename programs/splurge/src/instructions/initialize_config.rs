@@ -1,11 +1,14 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::CONFIG_SEED, state::Config, AcceptedMint};
+use crate::{
+    constants::{CONFIG_SEED, TREASURY_SEED},
+    state::Config,
+    AcceptedMint,
+};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitializeConfigArgs {
     pub admin: Pubkey,
-    pub treasury: Pubkey,
     pub order_fee_bps: u16,
     pub accepted_mints: Vec<AcceptedMint>,
 }
@@ -15,6 +18,11 @@ pub struct InitializeConfigArgs {
 pub struct InitializeConfig<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(
+        seeds = [TREASURY_SEED],
+        bump,
+    )]
+    pub treasury: SystemAccount<'info>,
     #[account(
         init,
         payer = authority,
@@ -30,7 +38,6 @@ impl InitializeConfig<'_> {
     pub fn handler(ctx: Context<InitializeConfig>, args: InitializeConfigArgs) -> Result<()> {
         let InitializeConfigArgs {
             admin,
-            treasury,
             order_fee_bps,
             mut accepted_mints,
         } = args;
@@ -41,8 +48,8 @@ impl InitializeConfig<'_> {
 
         config.set_inner(Config {
             bump: ctx.bumps.config,
+            treasury_bump: ctx.bumps.treasury,
             admin,
-            treasury,
             is_paused: false,
             order_fee_bps,
             accepted_mints,

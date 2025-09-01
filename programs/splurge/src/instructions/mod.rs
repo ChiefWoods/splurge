@@ -10,6 +10,7 @@ pub mod update_config;
 pub mod update_item;
 pub mod update_order;
 pub mod withdraw_earnings;
+pub mod withdraw_treasury;
 
 pub use complete_order::*;
 pub use create_order::*;
@@ -23,3 +24,4 @@ pub use update_config::*;
 pub use update_item::*;
 pub use update_order::*;
 pub use withdraw_earnings::*;
+pub use withdraw_treasury::*;

@@ -3,6 +3,8 @@ use anchor_lang::prelude::*;
 #[constant]
 pub const CONFIG_SEED: &[u8] = b"config";
 #[constant]
+pub const TREASURY_SEED: &[u8] = b"treasury";
+#[constant]
 pub const SHOPPER_SEED: &[u8] = b"shopper";
 #[constant]
 pub const STORE_SEED: &[u8] = b"store";

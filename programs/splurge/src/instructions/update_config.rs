@@ -5,7 +5,6 @@ use crate::{constants::CONFIG_SEED, error::SplurgeError, state::Config, Accepted
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateConfigArgs {
     pub new_admin: Option<Pubkey>,
-    pub treasury: Option<Pubkey>,
     pub is_paused: Option<bool>,
     pub order_fee_bps: Option<u16>,
     pub accepted_mints: Option<Vec<AcceptedMint>>,
@@ -37,7 +36,6 @@ impl UpdateConfig<'_> {
     pub fn handler(ctx: Context<UpdateConfig>, args: UpdateConfigArgs) -> Result<()> {
         let UpdateConfigArgs {
             new_admin,
-            treasury,
             is_paused,
             order_fee_bps,
             accepted_mints,
@@ -47,10 +45,6 @@ impl UpdateConfig<'_> {
 
         if let Some(new_admin) = new_admin {
             config.admin = new_admin;
-        }
-
-        if let Some(treasury) = treasury {
-            config.treasury = treasury;
         }
 
         if let Some(is_paused) = is_paused {

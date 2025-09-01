@@ -9,7 +9,9 @@ use pyth_solana_receiver_sdk::price_update::{PriceFeedMessage, PriceUpdateV2};
 use spl_math::precise_number::PreciseNumber;
 
 use crate::{
-    constants::{CONFIG_SEED, MAX_ORACLE_STALENESS, ORDER_SEED, SHOPPER_SEED, STORE_SEED},
+    constants::{
+        CONFIG_SEED, MAX_ORACLE_STALENESS, ORDER_SEED, SHOPPER_SEED, STORE_SEED, TREASURY_SEED,
+    },
     error::SplurgeError,
     events::OrderCreated,
     imprecise_number, precise_number,
@@ -21,11 +23,14 @@ use crate::{
 pub struct CreateOrder<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(
+        seeds = [TREASURY_SEED],
+        bump = config.treasury_bump,
+    )]
     pub treasury: SystemAccount<'info>,
     #[account(
         seeds = [CONFIG_SEED],
         bump = config.bump,
-        has_one = treasury,
         constraint = !config.is_paused @ SplurgeError::PlatformPaused,
     )]
     pub config: Account<'info, Config>,

@@ -17,7 +17,6 @@ const acceptedMints = [
 const isPaused = null;
 const newAdmin = null;
 const orderFeeBps = null;
-const treasury = null;
 
 const signature = await splurgeProgram.methods
   .updateConfig({
@@ -25,7 +24,6 @@ const signature = await splurgeProgram.methods
     isPaused,
     newAdmin,
     orderFeeBps,
-    treasury,
   })
   .accounts({
     authority: admin.publicKey,
