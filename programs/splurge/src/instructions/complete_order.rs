@@ -28,7 +28,7 @@ pub struct CompleteOrder<'info> {
     )]
     pub config: Account<'info, Config>,
     #[account(
-        has_one = authority
+        has_one = authority @ SplurgeError::InvalidShopperAuthority
     )]
     pub shopper: Account<'info, Shopper>,
     #[account(

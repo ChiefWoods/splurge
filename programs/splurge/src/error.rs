@@ -22,6 +22,8 @@ pub enum SplurgeError {
     ShopperNameTooLong,
     #[msg("Shopper address is required")]
     ShopperAddressRequired,
+    #[msg("Shopper authority does not match provided authority")]
+    InvalidShopperAuthority,
     #[msg("Store name is required")]
     StoreNameRequired,
     #[msg("Store name exceeded maximum length")]

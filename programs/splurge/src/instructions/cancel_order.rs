@@ -30,8 +30,7 @@ pub struct CancelOrder<'info> {
     )]
     pub config: Account<'info, Config>,
     #[account(
-        seeds = [SHOPPER_SEED, authority.key().as_ref()],
-        bump = shopper.bump,
+        has_one = authority @ SplurgeError::InvalidShopperAuthority,
     )]
     pub shopper: Account<'info, Shopper>,
     #[account(
