@@ -31,6 +31,8 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 - [@solana/spl-token](https://solana-labs.github.io/solana-program-library/token/js/)
 - [litesvm](https://github.com/LiteSVM/litesvm/tree/master/crates/node-litesvm)
 - [anchor-litesvm](https://github.com/LiteSVM/anchor-litesvm/)
+- [@helium/tuktuk-idls](https://github.com/helium/tuktuk)
+- [@helium/tuktuk-sdk](https://github.com/helium/tuktuk)
 - [@solana/wallet-adapter-react](https://github.com/anza-xyz/wallet-adapter)
 - [@solana-developers/helpers](https://github.com/solana-developers/helpers)
 - [@irys/web-upload](https://irys.xyz/)
@@ -48,6 +50,7 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 - [num-traits](https://docs.rs/num-traits/latest/num_traits/)
 - [pyth-solana-receiver-sdk](https://docs.rs/pyth-solana-receiver-sdk/latest/pyth_solana_receiver_sdk/)
 - [spl-math](https://docs.rs/spl-math/latest/spl_math/)
+- [tuktuk-program](https://docs.rs/tuktuk-program/latest/tuktuk_program/)
 
 ### Test Runner
 
@@ -161,6 +164,12 @@ cp .env.example .env
 ```bash
 bun run scripts/instructions/initializeConfig.ts
 ```
+
+### Tuktuk Automation
+
+When an order is updated to `Shipping` status, it is scheduled as a task and will automatically be picked up by Tuktuk crank turners after 1 minute. This eliminates the need for manual order completion.
+
+A public crank turner is relied on to run tasks, but you may optionally [set up your own crank turner](https://www.tuktuk.fun/docs/running-a-crank-turner) to ensure tasks don't go stale before being picked up.
 
 ## Issues
 
