@@ -7,6 +7,7 @@ use anchor_spl::{
 use crate::{
     constants::{CONFIG_SEED, STORE_SEED},
     state::{Config, Store},
+    store_signer,
 };
 
 #[derive(Accounts)]
@@ -62,7 +63,7 @@ impl WithdrawEarnings<'_> {
         config.validate_mint(payment_mint.key())?;
 
         let authority_key = store.authority.key();
-        let signer_seeds: &[&[u8]] = &[STORE_SEED, authority_key.as_ref(), &[store.bump]];
+        let signer_seeds: &[&[u8]] = store_signer!(authority_key, store.bump);
 
         transfer_checked(
             CpiContext::new(
