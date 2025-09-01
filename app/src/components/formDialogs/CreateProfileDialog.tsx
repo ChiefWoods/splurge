@@ -26,7 +26,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { useRouter } from 'next/navigation';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';

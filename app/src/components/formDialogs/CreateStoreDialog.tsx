@@ -34,7 +34,6 @@ import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { getDicebearFile } from '@/lib/api';
 import { useStore } from '@/providers/StoreProvider';
-import { useRouter } from 'next/navigation';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 
