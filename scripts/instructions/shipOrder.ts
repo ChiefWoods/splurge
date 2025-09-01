@@ -1,17 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import { admin, connection, splurgeProgram, tuktukProgram } from "../setup";
-import { IdlTypes } from "@coral-xyz/anchor";
-import { Splurge } from "../../target/types/splurge";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { TASK_QUEUE, TUKTUK_PROGRAM_ID } from "../constants";
 import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
 
-type OrderStatus = IdlTypes<Splurge>['orderStatus'];
-
 console.log("Updating order...")
 
 // Params
-const status: OrderStatus = { shipping: {} };
 const authorityPubkey = new PublicKey("");
 const orderPda = new PublicKey("");
 const itemPda = new PublicKey("");
@@ -30,7 +25,7 @@ const [taskPda] = taskKey(TASK_QUEUE, taskId, TUKTUK_PROGRAM_ID);
 const [taskQueueAuthorityPda] = taskQueueAuthorityKey(TASK_QUEUE, admin.publicKey);
 
 const signature = await splurgeProgram.methods
-  .updateOrder(status, taskId)
+  .shipOrder(taskId)
   .accountsPartial({
     order: orderPda,
     authority: authorityPubkey,

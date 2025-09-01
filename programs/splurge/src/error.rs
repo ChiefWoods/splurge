@@ -34,6 +34,8 @@ pub enum SplurgeError {
     InsufficientInventory,
     #[msg("Order already finalized")]
     OrderAlreadyFinalized,
+    #[msg("Order status is not pending")]
+    OrderNotPending,
     #[msg("Order status is not shipping")]
     OrderNotBeingShipped,
     #[msg("Order already completed")]
