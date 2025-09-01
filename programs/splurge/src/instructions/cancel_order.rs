@@ -39,6 +39,7 @@ pub struct CancelOrder<'info> {
         seeds = [ORDER_SEED, shopper.key().as_ref(), order.item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
         bump = order.bump,
         constraint = order.status == OrderStatus::Pending || order.status == OrderStatus::Shipping @ SplurgeError::OrderAlreadyFinalized,
+        constraint = order.payment_mint == payment_mint.key() @ SplurgeError::InvalidOrderPaymentMint,
     )]
     pub order: Account<'info, Order>,
     #[account(

@@ -44,6 +44,8 @@ pub enum SplurgeError {
     OrderNotCompleted,
     #[msg("Order completion must be done through complete_order instruction")]
     InvalidOrderStatus,
+    #[msg("Order payment mint does not match provided mint")]
+    InvalidOrderPaymentMint,
     #[msg("Rating must be between 1 and 5")]
     InvalidRating,
     #[msg("Math operation overflow")]

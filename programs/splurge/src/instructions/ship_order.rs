@@ -37,6 +37,7 @@ pub struct ShipOrder<'info> {
         seeds = [ORDER_SEED, shopper.key().as_ref(), item.key().as_ref(), order.timestamp.to_le_bytes().as_ref()],
         bump = order.bump,
         constraint = order.status == OrderStatus::Pending @ SplurgeError::OrderNotPending,
+        constraint = order.payment_mint == payment_mint.key() @ SplurgeError::InvalidOrderPaymentMint,
     )]
     pub order: Account<'info, Order>,
     pub associated_token_program: Program<'info, AssociatedToken>,

@@ -47,6 +47,7 @@ pub struct CompleteOrder<'info> {
         has_one = payment_mint,
         constraint = order.status != OrderStatus::Completed @ SplurgeError::OrderAlreadyCompleted,
         constraint = order.status == OrderStatus::Shipping @ SplurgeError::OrderNotBeingShipped,
+        constraint = order.payment_mint == payment_mint.key() @ SplurgeError::InvalidOrderPaymentMint,
     )]
     pub order: Account<'info, Order>,
     #[account(
