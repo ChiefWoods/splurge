@@ -171,6 +171,10 @@ When an order is updated to `Shipping` status, it is scheduled as a task and wil
 
 A public crank turner is relied on to run tasks, but you may optionally [set up your own crank turner](https://www.tuktuk.fun/docs/running-a-crank-turner) to ensure tasks don't go stale before being picked up.
 
+```bash
+bun run tuktuk
+```
+
 ## Issues
 
 View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full list of proposed features and known bugs.
