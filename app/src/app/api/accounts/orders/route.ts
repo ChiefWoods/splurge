@@ -24,7 +24,6 @@ export async function GET(req: NextRequest) {
           memcmp: {
             offset: DISCRIMINATOR_SIZE,
             bytes: shopperPda,
-            encoding: 'base58',
           },
         });
       }
@@ -38,7 +37,6 @@ export async function GET(req: NextRequest) {
             memcmp: {
               offset: DISCRIMINATOR_SIZE,
               bytes: storePda,
-              encoding: 'base58',
             },
           },
         ]);
