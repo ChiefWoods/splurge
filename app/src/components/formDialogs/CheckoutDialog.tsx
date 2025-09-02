@@ -48,6 +48,7 @@ import { useConfig } from '@/providers/ConfigProvider';
 import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
 import { Skeleton } from '../ui/skeleton';
 import { MintIcon } from '../MintIcon';
+import { usePyth } from '@/providers/PythProvider';
 
 export function CheckoutDialog({
   name,
@@ -71,7 +72,8 @@ export function CheckoutDialog({
   children: ReactNode;
 }) {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey } = useWallet();
+  const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configIsLoading } = useConfig();
   const { allItemsTrigger } = useItem();
   const { shopperData } = useShopper();
@@ -110,6 +112,10 @@ export function CheckoutDialog({
             throw new Error('Wallet not connected.');
           }
 
+          if (!pythSolanaReceiver) {
+            throw new Error('Pyth Solana Receiver not initialized');
+          }
+
           if (!shopperData) {
             throw new Error('Shopper account not created.');
           }
@@ -122,26 +128,31 @@ export function CheckoutDialog({
             throw new Error('Payment mint not found.');
           }
 
-          const tx = await buildTx(
-            [
-              await createOrderIx({
-                amount: data.amount,
-                authority: publicKey,
-                storePda: new PublicKey(storePda),
-                itemPda: new PublicKey(itemPda),
-                priceUpdateV2: token.priceUpdateV2,
-                paymentMint: new PublicKey(data.paymentMint),
-                tokenProgram: token.owner,
-              }),
-            ],
-            publicKey
-          );
+          const signatures = await pythSolanaReceiver.provider.sendAll([
+            ...(await getUpdatePriceFeedTx(token.id)),
+            {
+              tx: await buildTx(
+                [
+                  await createOrderIx({
+                    amount: data.amount,
+                    authority: publicKey,
+                    storePda: new PublicKey(storePda),
+                    itemPda: new PublicKey(itemPda),
+                    priceUpdateV2: token.priceUpdateV2,
+                    paymentMint: new PublicKey(data.paymentMint),
+                    tokenProgram: token.owner,
+                  }),
+                ],
+                publicKey
+              ),
+              signers: [],
+            },
+          ]);
 
-          const signature = await sendTransaction(tx, connection);
+          // actual transaction starts from index 1
+          await confirmTransaction(connection, signatures[1]);
 
-          await confirmTransaction(connection, signature);
-
-          return signature;
+          return signatures[1];
         },
         {
           loading: 'Waiting for signature...',
@@ -190,10 +201,11 @@ export function CheckoutDialog({
       shopperData,
       storePda,
       itemPda,
-      sendTransaction,
       connection,
       allItemsTrigger,
       form,
+      pythSolanaReceiver,
+      getUpdatePriceFeedTx,
     ]
   );
 

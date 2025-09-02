@@ -12,6 +12,16 @@ import {
 } from '@solana/web3.js';
 import { CLUSTER, CONNECTION } from './constants';
 
+export async function getPriorityFee(): Promise<number> {
+  const recentFees = await CONNECTION.getRecentPrioritizationFees();
+  return Math.floor(
+    recentFees.reduce(
+      (acc, { prioritizationFee }) => acc + prioritizationFee,
+      0
+    ) / recentFees.length
+  );
+}
+
 export async function buildTx(
   ixs: TransactionInstruction[],
   payer: PublicKey,
@@ -32,20 +42,12 @@ export async function buildTx(
     throw new Error('Unable to get compute limits.');
   }
 
-  const recentFees = await CONNECTION.getRecentPrioritizationFees();
-  const priorityFee = Math.floor(
-    recentFees.reduce(
-      (acc, { prioritizationFee }) => acc + prioritizationFee,
-      0
-    ) / recentFees.length
-  );
-
   const ixsWithCompute = [
     ComputeBudgetProgram.setComputeUnitLimit({
       units: Math.ceil(units * 1.1),
     }),
     ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: priorityFee,
+      microLamports: await getPriorityFee(),
     }),
     ...ixs,
   ];
