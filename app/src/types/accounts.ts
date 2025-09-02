@@ -26,7 +26,6 @@ interface ParsedAcceptedMint {
 }
 
 export interface ParsedConfig extends ParsedProgramAccount {
-  treasury: string;
   orderFeeBps: number;
   admin: string;
   isPaused: boolean;
@@ -99,14 +98,12 @@ function parseAcceptedMints(
 
 export function parseConfig({
   admin,
-  treasury,
   isPaused,
   orderFeeBps,
   acceptedMints,
 }: Config): Omit<ParsedConfig, 'publicKey'> {
   return {
     admin: parsePublicKey(admin),
-    treasury: parsePublicKey(treasury),
     isPaused,
     orderFeeBps,
     acceptedMints: parseAcceptedMints(acceptedMints),

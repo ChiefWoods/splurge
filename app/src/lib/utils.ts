@@ -33,7 +33,7 @@ export function removeTrailingZeroes(price: string): string {
 
 export async function validateProgramIx(
   tx: VersionedTransaction,
-  ixName: string
+  allowedIxs: string[]
 ): Promise<boolean> {
   const { instructions } = TransactionMessage.decompile(tx.message);
 
@@ -45,14 +45,16 @@ export async function validateProgramIx(
     return false;
   }
 
-  const discriminator = ix.data.subarray(0, DISCRIMINATOR_SIZE);
-  const hash = await crypto.subtle.digest(
-    'SHA-256',
-    Buffer.from(`global:${ixName}`)
-  );
-  const expected = Buffer.from(hash).subarray(0, DISCRIMINATOR_SIZE);
+  return allowedIxs.some(async (ixName) => {
+    const discriminator = ix.data.subarray(0, DISCRIMINATOR_SIZE);
+    const hash = await crypto.subtle.digest(
+      'SHA-256',
+      Buffer.from(`global:${ixName}`)
+    );
+    const expected = Buffer.from(hash).subarray(0, DISCRIMINATOR_SIZE);
 
-  return discriminator.equals(expected);
+    return discriminator.equals(expected);
+  });
 }
 
 export function getRelativeTime(timestamp: number): string {

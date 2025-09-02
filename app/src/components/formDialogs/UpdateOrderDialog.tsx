@@ -18,10 +18,10 @@ import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
-import { updateOrderIx } from '@/lib/instructions';
+import { cancelOrderIx, shipOrderIx } from '@/lib/instructions';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
-import { updateOrder } from '@/lib/api';
+import { sendPermissionedTx } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { capitalizeFirstLetter, truncateAddress } from '@/lib/utils';
 import { useOrder } from '@/providers/OrderProvider';
@@ -81,19 +81,38 @@ export function UpdateOrderDialog({
 
           const admin = new PublicKey(configData.admin);
           const authorityPubkey = new PublicKey(authority);
+          const orderPdaPubkey = new PublicKey(orderPda);
+          const shopperPda = getShopperPda(authorityPubkey);
+
+          const paymentMintPubkey = new PublicKey(paymentMint);
+          const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
+
+          if (!mintAcc) {
+            throw new Error('Mint account not found.');
+          }
+
+          const tokenProgram = mintAcc.owner;
 
           const tx = await buildTx(
             [
-              await updateOrderIx({
-                status,
-                admin,
-                orderPda: new PublicKey(orderPda),
-                authority: authorityPubkey,
-                itemPda: new PublicKey(itemPda),
-                paymentMint: new PublicKey(paymentMint),
-                shopperPda: getShopperPda(authorityPubkey),
-                storePda: new PublicKey(storePda),
-              }),
+              Object.keys(status)[0] === 'shipping'
+                ? await shipOrderIx({
+                    admin,
+                    orderPda: orderPdaPubkey,
+                    authority: authorityPubkey,
+                    itemPda: new PublicKey(itemPda),
+                    paymentMint: paymentMintPubkey,
+                    shopperPda,
+                    storePda: new PublicKey(storePda),
+                    tokenProgram,
+                  })
+                : await cancelOrderIx({
+                    admin,
+                    orderPda: orderPdaPubkey,
+                    paymentMint: paymentMintPubkey,
+                    shopperPda,
+                    tokenProgram,
+                  }),
             ],
             admin
           );
@@ -104,7 +123,7 @@ export function UpdateOrderDialog({
             )
           );
 
-          const signature = await updateOrder(tx);
+          const signature = await sendPermissionedTx(tx);
 
           await confirmTransaction(connection, signature);
 

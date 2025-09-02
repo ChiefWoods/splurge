@@ -20,6 +20,7 @@ import {
   taskKey,
   taskQueueAuthorityKey,
 } from '@helium/tuktuk-sdk';
+import { fetchTaskQueueAcc } from './accounts';
 
 export async function createShopperIx({
   name,
@@ -161,8 +162,7 @@ export async function createOrderIx({
     .instruction();
 }
 
-export async function updateOrderIx({
-  status,
+export async function shipOrderIx({
   admin,
   orderPda,
   authority,
@@ -170,8 +170,8 @@ export async function updateOrderIx({
   paymentMint,
   shopperPda,
   storePda,
+  tokenProgram,
 }: {
-  status: OrderStatus;
   admin: PublicKey;
   orderPda: PublicKey;
   authority: PublicKey;
@@ -179,10 +179,8 @@ export async function updateOrderIx({
   paymentMint: PublicKey;
   shopperPda: PublicKey;
   storePda: PublicKey;
+  tokenProgram: PublicKey;
 }): Promise<TransactionInstruction> {
-  const mint = await CONNECTION.getAccountInfo(paymentMint);
-  if (!mint) throw new Error('Mint account not found.');
-  const tokenProgram = mint.owner;
   const orderAta = getAssociatedTokenAddressSync(
     paymentMint,
     orderPda,
@@ -195,16 +193,14 @@ export async function updateOrderIx({
     true,
     tokenProgram
   );
-  // Tuktuk accounts don't matter if status is "cancelled"
-  const taskQueueAcc =
-    await TUKTUK_PROGRAM.account.taskQueueV0.fetchNullable(TASK_QUEUE);
+  const taskQueueAcc = await fetchTaskQueueAcc(TASK_QUEUE);
   if (!taskQueueAcc) throw new Error('Task queue not found.');
   const taskId = nextAvailableTaskIds(taskQueueAcc.taskBitmap, 1, false)[0];
   const [taskPda] = taskKey(TASK_QUEUE, taskId, TUKTUK_PROGRAM.programId);
   const [taskQueueAuthorityPda] = taskQueueAuthorityKey(TASK_QUEUE, admin);
 
   return await SPLURGE_PROGRAM.methods
-    .updateOrder(status, taskId)
+    .shipOrder(taskId)
     .accountsPartial({
       admin,
       order: orderPda,
@@ -220,6 +216,31 @@ export async function updateOrderIx({
       tokenProgram,
       tuktuk: TUKTUK_PROGRAM.programId,
       taskQueueAuthority: taskQueueAuthorityPda,
+    })
+    .instruction();
+}
+
+export async function cancelOrderIx({
+  admin,
+  orderPda,
+  paymentMint,
+  shopperPda,
+  tokenProgram,
+}: {
+  admin: PublicKey;
+  orderPda: PublicKey;
+  paymentMint: PublicKey;
+  shopperPda: PublicKey;
+  tokenProgram: PublicKey;
+}) {
+  return SPLURGE_PROGRAM.methods
+    .cancelOrder()
+    .accountsPartial({
+      admin,
+      order: orderPda,
+      paymentMint,
+      shopper: shopperPda,
+      tokenProgram,
     })
     .instruction();
 }

@@ -5,6 +5,8 @@ import { CONNECTION } from '@/lib/constants';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { validateProgramIx } from '@/lib/utils';
 
+const allowedIxs = ['ship_order', 'cancel_order'];
+
 export async function POST(req: NextRequest) {
   try {
     const { transaction } = await req.json();
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
       Buffer.from(transaction, 'base64')
     );
 
-    if (!validateProgramIx(tx, 'update_order')) {
+    if (!validateProgramIx(tx, allowedIxs)) {
       return NextResponse.json(
         { error: 'Transaction does not contain the correct instruction.' },
         { status: 400 }
@@ -39,7 +41,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: err instanceof Error ? err.message : 'Failed to update order.',
+        error:
+          err instanceof Error
+            ? err.message
+            : 'Failed to send permissioned transaction.',
       },
       { status: 500 }
     );

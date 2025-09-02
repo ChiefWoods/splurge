@@ -1,5 +1,5 @@
-import { SPLURGE_PROGRAM } from './constants';
-import { GetProgramAccountsFilter } from '@solana/web3.js';
+import { SPLURGE_PROGRAM, TUKTUK_PROGRAM } from './constants';
+import { GetProgramAccountsFilter, PublicKey } from '@solana/web3.js';
 import { getConfigPda } from './pda';
 import {
   parseConfig,
@@ -166,4 +166,8 @@ export async function fetchStore(pda: string): Promise<ParsedStore | null> {
   const storeAcc = await SPLURGE_PROGRAM.account.store.fetchNullable(pda);
 
   return storeAcc ? { publicKey: pda, ...parseStore(storeAcc) } : null;
+}
+
+export async function fetchTaskQueueAcc(taskQueuePda: PublicKey) {
+  return await TUKTUK_PROGRAM.account.taskQueueV0.fetchNullable(taskQueuePda);
 }

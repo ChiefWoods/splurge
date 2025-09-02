@@ -42,8 +42,10 @@ export async function wrappedFetch(url: string) {
   return data;
 }
 
-export async function updateOrder(tx: VersionedTransaction): Promise<string> {
-  const res = await fetch('/api/update-order', {
+export async function sendPermissionedTx(
+  tx: VersionedTransaction
+): Promise<string> {
+  const res = await fetch('/api/permissioned', {
     method: 'POST',
     body: JSON.stringify({
       transaction: Buffer.from(tx.serialize()).toString('base64'),
