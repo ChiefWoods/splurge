@@ -1,6 +1,7 @@
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import { admin, connection, splurgeProgram, treasury } from "../setup";
+import { PublicKey } from "@solana/web3.js";
 
 console.log("Initializing config...")
 
@@ -51,7 +52,7 @@ for (const { mint } of acceptedMints) {
       admin,
       mint,
       treasury,
-      false,
+      !PublicKey.isOnCurve(treasury),
       "confirmed",
       {
         commitment: "confirmed"
@@ -60,6 +61,5 @@ for (const { mint } of acceptedMints) {
     )
   
     console.log(`Treasury ATA for ${mint.toBase58()} initialized: ${ata.toBase58()}`);
-  
   }
 }
