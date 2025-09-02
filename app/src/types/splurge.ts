@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/splurge.json`.
  */
 export type Splurge = {
-  "address": "SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A",
+  "address": "SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd",
   "metadata": {
     "name": "splurge",
     "version": "0.1.0",
@@ -13,6 +13,295 @@ export type Splurge = {
     "description": "Created with Anchor"
   },
   "instructions": [
+    {
+      "name": "cancelOrder",
+      "discriminator": [
+        95,
+        129,
+        237,
+        240,
+        8,
+        49,
+        223,
+        132
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "relations": [
+            "shopper"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "order",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  114,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "shopper"
+              },
+              {
+                "kind": "account",
+                "path": "order.item",
+                "account": "order"
+              },
+              {
+                "kind": "account",
+                "path": "order.timestamp",
+                "account": "order"
+              }
+            ]
+          }
+        },
+        {
+          "name": "paymentMint"
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "orderTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "order"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "authorityTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": []
+    },
     {
       "name": "completeOrder",
       "discriminator": [
@@ -275,9 +564,23 @@ export type Splurge = {
         },
         {
           "name": "treasury",
-          "relations": [
-            "config"
-          ]
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "config",
@@ -709,6 +1012,26 @@ export type Splurge = {
           "signer": true
         },
         {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "config",
           "writable": true,
           "pda": {
@@ -941,6 +1264,186 @@ export type Splurge = {
       ]
     },
     {
+      "name": "shipOrder",
+      "discriminator": [
+        2,
+        191,
+        151,
+        45,
+        16,
+        248,
+        97,
+        142
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "order",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  114,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "shopper"
+              },
+              {
+                "kind": "account",
+                "path": "item"
+              },
+              {
+                "kind": "account",
+                "path": "order.timestamp",
+                "account": "order"
+              }
+            ]
+          }
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "authority",
+          "writable": true
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "orderTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "paymentMint"
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "store"
+        },
+        {
+          "name": "storeTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "store"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "tuktuk"
+        },
+        {
+          "name": "taskQueue",
+          "writable": true
+        },
+        {
+          "name": "task",
+          "writable": true
+        },
+        {
+          "name": "taskQueueAuthority"
+        }
+      ],
+      "args": [
+        {
+          "name": "taskId",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "unlistItem",
       "discriminator": [
         170,
@@ -1115,194 +1618,6 @@ export type Splurge = {
       ]
     },
     {
-      "name": "updateOrder",
-      "discriminator": [
-        54,
-        8,
-        208,
-        207,
-        34,
-        134,
-        239,
-        168
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "order",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  114,
-                  100,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "shopper"
-              },
-              {
-                "kind": "account",
-                "path": "item"
-              },
-              {
-                "kind": "account",
-                "path": "order.timestamp",
-                "account": "order"
-              }
-            ]
-          }
-        },
-        {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "authority",
-          "writable": true
-        },
-        {
-          "name": "item"
-        },
-        {
-          "name": "orderTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "paymentMint"
-        },
-        {
-          "name": "shopper"
-        },
-        {
-          "name": "store"
-        },
-        {
-          "name": "storeTokenAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "store"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "paymentMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "tokenProgram"
-        },
-        {
-          "name": "tuktuk"
-        },
-        {
-          "name": "taskQueue",
-          "writable": true
-        },
-        {
-          "name": "task",
-          "writable": true
-        },
-        {
-          "name": "taskQueueAuthority"
-        }
-      ],
-      "args": [
-        {
-          "name": "status",
-          "type": {
-            "defined": {
-              "name": "orderStatus"
-            }
-          }
-        },
-        {
-          "name": "taskId",
-          "type": "u16"
-        }
-      ]
-    },
-    {
       "name": "withdrawEarnings",
       "discriminator": [
         6,
@@ -1427,6 +1742,196 @@ export type Splurge = {
               {
                 "kind": "account",
                 "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdrawTreasury",
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "paymentMint"
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "adminTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "admin"
               },
               {
                 "kind": "account",
@@ -1730,66 +2235,81 @@ export type Splurge = {
     },
     {
       "code": 6010,
+      "name": "invalidShopperAuthority",
+      "msg": "Shopper authority does not match provided authority"
+    },
+    {
+      "code": 6011,
       "name": "storeNameRequired",
       "msg": "Store name is required"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "storeNameTooLong",
       "msg": "Store name exceeded maximum length"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "itemNameRequired",
       "msg": "Store item name is required"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "itemNameTooLong",
       "msg": "Store item name exceeded maximum length"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "insufficientInventory",
       "msg": "Store item has insufficient inventory to fulfill order"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "orderAlreadyFinalized",
       "msg": "Order already finalized"
     },
     {
-      "code": 6016,
+      "code": 6017,
+      "name": "orderNotPending",
+      "msg": "Order status is not pending"
+    },
+    {
+      "code": 6018,
       "name": "orderNotBeingShipped",
       "msg": "Order status is not shipping"
     },
     {
-      "code": 6017,
+      "code": 6019,
       "name": "orderAlreadyCompleted",
       "msg": "Order already completed"
     },
     {
-      "code": 6018,
+      "code": 6020,
       "name": "orderNotCompleted",
       "msg": "Order not completed"
     },
     {
-      "code": 6019,
+      "code": 6021,
       "name": "invalidOrderStatus",
       "msg": "Order completion must be done through complete_order instruction"
     },
     {
-      "code": 6020,
+      "code": 6022,
+      "name": "invalidOrderPaymentMint",
+      "msg": "Order payment mint does not match provided mint"
+    },
+    {
+      "code": 6023,
       "name": "invalidRating",
       "msg": "Rating must be between 1 and 5"
     },
     {
-      "code": 6021,
+      "code": 6024,
       "name": "mathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6022,
+      "code": 6025,
       "name": "invalidPrice",
       "msg": "Oracle price must be above 0"
     }
@@ -1823,13 +2343,6 @@ export type Splurge = {
         "kind": "struct",
         "fields": [
           {
-            "name": "treasury",
-            "docs": [
-              "Address to which platform fees are sent to"
-            ],
-            "type": "pubkey"
-          },
-          {
             "name": "orderFeeBps",
             "docs": [
               "Fee charged on each order in basis points"
@@ -1852,6 +2365,13 @@ export type Splurge = {
           },
           {
             "name": "bump",
+            "docs": [
+              "Bump used for seed derivation"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "treasuryBump",
             "docs": [
               "Bump used for seed derivation"
             ],
@@ -1908,10 +2428,6 @@ export type Splurge = {
         "fields": [
           {
             "name": "admin",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasury",
             "type": "pubkey"
           },
           {
@@ -2520,12 +3036,6 @@ export type Splurge = {
             }
           },
           {
-            "name": "treasury",
-            "type": {
-              "option": "pubkey"
-            }
-          },
-          {
             "name": "isPaused",
             "type": {
               "option": "bool"
@@ -2661,6 +3171,11 @@ export type Splurge = {
       "name": "taskTriggerDelay",
       "type": "u16",
       "value": "60"
+    },
+    {
+      "name": "treasurySeed",
+      "type": "bytes",
+      "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
     }
   ]
 };

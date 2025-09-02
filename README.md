@@ -6,7 +6,7 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 
 [Live Website](https://splurge-psi.vercel.app/)
 
-[Program on Solana Explorer](https://explorer.solana.com/address/SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A?cluster=devnet)
+[Program on Solana Explorer](https://explorer.solana.com/address/SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd?cluster=devnet)
 
 [Source Repository](https://github.com/ChiefWoods/splurge)
 

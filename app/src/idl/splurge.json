@@ -1,5 +1,5 @@
 {
-  "address": "SPLGho1qL14YvTSyzxf3XSH8yw22ey9MY99gzokV29A",
+  "address": "SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd",
   "metadata": {
     "name": "splurge",
     "version": "0.1.0",
@@ -7,6 +7,295 @@
     "description": "Created with Anchor"
   },
   "instructions": [
+    {
+      "name": "cancel_order",
+      "discriminator": [
+        95,
+        129,
+        237,
+        240,
+        8,
+        49,
+        223,
+        132
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "relations": [
+            "shopper"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "order",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  114,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "shopper"
+              },
+              {
+                "kind": "account",
+                "path": "order.item",
+                "account": "Order"
+              },
+              {
+                "kind": "account",
+                "path": "order.timestamp",
+                "account": "Order"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payment_mint"
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "order_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "order"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "authority_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": []
+    },
     {
       "name": "complete_order",
       "discriminator": [
@@ -269,9 +558,23 @@
         },
         {
           "name": "treasury",
-          "relations": [
-            "config"
-          ]
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "config",
@@ -703,6 +1006,26 @@
           "signer": true
         },
         {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "config",
           "writable": true,
           "pda": {
@@ -935,6 +1258,186 @@
       ]
     },
     {
+      "name": "ship_order",
+      "discriminator": [
+        2,
+        191,
+        151,
+        45,
+        16,
+        248,
+        97,
+        142
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "order",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  114,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "shopper"
+              },
+              {
+                "kind": "account",
+                "path": "item"
+              },
+              {
+                "kind": "account",
+                "path": "order.timestamp",
+                "account": "Order"
+              }
+            ]
+          }
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "authority",
+          "writable": true
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "order_token_account",
+          "writable": true
+        },
+        {
+          "name": "payment_mint"
+        },
+        {
+          "name": "shopper"
+        },
+        {
+          "name": "store"
+        },
+        {
+          "name": "store_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "store"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "tuktuk"
+        },
+        {
+          "name": "task_queue",
+          "writable": true
+        },
+        {
+          "name": "task",
+          "writable": true
+        },
+        {
+          "name": "task_queue_authority"
+        }
+      ],
+      "args": [
+        {
+          "name": "task_id",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "unlist_item",
       "discriminator": [
         170,
@@ -1109,194 +1612,6 @@
       ]
     },
     {
-      "name": "update_order",
-      "discriminator": [
-        54,
-        8,
-        208,
-        207,
-        34,
-        134,
-        239,
-        168
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "order",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  114,
-                  100,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "shopper"
-              },
-              {
-                "kind": "account",
-                "path": "item"
-              },
-              {
-                "kind": "account",
-                "path": "order.timestamp",
-                "account": "Order"
-              }
-            ]
-          }
-        },
-        {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "authority",
-          "writable": true
-        },
-        {
-          "name": "item"
-        },
-        {
-          "name": "order_token_account",
-          "writable": true
-        },
-        {
-          "name": "payment_mint"
-        },
-        {
-          "name": "shopper"
-        },
-        {
-          "name": "store"
-        },
-        {
-          "name": "store_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "store"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "payment_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "token_program"
-        },
-        {
-          "name": "tuktuk"
-        },
-        {
-          "name": "task_queue",
-          "writable": true
-        },
-        {
-          "name": "task",
-          "writable": true
-        },
-        {
-          "name": "task_queue_authority"
-        }
-      ],
-      "args": [
-        {
-          "name": "status",
-          "type": {
-            "defined": {
-              "name": "OrderStatus"
-            }
-          }
-        },
-        {
-          "name": "task_id",
-          "type": "u16"
-        }
-      ]
-    },
-    {
       "name": "withdraw_earnings",
       "discriminator": [
         6,
@@ -1421,6 +1736,196 @@
               {
                 "kind": "account",
                 "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdraw_treasury",
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payment_mint"
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "admin_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "admin"
               },
               {
                 "kind": "account",
@@ -1724,66 +2229,81 @@
     },
     {
       "code": 6010,
+      "name": "InvalidShopperAuthority",
+      "msg": "Shopper authority does not match provided authority"
+    },
+    {
+      "code": 6011,
       "name": "StoreNameRequired",
       "msg": "Store name is required"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "StoreNameTooLong",
       "msg": "Store name exceeded maximum length"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "ItemNameRequired",
       "msg": "Store item name is required"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "ItemNameTooLong",
       "msg": "Store item name exceeded maximum length"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "InsufficientInventory",
       "msg": "Store item has insufficient inventory to fulfill order"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "OrderAlreadyFinalized",
       "msg": "Order already finalized"
     },
     {
-      "code": 6016,
+      "code": 6017,
+      "name": "OrderNotPending",
+      "msg": "Order status is not pending"
+    },
+    {
+      "code": 6018,
       "name": "OrderNotBeingShipped",
       "msg": "Order status is not shipping"
     },
     {
-      "code": 6017,
+      "code": 6019,
       "name": "OrderAlreadyCompleted",
       "msg": "Order already completed"
     },
     {
-      "code": 6018,
+      "code": 6020,
       "name": "OrderNotCompleted",
       "msg": "Order not completed"
     },
     {
-      "code": 6019,
+      "code": 6021,
       "name": "InvalidOrderStatus",
       "msg": "Order completion must be done through complete_order instruction"
     },
     {
-      "code": 6020,
+      "code": 6022,
+      "name": "InvalidOrderPaymentMint",
+      "msg": "Order payment mint does not match provided mint"
+    },
+    {
+      "code": 6023,
       "name": "InvalidRating",
       "msg": "Rating must be between 1 and 5"
     },
     {
-      "code": 6021,
+      "code": 6024,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6022,
+      "code": 6025,
       "name": "InvalidPrice",
       "msg": "Oracle price must be above 0"
     }
@@ -1817,13 +2337,6 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "treasury",
-            "docs": [
-              "Address to which platform fees are sent to"
-            ],
-            "type": "pubkey"
-          },
-          {
             "name": "order_fee_bps",
             "docs": [
               "Fee charged on each order in basis points"
@@ -1846,6 +2359,13 @@
           },
           {
             "name": "bump",
+            "docs": [
+              "Bump used for seed derivation"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "treasury_bump",
             "docs": [
               "Bump used for seed derivation"
             ],
@@ -1902,10 +2422,6 @@
         "fields": [
           {
             "name": "admin",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasury",
             "type": "pubkey"
           },
           {
@@ -2514,12 +3030,6 @@
             }
           },
           {
-            "name": "treasury",
-            "type": {
-              "option": "pubkey"
-            }
-          },
-          {
             "name": "is_paused",
             "type": {
               "option": "bool"
@@ -2655,6 +3165,11 @@
       "name": "TASK_TRIGGER_DELAY",
       "type": "u16",
       "value": "60"
+    },
+    {
+      "name": "TREASURY_SEED",
+      "type": "bytes",
+      "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
     }
   ]
 }
