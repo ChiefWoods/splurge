@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import {
   getAccount,
   getAssociatedTokenAddressSync,
@@ -14,6 +14,7 @@ import {
   getOrderPda,
   getShopperPda,
   getStorePda,
+  getTreasuryPda,
 } from '../pda';
 import { fetchConfigAcc, fetchItemAcc, fetchOrderAcc } from '../accounts';
 import { LiteSVM } from 'litesvm';
@@ -39,10 +40,11 @@ describe('createOrder', () => {
     program: Program<Splurge>;
   };
 
-  const [admin, treasury, shopperAuthority, storeAuthority] = Array.from(
-    { length: 4 },
+  const [admin, shopperAuthority, storeAuthority] = Array.from(
+    { length: 3 },
     Keypair.generate
   );
+  const treasury = getTreasuryPda();
 
   const itemName = 'Item A';
   const itemPrice = 1e6; // $1
@@ -60,7 +62,7 @@ describe('createOrder', () => {
 
   beforeEach(async () => {
     ({ litesvm, provider, program } = await getSetup([
-      ...[admin, treasury, shopperAuthority, storeAuthority].map((kp) => {
+      ...[admin, shopperAuthority, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
@@ -68,9 +70,9 @@ describe('createOrder', () => {
       }),
     ]));
 
-    initAta(litesvm, USDC_MINT, treasury.publicKey);
+    initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
-    initAta(litesvm, USDT_MINT, treasury.publicKey);
+    initAta(litesvm, USDT_MINT, treasury);
     initAta(litesvm, USDT_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
     await program.methods
@@ -83,7 +85,6 @@ describe('createOrder', () => {
         ],
         admin: admin.publicKey,
         orderFeeBps: 250,
-        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,
@@ -133,8 +134,8 @@ describe('createOrder', () => {
   test('creates an order', async () => {
     const treasuryAta = getAssociatedTokenAddressSync(
       USDC_MINT,
-      treasury.publicKey,
-      false,
+      treasury,
+      !PublicKey.isOnCurve(treasury),
       tokenProgram
     );
     const initTreasuryAtaBal = (
@@ -253,7 +254,6 @@ describe('createOrder', () => {
         isPaused: true,
         newAdmin: null,
         orderFeeBps: null,
-        treasury: null,
       })
       .accounts({
         admin: admin.publicKey,

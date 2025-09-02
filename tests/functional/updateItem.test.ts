@@ -16,16 +16,13 @@ describe('updateItem', () => {
     program: Program<Splurge>;
   };
 
-  const [admin, treasury, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, storeAuthority] = Array.from({ length: 2 }, Keypair.generate);
 
   const itemName = 'Item A';
 
   beforeEach(async () => {
     ({ litesvm, provider, program } = await getSetup([
-      ...[admin, treasury, storeAuthority].map((kp) => {
+      ...[admin, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
@@ -43,7 +40,6 @@ describe('updateItem', () => {
         ],
         admin: admin.publicKey,
         orderFeeBps: 250,
-        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,

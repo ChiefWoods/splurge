@@ -5,7 +5,7 @@ import { Program } from '@coral-xyz/anchor';
 import { fetchConfigAcc } from '../accounts';
 import { LiteSVM } from 'litesvm';
 import { LiteSVMProvider } from 'anchor-litesvm';
-import { fundedSystemAccountInfo, getSetup } from '../setup';
+import { expectAnchorError, fundedSystemAccountInfo, getSetup } from '../setup';
 import {
   USDC_MINT,
   USDC_PRICE_UPDATE_V2,
@@ -21,10 +21,7 @@ describe('updateConfig', () => {
     program: Program<Splurge>;
   };
 
-  const [admin, treasury, newAdmin, newTreasury] = Array.from(
-    { length: 4 },
-    Keypair.generate
-  );
+  const [admin, newAdmin] = Array.from({ length: 2 }, Keypair.generate);
 
   let acceptedMints = [
     {
@@ -35,7 +32,7 @@ describe('updateConfig', () => {
 
   beforeEach(async () => {
     ({ litesvm, provider, program } = await getSetup([
-      ...[admin, treasury, newAdmin, newTreasury].map((kp) => {
+      ...[admin, newAdmin].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
@@ -48,7 +45,6 @@ describe('updateConfig', () => {
         acceptedMints,
         admin: admin.publicKey,
         orderFeeBps: 250,
-        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,
@@ -71,7 +67,6 @@ describe('updateConfig', () => {
         isPaused,
         newAdmin: newAdmin.publicKey,
         orderFeeBps,
-        treasury: newTreasury.publicKey,
       })
       .accounts({
         admin: admin.publicKey,
@@ -83,8 +78,33 @@ describe('updateConfig', () => {
     const configAcc = await fetchConfigAcc(program, configPda);
 
     expect(configAcc.admin).toStrictEqual(newAdmin.publicKey);
-    expect(configAcc.treasury).toStrictEqual(newTreasury.publicKey);
     expect(configAcc.orderFeeBps).toBe(orderFeeBps);
     expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
+  });
+
+  test('throws if updating as unauthorized admin', async () => {
+    acceptedMints.push({
+      mint: USDT_MINT,
+      priceUpdateV2: USDT_PRICE_UPDATE_V2,
+    });
+    const isPaused = true;
+    const orderFeeBps = 500;
+
+    try {
+      await program.methods
+        .updateConfig({
+          acceptedMints,
+          isPaused,
+          newAdmin: newAdmin.publicKey,
+          orderFeeBps,
+        })
+        .accounts({
+          admin: newAdmin.publicKey,
+        })
+        .signers([newAdmin])
+        .rpc();
+    } catch (err) {
+      expectAnchorError(err, 'UnauthorizedAdmin');
+    }
   });
 });

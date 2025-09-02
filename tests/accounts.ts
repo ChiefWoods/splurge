@@ -1,6 +1,7 @@
 import { Program } from '@coral-xyz/anchor';
 import { Splurge } from '../target/types/splurge';
 import { PublicKey } from '@solana/web3.js';
+import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
 
 export async function fetchConfigAcc(
   program: Program<Splurge>,
@@ -42,4 +43,18 @@ export async function fetchReviewAcc(
   reviewPda: PublicKey
 ) {
   return await program.account.review.fetchNullable(reviewPda);
+}
+
+export async function fetchConfigV0Acc(
+  program: Program<Tuktuk>,
+  configV0Pda: PublicKey
+) {
+  return await program.account.tuktukConfigV0.fetchNullable(configV0Pda);
+}
+
+export async function fetchTaskQueueAcc(
+  program: Program<Tuktuk>,
+  taskQueuePda: PublicKey
+) {
+  return await program.account.taskQueueV0.fetchNullable(taskQueuePda);
 }

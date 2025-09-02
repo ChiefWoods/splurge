@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, PublicKey } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import { Splurge } from '../../target/types/splurge';
 import { BN, Program } from '@coral-xyz/anchor';
 import {
@@ -9,51 +12,76 @@ import {
   getReviewPda,
   getShopperPda,
   getStorePda,
+  getTreasuryPda,
 } from '../pda';
-import { fetchReviewAcc } from '../accounts';
+import { fetchReviewAcc, fetchTaskQueueAcc } from '../accounts';
 import { LiteSVM } from 'litesvm';
 import { LiteSVMProvider } from 'anchor-litesvm';
-import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from '../constants';
+import {
+  TUKTUK_PROGRAM_ID,
+  USDC_MINT,
+  USDC_PRICE_UPDATE_V2,
+} from '../constants';
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
+  initTaskQueue,
 } from '../setup';
+import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
+import {
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+  TaskQueueV0,
+} from '@helium/tuktuk-sdk';
 
 describe('createReview', () => {
-  let { litesvm, provider, program } = {} as {
+  let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
     program: Program<Splurge>;
+    tuktukProgram: Program<Tuktuk>;
+    taskQueuePda: PublicKey;
   };
 
-  const [admin, treasury, shopperAuthority, storeAuthority] = Array.from(
-    { length: 4 },
+  const [admin, shopperAuthority, storeAuthority] = Array.from(
+    { length: 3 },
     Keypair.generate
   );
+  const treasury = getTreasuryPda();
 
   const itemName = 'Item A';
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
+  const paymentMint = USDC_MINT;
   const tokenProgram = TOKEN_PROGRAM_ID;
   let storePda: PublicKey;
   let itemPda: PublicKey;
   let shopperPda: PublicKey;
   let orderPda: PublicKey;
+  let orderAta: PublicKey;
+  let taskQueueAcc: TaskQueueV0;
+  let taskId: number;
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
-      ...[admin, treasury, shopperAuthority, storeAuthority].map((kp) => {
-        return {
-          pubkey: kp.publicKey,
-          account: fundedSystemAccountInfo(),
-        };
-      }),
-    ]));
+    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
+      await getSetup([
+        ...[admin, shopperAuthority, storeAuthority].map((kp) => {
+          return {
+            pubkey: kp.publicKey,
+            account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
+          };
+        }),
+      ]));
 
-    initAta(litesvm, USDC_MINT, treasury.publicKey);
+    await initTaskQueue(tuktukProgram, admin, taskQueuePda);
+    taskQueueAcc = await fetchTaskQueueAcc(tuktukProgram, taskQueuePda);
+    taskId = nextAvailableTaskIds(taskQueueAcc.taskBitmap, 1, false)[0];
+
+    initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
     await program.methods
@@ -66,7 +94,6 @@ describe('createReview', () => {
         ],
         admin: admin.publicKey,
         orderFeeBps: 250,
-        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,
@@ -132,11 +159,33 @@ describe('createReview', () => {
       .signers([shopperAuthority])
       .rpc();
 
+    orderAta = getAssociatedTokenAddressSync(
+      paymentMint,
+      orderPda,
+      !PublicKey.isOnCurve(orderPda)
+    );
+    const [taskPda] = taskKey(taskQueuePda, taskId);
+    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
+      taskQueuePda,
+      admin.publicKey
+    );
+
     await program.methods
-      .updateOrder({ shipping: {} })
-      .accounts({
+      .shipOrder(taskId)
+      .accountsPartial({
         admin: admin.publicKey,
         order: orderPda,
+        authority: shopperAuthority.publicKey,
+        item: itemPda,
+        orderTokenAccount: orderAta,
+        paymentMint,
+        shopper: shopperPda,
+        store: storePda,
+        task: taskPda,
+        taskQueue: taskQueuePda,
+        taskQueueAuthority: taskQueueAuthorityPda,
+        tokenProgram,
+        tuktuk: TUKTUK_PROGRAM_ID,
       })
       .signers([admin])
       .rpc();

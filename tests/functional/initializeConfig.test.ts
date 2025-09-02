@@ -16,16 +16,14 @@ describe('initializeConfig', () => {
     program: Program<Splurge>;
   };
 
-  const [admin, treasury] = Array.from({ length: 2 }, () => Keypair.generate());
+  const admin = Keypair.generate();
 
   beforeEach(async () => {
     ({ litesvm, provider, program } = await getSetup([
-      ...[admin, treasury].map((kp) => {
-        return {
-          pubkey: kp.publicKey,
-          account: fundedSystemAccountInfo(),
-        };
-      }),
+      {
+        pubkey: admin.publicKey,
+        account: fundedSystemAccountInfo(),
+      },
     ]));
   });
 
@@ -43,7 +41,6 @@ describe('initializeConfig', () => {
         acceptedMints,
         admin: admin.publicKey,
         orderFeeBps,
-        treasury: treasury.publicKey,
       })
       .accounts({
         authority: admin.publicKey,
@@ -55,7 +52,6 @@ describe('initializeConfig', () => {
     const configAcc = await fetchConfigAcc(program, configPda);
 
     expect(configAcc.admin).toStrictEqual(admin.publicKey);
-    expect(configAcc.treasury).toStrictEqual(treasury.publicKey);
     expect(configAcc.isPaused).toBe(false);
     expect(configAcc.orderFeeBps).toBe(orderFeeBps);
     expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
@@ -75,7 +71,6 @@ describe('initializeConfig', () => {
           acceptedMints,
           admin: admin.publicKey,
           orderFeeBps: 250,
-          treasury: treasury.publicKey,
         })
         .accounts({
           authority: admin.publicKey,
@@ -96,7 +91,6 @@ describe('initializeConfig', () => {
           acceptedMints,
           admin: admin.publicKey,
           orderFeeBps: 250,
-          treasury: treasury.publicKey,
         })
         .accounts({
           authority: admin.publicKey,

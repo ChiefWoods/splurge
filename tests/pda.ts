@@ -9,6 +9,13 @@ export function getConfigPda() {
   )[0];
 }
 
+export function getTreasuryPda() {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('treasury')],
+    SPLURGE_PROGRAM_ID
+  )[0];
+}
+
 export function getShopperPda(authority: PublicKey) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('shopper'), authority.toBuffer()],

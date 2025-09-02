@@ -21,6 +21,7 @@ import {
   TUKTUK_PROGRAM_ID,
   USDC_MINT,
   USDC_PRICE_UPDATE_V2,
+  USDT_MINT,
 } from '../constants';
 import {
   expectAnchorError,
@@ -37,7 +38,7 @@ import {
 } from '@helium/tuktuk-sdk';
 import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
 
-describe('completeOrder', () => {
+describe('cancelOrder', () => {
   let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
@@ -58,13 +59,13 @@ describe('completeOrder', () => {
   const initShopperAtaBal = 1e8; // $100
   const paymentMint = USDC_MINT;
   const tokenProgram = TOKEN_PROGRAM_ID;
-  let storePda: PublicKey;
-  let itemPda: PublicKey;
-  let shopperPda: PublicKey;
   let orderPda: PublicKey;
-  let orderAta: PublicKey;
   let taskQueueAcc: TaskQueueV0;
   let taskId: number;
+
+  const shopperPda = getShopperPda(shopperAuthority.publicKey);
+  const storePda = getStorePda(storeAuthority.publicKey);
+  const itemPda = getItemPda(storePda, itemName);
 
   beforeEach(async () => {
     ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
@@ -83,6 +84,8 @@ describe('completeOrder', () => {
 
     initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
+    initAta(litesvm, USDT_MINT, treasury);
+    initAta(litesvm, USDT_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
     await program.methods
       .initializeConfig({
@@ -139,9 +142,6 @@ describe('completeOrder', () => {
       .signers([storeAuthority])
       .rpc();
 
-    storePda = getStorePda(storeAuthority.publicKey);
-    itemPda = getItemPda(storePda, itemName);
-    shopperPda = getShopperPda(shopperAuthority.publicKey);
     const { unixTimestamp } = litesvm.getClock();
     orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
 
@@ -153,13 +153,13 @@ describe('completeOrder', () => {
         item: itemPda,
         order: orderPda,
         priceUpdateV2: USDC_PRICE_UPDATE_V2,
-        paymentMint: USDC_MINT,
+        paymentMint,
         tokenProgram,
       })
       .signers([shopperAuthority])
       .rpc();
 
-    orderAta = getAssociatedTokenAddressSync(
+    const orderAta = getAssociatedTokenAddressSync(
       paymentMint,
       orderPda,
       !PublicKey.isOnCurve(orderPda)
@@ -191,132 +191,93 @@ describe('completeOrder', () => {
       .rpc();
   });
 
-  test('complete order', async () => {
-    let orderAcc = await fetchOrderAcc(program, orderPda);
-
+  test('cancels an order', async () => {
     const orderAta = getAssociatedTokenAddressSync(
       paymentMint,
       orderPda,
-      true,
+      !PublicKey.isOnCurve(orderPda),
       tokenProgram
     );
-    const orderAtaAcc = await getAccount(provider.connection, orderAta);
+    const preOrderAtaRent = litesvm.getBalance(orderAta);
+    const preShopperAuthorityBal = litesvm.getBalance(
+      shopperAuthority.publicKey
+    );
+    const shopperAuthorityAta = getAssociatedTokenAddressSync(
+      paymentMint,
+      shopperAuthority.publicKey,
+      !PublicKey.isOnCurve(shopperAuthority.publicKey),
+      tokenProgram
+    );
+    const preShopperAuthorityAta = await getAccount(
+      provider.connection,
+      shopperAuthorityAta
+    );
+    const treasuryAta = getAssociatedTokenAddressSync(
+      paymentMint,
+      treasury,
+      !PublicKey.isOnCurve(treasury),
+      tokenProgram
+    );
+    const preTreasuryAta = await getAccount(provider.connection, treasuryAta);
 
     await program.methods
-      .completeOrder()
+      .cancelOrder()
       .accountsPartial({
         admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
         order: orderPda,
+        paymentMint,
+        shopper: shopperPda,
         tokenProgram,
       })
       .signers([admin])
       .rpc();
 
-    orderAcc = await fetchOrderAcc(program, orderPda);
+    const orderAcc = await fetchOrderAcc(program, orderPda);
 
-    expect(orderAcc.status).toStrictEqual({ completed: {} });
+    expect(orderAcc.status).toStrictEqual({ cancelled: {} });
 
-    const storeUsdcAta = getAssociatedTokenAddressSync(
-      USDC_MINT,
-      storePda,
-      true,
-      tokenProgram
+    const postShopperAuthorityBal = litesvm.getBalance(
+      shopperAuthority.publicKey
     );
-    const storeUsdcAtaAcc = await getAccount(provider.connection, storeUsdcAta);
 
-    expect(storeUsdcAtaAcc.amount).toBe(orderAtaAcc.amount);
+    expect(preShopperAuthorityBal).toBe(
+      postShopperAuthorityBal - preOrderAtaRent
+    );
 
-    const orderAtaRent = litesvm.getBalance(orderAta);
+    const postShopperAuthorityAta = await getAccount(
+      provider.connection,
+      shopperAuthorityAta
+    );
 
-    expect(orderAtaRent).toBe(0n);
+    expect(Number(preShopperAuthorityAta.amount)).toBe(
+      Number(postShopperAuthorityAta.amount) -
+        orderAcc.paymentSubtotal.toNumber() -
+        orderAcc.platformFee.toNumber()
+    );
+
+    const postOrderAtaRent = litesvm.getBalance(orderAta);
+
+    expect(postOrderAtaRent).toBe(0n);
+
+    const postTreasuryAta = await getAccount(provider.connection, treasuryAta);
+
+    expect(Number(preTreasuryAta.amount)).toBe(
+      Number(postTreasuryAta.amount) + orderAcc.platformFee.toNumber()
+    );
   });
 
-  test('throws if order status is not shipping', async () => {
-    const clock = litesvm.getClock();
-    const newTimestamp = clock.unixTimestamp + 60n;
-    clock.unixTimestamp = newTimestamp;
-    litesvm.setClock(clock);
-
-    const orderPda = getOrderPda(shopperPda, itemPda, new BN(newTimestamp));
-
-    await program.methods
-      .createOrder(1, new BN(newTimestamp))
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        priceUpdateV2: USDC_PRICE_UPDATE_V2,
-        paymentMint: USDC_MINT,
-        tokenProgram,
-      })
-      .signers([shopperAuthority])
-      .rpc();
-
+  test('throws if cancelling as unauthorized admin', async () => {
     try {
       await program.methods
-        .completeOrder()
+        .cancelOrder()
         .accountsPartial({
-          admin: admin.publicKey,
-          shopper: shopperPda,
-          store: storePda,
-          item: itemPda,
+          admin: storeAuthority.publicKey,
           order: orderPda,
+          paymentMint,
+          shopper: shopperPda,
           tokenProgram,
         })
-        .signers([admin])
-        .rpc();
-    } catch (err) {
-      expectAnchorError(err, 'OrderNotBeingShipped');
-    }
-  });
-
-  test('throws if order is already completed', async () => {
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
-
-    expect(async () => {
-      await program.methods
-        .completeOrder()
-        .accountsPartial({
-          admin: admin.publicKey,
-          shopper: shopperPda,
-          store: storePda,
-          item: itemPda,
-          order: orderPda,
-          tokenProgram,
-        })
-        .signers([admin])
-        .rpc();
-    }).toThrow();
-  });
-
-  test('throws if signed by unauthorized admin', async () => {
-    try {
-      await program.methods
-        .completeOrder()
-        .accountsPartial({
-          admin: shopperAuthority.publicKey,
-          shopper: shopperPda,
-          store: storePda,
-          item: itemPda,
-          order: orderPda,
-          tokenProgram,
-        })
-        .signers([shopperAuthority])
+        .signers([storeAuthority])
         .rpc();
     } catch (err) {
       expectAnchorError(err, 'UnauthorizedAdmin');
