@@ -9,7 +9,9 @@ use crate::{
     constants::{CONFIG_SEED, ORDER_SEED, TREASURY_SEED},
     error::SplurgeError,
     events::OrderCancelled,
-    order_signer, treasury_signer, Config, Order, OrderStatus, Shopper,
+    order_signer,
+    state::{Config, Order, OrderStatus, Shopper},
+    treasury_signer,
 };
 
 #[derive(Accounts)]

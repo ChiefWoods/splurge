@@ -8,7 +8,8 @@ use anchor_spl::{
 use crate::{
     constants::{CONFIG_SEED, TREASURY_SEED},
     error::SplurgeError,
-    treasury_signer, Config,
+    state::Config,
+    treasury_signer,
 };
 
 #[derive(Accounts)]

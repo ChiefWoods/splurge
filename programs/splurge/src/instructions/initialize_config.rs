@@ -2,8 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::{
     constants::{CONFIG_SEED, TREASURY_SEED},
-    state::Config,
-    AcceptedMint,
+    state::{AcceptedMint, Config},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

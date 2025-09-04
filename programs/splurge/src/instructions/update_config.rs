@@ -1,6 +1,10 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::CONFIG_SEED, error::SplurgeError, state::Config, AcceptedMint};
+use crate::{
+    constants::CONFIG_SEED,
+    error::SplurgeError,
+    state::{AcceptedMint, Config},
+};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateConfigArgs {

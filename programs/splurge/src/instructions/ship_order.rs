@@ -18,8 +18,8 @@ use crate::{
     constants::{CONFIG_SEED, ORDER_SEED, TASK_TRIGGER_DELAY},
     error::SplurgeError,
     events::OrderShipped,
-    state::{Config, Order, OrderStatus},
-    CompleteOrder, Item, Shopper, Store,
+    instructions::CompleteOrder,
+    state::{Config, Item, Order, OrderStatus, Shopper, Store},
 };
 
 #[derive(Accounts)]

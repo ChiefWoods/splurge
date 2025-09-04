@@ -2,13 +2,13 @@ pub mod constants;
 pub mod error;
 pub mod events;
 pub mod instructions;
+#[doc(hidden)]
 pub mod macros;
 pub mod state;
 
 use anchor_lang::prelude::*;
 
 pub use instructions::*;
-pub use state::*;
 
 declare_id!("SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd");
 
