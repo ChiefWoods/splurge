@@ -120,6 +120,12 @@ export function CheckoutDialog({
             throw new Error('Shopper account not created.');
           }
 
+          if (configData?.isPaused) {
+            throw new Error(
+              'Platform is currently paused. No new orders can be created.'
+            );
+          }
+
           setIsSubmitting(true);
 
           const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
@@ -198,6 +204,7 @@ export function CheckoutDialog({
     },
     [
       publicKey,
+      configData,
       shopperData,
       storePda,
       itemPda,
