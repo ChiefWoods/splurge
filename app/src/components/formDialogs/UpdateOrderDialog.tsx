@@ -32,7 +32,7 @@ import { useOrder } from '@/providers/OrderProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { TransactionToast } from '../TransactionToast';
 import { getShopperPda } from '@/lib/pda';
-import { alertOrderCancelled, alertOrderShipped } from '@/lib/dialect';
+import { alertOrderUpdate } from '@/lib/dialect';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 
 export function UpdateOrderDialog({
@@ -178,7 +178,7 @@ export function UpdateOrderDialog({
               throw new Error('Payment mint not found.');
             }
 
-            const alertArgs = {
+            await alertOrderUpdate({
               itemAmount: amount,
               itemName: name,
               orderPda,
@@ -187,13 +187,8 @@ export function UpdateOrderDialog({
               paymentSubtotal: atomicToUsd(paymentSubtotal),
               shopperAddress: address,
               shopperAuthority: authority,
-            };
-
-            const alertCallback =
-              Object.keys(status)[0] === 'shipping'
-                ? alertOrderShipped
-                : alertOrderCancelled;
-            await alertCallback(alertArgs);
+              status,
+            });
 
             return (
               <TransactionToast

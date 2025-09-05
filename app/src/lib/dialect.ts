@@ -15,6 +15,7 @@ import {
 import { getStorePda } from './pda';
 import { PublicKey } from '@solana/web3.js';
 import { truncateAddress } from './utils';
+import { OrderStatus } from '@/types/accounts';
 
 const environment: DialectCloudEnvironment = 'production';
 
@@ -111,7 +112,7 @@ export async function alertOutOfStock({
   });
 }
 
-export async function alertOrderShipped({
+export async function alertOrderUpdate({
   shopperAuthority,
   orderPda,
   itemName,
@@ -120,6 +121,7 @@ export async function alertOrderShipped({
   paymentSubtotal,
   paymentMintSymbol,
   orderTimestamp,
+  status,
 }: {
   shopperAuthority: string;
   orderPda: string;
@@ -129,11 +131,32 @@ export async function alertOrderShipped({
   paymentSubtotal: string;
   paymentMintSymbol: string;
   orderTimestamp: number;
+  status: OrderStatus;
 }) {
+  const parsedStatus = Object.keys(status)[0];
+  const titleEnding =
+    parsedStatus === 'shipping'
+      ? 'Shipped'
+      : parsedStatus === 'cancelled'
+        ? 'Cancelled'
+        : 'Completed';
+  const headerEnding =
+    parsedStatus === 'shipping'
+      ? 'being shipped'
+      : parsedStatus === 'cancelled'
+        ? 'cancelled'
+        : 'completed';
+  const notificationTypeId =
+    parsedStatus === 'shipping'
+      ? '481ecda0-6845-4ad6-9f88-bb5d08c6b92f'
+      : parsedStatus === 'cancelled'
+        ? '19369f5b-6f8b-4b08-b794-b73db3325778'
+        : '7f8e2290-6002-4266-921f-f5fe3a399ce6';
+
   await dapp.messages.send({
-    title: `Order Shipped`,
+    title: `Order ${titleEnding}`,
     message: `
-      Your order ${truncateAddress(orderPda)} is being shipped.
+      Your order ${truncateAddress(orderPda)} is ${headerEnding}.
 
       Order Details:
         - Item: ${itemName}
@@ -146,7 +169,7 @@ export async function alertOrderShipped({
       Track your orders in your dashboard.
     `,
     recipient: shopperAuthority,
-    notificationTypeId: '481ecda0-6845-4ad6-9f88-bb5d08c6b92f',
+    notificationTypeId,
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
     actionsV2: {
       type: DappMessageActionType.LINK,
@@ -159,107 +182,3 @@ export async function alertOrderShipped({
     },
   });
 }
-
-export async function alertOrderCancelled({
-  shopperAuthority,
-  orderPda,
-  itemName,
-  itemAmount,
-  shopperAddress,
-  paymentSubtotal,
-  paymentMintSymbol,
-  orderTimestamp,
-}: {
-  shopperAuthority: string;
-  orderPda: string;
-  itemName: string;
-  itemAmount: number;
-  shopperAddress: string;
-  paymentSubtotal: string;
-  paymentMintSymbol: string;
-  orderTimestamp: number;
-}) {
-  await dapp.messages.send({
-    title: `Order Cancelled`,
-    message: `
-      Your order ${truncateAddress(orderPda)} is cancelled.
-
-      Order Details:
-        - Item: ${itemName}
-        - Amount: ${itemAmount}
-        - Ship To: ${shopperAddress}
-        - Payment Subtotal: $${paymentSubtotal}
-        - Paid In: ${paymentMintSymbol}
-        - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
-
-      Track your orders in your dashboard.
-    `,
-    recipient: shopperAuthority,
-    notificationTypeId: '19369f5b-6f8b-4b08-b794-b73db3325778',
-    addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
-    actionsV2: {
-      type: DappMessageActionType.LINK,
-      links: [
-        {
-          label: 'Track Orders',
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/`,
-        },
-      ],
-    },
-  });
-}
-
-// Unused
-
-// export async function alertOrderCompleted({
-//   shopperAuthority,
-//   orderPda,
-//   itemName,
-//   itemAmount,
-//   shopperAddress,
-//   paymentSubtotal,
-//   paymentMintToken,
-//   orderTimestamp,
-//   signature,
-// }: {
-//   shopperAuthority: string,
-//   orderPda: string,
-//   itemName: string,
-//   itemAmount: number,
-//   shopperAddress: string,
-//   paymentSubtotal: number,
-//   paymentMintToken: string,
-//   orderTimestamp: number,
-//   signature: string,
-// }) {
-//   await dapp.messages.send({
-//     title: `Order Completed`,
-//     message: `
-//       Your order ${truncateAddress(orderPda)} has completed.
-
-//       Order Details:
-//         - Item: ${itemName}
-//         - Amount: ${itemAmount}
-//         - Ship To: ${shopperAddress}
-//         - Payment Subtotal: $${paymentSubtotal}
-//         - Paid In: ${paymentMintToken}
-//         - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
-
-//       Transaction: ${signature}
-
-//       Track your orders in your dashboard.
-//     `,
-//     recipient: shopperAuthority,
-//     notificationTypeId: '7f8e2290-6002-4266-921f-f5fe3a399ce6',
-//     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
-//     actionsV2: {
-//       type: DappMessageActionType.LINK,
-//       links: [
-//         {
-//           label: 'Track Orders',
-//           url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/`,
-//         },
-//       ],
-//     },
-//   });
-// }
