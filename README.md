@@ -31,6 +31,10 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 - [@solana/spl-token](https://solana-labs.github.io/solana-program-library/token/js/)
 - [litesvm](https://github.com/LiteSVM/litesvm/tree/master/crates/node-litesvm)
 - [anchor-litesvm](https://github.com/LiteSVM/anchor-litesvm/)
+- [@dialectlabs/blockchain-sdk-solana](https://dialect.to/)
+- [@dialectlabs/react-sdk-blockchain-solana](https://dialect.to/)
+- [@dialectlabs/react-ui](https://dialect.to/)
+- [@dialectlabs/sdk](https://dialect.to/)
 - [@helium/tuktuk-idls](https://github.com/helium/tuktuk)
 - [@helium/tuktuk-sdk](https://github.com/helium/tuktuk)
 - [@solana/wallet-adapter-react](https://github.com/anza-xyz/wallet-adapter)
@@ -187,7 +191,7 @@ View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full 
 - [USDC Faucet](https://faucet.circle.com/)
 - [PYUSD Faucet](https://faucet.paxos.com/)
 
-### Hosting API
+### Hosting and API
 
 - [Vercel](https://vercel.com/)
 - [Helius](https://www.helius.dev/)
