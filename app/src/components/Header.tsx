@@ -11,6 +11,7 @@ import { useStore } from '@/providers/StoreProvider';
 import { useMemo } from 'react';
 import { Keypair } from '@solana/web3.js';
 import { getDicebearEndpoint } from '@/lib/api';
+import { DialectNotification } from './DialectNotification';
 
 export function Header() {
   const { publicKey } = useWallet();
@@ -71,6 +72,7 @@ export function Header() {
             )}
           </Avatar>
         </Link>
+        <DialectNotification />
         <WalletMultiButtonDynamic />
       </nav>
     </header>

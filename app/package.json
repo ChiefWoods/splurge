@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@dialectlabs/blockchain-sdk-solana": "^2.0.0-beta.4",
+    "@dialectlabs/react-sdk-blockchain-solana": "^3.0.0-beta.7",
+    "@dialectlabs/react-ui": "^3.0.0-beta.7",
+    "@dialectlabs/sdk": "^2.0.0-beta.7",
     "@helium/tuktuk-idls": "^0.0.9",
     "@helium/tuktuk-sdk": "^0.0.9",
     "@hookform/resolvers": "^3.9.1",
