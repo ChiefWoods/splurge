@@ -118,6 +118,7 @@ export default function Page() {
                           price={price}
                           maxAmount={inventoryCount}
                           storePda={storePda}
+                          storeAuthority={itemStore.authority}
                           itemPda={itemPda}
                           btnVariant="default"
                           btnSize="icon"

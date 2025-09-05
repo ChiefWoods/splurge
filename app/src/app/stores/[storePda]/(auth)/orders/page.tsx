@@ -79,6 +79,8 @@ export default function Page() {
                       name={orderItem.name}
                       status={status}
                       orderPda={orderPda}
+                      paymentSubtotal={paymentSubtotal}
+                      orderTimestamp={timestamp}
                       itemPda={itemPda}
                       paymentMint={paymentMint}
                       storePda={storePda}

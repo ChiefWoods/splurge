@@ -23,11 +23,17 @@ import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { capitalizeFirstLetter, truncateAddress } from '@/lib/utils';
+import {
+  atomicToUsd,
+  capitalizeFirstLetter,
+  truncateAddress,
+} from '@/lib/utils';
 import { useOrder } from '@/providers/OrderProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { TransactionToast } from '../TransactionToast';
 import { getShopperPda } from '@/lib/pda';
+import { alertOrderCancelled, alertOrderShipped } from '@/lib/dialect';
+import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 
 export function UpdateOrderDialog({
   name,
@@ -36,6 +42,8 @@ export function UpdateOrderDialog({
   address,
   status,
   orderPda,
+  orderTimestamp,
+  paymentSubtotal,
   itemPda,
   paymentMint,
   storePda,
@@ -47,6 +55,8 @@ export function UpdateOrderDialog({
   address: string;
   status: string;
   orderPda: string;
+  orderTimestamp: number;
+  paymentSubtotal: number;
   itemPda: string;
   paymentMint: string;
   storePda: string;
@@ -161,6 +171,30 @@ export function UpdateOrderDialog({
             setIsSubmitting(false);
             setIsOpen(false);
 
+            const paymentMintSymbol =
+              ACCEPTED_MINTS_METADATA.get(paymentMint)?.symbol;
+
+            if (!paymentMintSymbol) {
+              throw new Error('Payment mint not found.');
+            }
+
+            const alertArgs = {
+              itemAmount: amount,
+              itemName: name,
+              orderPda,
+              orderTimestamp,
+              paymentMintSymbol,
+              paymentSubtotal: atomicToUsd(paymentSubtotal),
+              shopperAddress: address,
+              shopperAuthority: authority,
+            };
+
+            const alertCallback =
+              Object.keys(status)[0] === 'shipping'
+                ? alertOrderShipped
+                : alertOrderCancelled;
+            await alertCallback(alertArgs);
+
             return (
               <TransactionToast
                 title="Order updated!"
@@ -187,6 +221,11 @@ export function UpdateOrderDialog({
       paymentMint,
       storePda,
       authority,
+      amount,
+      name,
+      orderTimestamp,
+      paymentSubtotal,
+      address,
     ]
   );
 

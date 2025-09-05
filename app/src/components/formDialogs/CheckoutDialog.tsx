@@ -49,6 +49,7 @@ import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
 import { Skeleton } from '../ui/skeleton';
 import { MintIcon } from '../MintIcon';
 import { usePyth } from '@/providers/PythProvider';
+import { alertNewOrders, alertOutOfStock } from '@/lib/dialect';
 
 export function CheckoutDialog({
   name,
@@ -56,6 +57,7 @@ export function CheckoutDialog({
   price,
   maxAmount,
   storePda,
+  storeAuthority,
   itemPda,
   btnVariant = 'default',
   btnSize = 'sm',
@@ -66,6 +68,7 @@ export function CheckoutDialog({
   price: number;
   maxAmount: number;
   storePda: string;
+  storeAuthority: string;
   itemPda: string;
   btnVariant?: 'default' | 'secondary';
   btnSize?: 'sm' | 'icon';
@@ -158,11 +161,17 @@ export function CheckoutDialog({
           // actual transaction starts from index 1
           await confirmTransaction(connection, signatures[1]);
 
-          return signatures[1];
+          return {
+            signature: signatures[1],
+            shopperData,
+            paymentMintSymbol: token.symbol,
+          };
         },
         {
           loading: 'Waiting for signature...',
-          success: async (signature) => {
+          success: async ({ signature, shopperData, paymentMintSymbol }) => {
+            const newInventoryCount = maxAmount - data.amount;
+
             await allItemsTrigger(
               {},
               {
@@ -172,7 +181,7 @@ export function CheckoutDialog({
                       if (item.publicKey === itemPda) {
                         return {
                           ...item,
-                          inventoryCount: item.inventoryCount - data.amount,
+                          inventoryCount: newInventoryCount,
                         };
                       }
                       return item;
@@ -186,6 +195,23 @@ export function CheckoutDialog({
             form.reset();
             setIsSubmitting(false);
             setIsOpen(false);
+
+            await alertNewOrders({
+              storeAuthority,
+              shopperName: shopperData.name,
+              itemName: name,
+              itemAmount: data.amount,
+              shopperAddress: shopperData.address,
+              paymentSubtotal: atomicToUsd(orderSubtotal),
+              paymentMintSymbol,
+            });
+
+            if (newInventoryCount === 0) {
+              await alertOutOfStock({
+                itemName: name,
+                storeAuthority,
+              });
+            }
 
             return (
               <TransactionToast
@@ -213,6 +239,10 @@ export function CheckoutDialog({
       form,
       pythSolanaReceiver,
       getUpdatePriceFeedTx,
+      maxAmount,
+      name,
+      storeAuthority,
+      orderSubtotal,
     ]
   );
 

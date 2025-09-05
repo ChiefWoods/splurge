@@ -79,7 +79,8 @@ export default function Page() {
       {itemIsMutating ? (
         <AccountSectionSkeleton />
       ) : (
-        itemData && (
+        itemData &&
+        storeData && (
           <AccountSection
             key={itemData.publicKey}
             title={itemData.name}
@@ -108,6 +109,7 @@ export default function Page() {
                     price={itemData.price}
                     maxAmount={itemData.inventoryCount}
                     storePda={storePda}
+                    storeAuthority={storeData.authority}
                     itemPda={itemPda}
                   >
                     <ShoppingCart />

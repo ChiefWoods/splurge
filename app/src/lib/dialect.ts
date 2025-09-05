@@ -42,17 +42,15 @@ export async function alertNewOrders({
   itemAmount,
   shopperAddress,
   paymentSubtotal,
-  paymentMint,
-  signature,
+  paymentMintSymbol,
 }: {
   storeAuthority: string;
   shopperName: string;
   itemName: string;
   itemAmount: number;
   shopperAddress: string;
-  paymentSubtotal: number;
-  paymentMint: string;
-  signature: string;
+  paymentSubtotal: string;
+  paymentMintSymbol: string;
 }) {
   await dapp.messages.send({
     title: `New Order`,
@@ -64,10 +62,8 @@ export async function alertNewOrders({
         - Amount: ${itemAmount}
         - Ship To: ${shopperAddress}
         - Payment Subtotal: ${paymentSubtotal}
-        - Paid In: ${paymentMint}
+        - Paid In: ${paymentMintSymbol}
         - Order Date: ${new Date().toUTCString()}
-
-      Transaction: ${signature}
 
       View and manage your orders in your dashboard.
     `,
@@ -122,19 +118,17 @@ export async function alertOrderShipped({
   itemAmount,
   shopperAddress,
   paymentSubtotal,
-  paymentMint,
+  paymentMintSymbol,
   orderTimestamp,
-  signature,
 }: {
   shopperAuthority: string;
   orderPda: string;
   itemName: string;
   itemAmount: number;
   shopperAddress: string;
-  paymentSubtotal: number;
-  paymentMint: string;
+  paymentSubtotal: string;
+  paymentMintSymbol: string;
   orderTimestamp: number;
-  signature: string;
 }) {
   await dapp.messages.send({
     title: `Order Shipped`,
@@ -145,11 +139,9 @@ export async function alertOrderShipped({
         - Item: ${itemName}
         - Amount: ${itemAmount}
         - Ship To: ${shopperAddress}
-        - Payment Subtotal: ${paymentSubtotal}
-        - Paid In: ${paymentMint}
+        - Payment Subtotal: $${paymentSubtotal}
+        - Paid In: ${paymentMintSymbol}
         - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
-
-      Transaction: ${signature}
 
       Track your orders in your dashboard.
     `,
@@ -175,19 +167,17 @@ export async function alertOrderCancelled({
   itemAmount,
   shopperAddress,
   paymentSubtotal,
-  paymentMint,
+  paymentMintSymbol,
   orderTimestamp,
-  signature,
 }: {
   shopperAuthority: string;
   orderPda: string;
   itemName: string;
   itemAmount: number;
   shopperAddress: string;
-  paymentSubtotal: number;
-  paymentMint: string;
+  paymentSubtotal: string;
+  paymentMintSymbol: string;
   orderTimestamp: number;
-  signature: string;
 }) {
   await dapp.messages.send({
     title: `Order Cancelled`,
@@ -198,11 +188,9 @@ export async function alertOrderCancelled({
         - Item: ${itemName}
         - Amount: ${itemAmount}
         - Ship To: ${shopperAddress}
-        - Payment Subtotal: ${paymentSubtotal}
-        - Paid In: ${paymentMint}
+        - Payment Subtotal: $${paymentSubtotal}
+        - Paid In: ${paymentMintSymbol}
         - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
-
-      Transaction: ${signature}
 
       Track your orders in your dashboard.
     `,
@@ -230,7 +218,7 @@ export async function alertOrderCancelled({
 //   itemAmount,
 //   shopperAddress,
 //   paymentSubtotal,
-//   paymentMint,
+//   paymentMintToken,
 //   orderTimestamp,
 //   signature,
 // }: {
@@ -240,7 +228,7 @@ export async function alertOrderCancelled({
 //   itemAmount: number,
 //   shopperAddress: string,
 //   paymentSubtotal: number,
-//   paymentMint: string,
+//   paymentMintToken: string,
 //   orderTimestamp: number,
 //   signature: string,
 // }) {
@@ -253,8 +241,8 @@ export async function alertOrderCancelled({
 //         - Item: ${itemName}
 //         - Amount: ${itemAmount}
 //         - Ship To: ${shopperAddress}
-//         - Payment Subtotal: ${paymentSubtotal}
-//         - Paid In: ${paymentMint}
+//         - Payment Subtotal: $${paymentSubtotal}
+//         - Paid In: ${paymentMintToken}
 //         - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
 
 //       Transaction: ${signature}
