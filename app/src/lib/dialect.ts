@@ -55,19 +55,17 @@ export async function alertNewOrders({
 }) {
   await dapp.messages.send({
     title: `New Order`,
-    message: `
-      New order received from ${shopperName}.
+    message: `New order received from ${shopperName}.
 
-      Order Details:
-        - Item: ${itemName}
-        - Amount: ${itemAmount}
-        - Ship To: ${shopperAddress}
-        - Payment Subtotal: ${paymentSubtotal}
-        - Paid In: ${paymentMintSymbol}
-        - Order Date: ${new Date().toUTCString()}
+Order Details:
+  - Item: ${itemName}
+  - Amount: ${itemAmount}
+  - Ship To: ${shopperAddress}
+  - Payment Subtotal: ${paymentSubtotal}
+  - Paid In: ${paymentMintSymbol}
+  - Order Date: ${new Date().toUTCString()}
 
-      View and manage your orders in your dashboard.
-    `,
+View and manage your orders in your dashboard.`,
     recipient: storeAuthority,
     notificationTypeId: 'e23cf8d3-853a-4686-9787-57d74d5427f8',
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
@@ -92,11 +90,9 @@ export async function alertOutOfStock({
 }) {
   await dapp.messages.send({
     title: `Inventory Out of Stock`,
-    message: `
-      Your listed item ${itemName} is out of stock.
+    message: `Your listed item ${itemName} is out of stock.
 
-      Update your inventory to continue receiving orders.
-    `,
+Update your inventory to continue receiving orders.`,
     recipient: storeAuthority,
     notificationTypeId: '65b96ab6-49be-4456-b4c7-8736864e27af',
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
@@ -117,7 +113,7 @@ export async function alertOrderUpdate({
   orderPda,
   itemName,
   itemAmount,
-  shopperAddress,
+  storeName,
   paymentSubtotal,
   paymentMintSymbol,
   orderTimestamp,
@@ -127,7 +123,7 @@ export async function alertOrderUpdate({
   orderPda: string;
   itemName: string;
   itemAmount: number;
-  shopperAddress: string;
+  storeName: string;
   paymentSubtotal: string;
   paymentMintSymbol: string;
   orderTimestamp: number;
@@ -155,19 +151,17 @@ export async function alertOrderUpdate({
 
   await dapp.messages.send({
     title: `Order ${titleEnding}`,
-    message: `
-      Your order ${truncateAddress(orderPda)} is ${headerEnding}.
+    message: `Your order ${truncateAddress(orderPda)} is ${headerEnding}.
 
-      Order Details:
-        - Item: ${itemName}
-        - Amount: ${itemAmount}
-        - Ship To: ${shopperAddress}
-        - Payment Subtotal: $${paymentSubtotal}
-        - Paid In: ${paymentMintSymbol}
-        - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
+Order Details:
+  - Item: ${itemName}
+  - Amount: ${itemAmount}
+  - Store: ${storeName}
+  - Payment Subtotal: $${paymentSubtotal}
+  - Paid In: ${paymentMintSymbol}
+  - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
 
-      Track your orders in your dashboard.
-    `,
+Track your orders in your dashboard.`,
     recipient: shopperAuthority,
     notificationTypeId,
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],

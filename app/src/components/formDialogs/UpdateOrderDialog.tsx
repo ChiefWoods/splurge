@@ -140,11 +140,12 @@ export function UpdateOrderDialog({
           return {
             signature,
             storePda: personalStoreData.publicKey,
+            storeName: personalStoreData.name,
           };
         },
         {
           loading: 'Waiting for signature...',
-          success: async ({ signature, storePda }) => {
+          success: async ({ signature, storePda, storeName }) => {
             await allOrdersTrigger(
               {
                 storePda,
@@ -185,7 +186,7 @@ export function UpdateOrderDialog({
               orderTimestamp,
               paymentMintSymbol,
               paymentSubtotal: atomicToUsd(paymentSubtotal),
-              shopperAddress: address,
+              storeName,
               shopperAuthority: authority,
               status,
             });
@@ -220,7 +221,6 @@ export function UpdateOrderDialog({
       name,
       orderTimestamp,
       paymentSubtotal,
-      address,
     ]
   );
 
