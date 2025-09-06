@@ -74,7 +74,7 @@ View and manage your orders in your dashboard.`,
       links: [
         {
           label: 'View Order',
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/stores/${getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
+          url: `${window.location.href}/stores/${getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
         },
       ],
     },
@@ -101,7 +101,7 @@ Update your inventory to continue receiving orders.`,
       links: [
         {
           label: 'Update Inventory',
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/stores/${getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
+          url: `${window.location.href}/stores/${getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
         },
       ],
     },
@@ -170,7 +170,7 @@ Track your orders in your dashboard.`,
       links: [
         {
           label: 'Track Orders',
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/`,
+          url: `${window.location.href}/orders/`,
         },
       ],
     },
