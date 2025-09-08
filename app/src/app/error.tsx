@@ -11,8 +11,6 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const router = useRouter();
-
   return (
     <section className="main-section flex-1 justify-center">
       <h2>{error.digest ?? error.name}</h2>

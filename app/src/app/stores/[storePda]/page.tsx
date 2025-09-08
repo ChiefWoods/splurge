@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { atomicToUsd } from '@/lib/utils';
+import { PublicKey } from '@solana/web3.js';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
@@ -29,6 +30,12 @@ export default function Page() {
   const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
 
   useEffect(() => {
+    try {
+      new PublicKey(storePda);
+    } catch {
+      notFound();
+    }
+
     (async () => {
       await storeTrigger({ publicKey: storePda });
       await allItemsTrigger({ storePda });
