@@ -3,14 +3,14 @@
 import { getShopperPda } from '@/lib/pda';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect } from 'react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { NoResultText } from '@/components/NoResultText';
 import { OrderTable } from '@/components/OrderTable';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export default function Page() {
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
   const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
 

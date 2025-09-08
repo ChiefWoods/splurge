@@ -8,12 +8,12 @@ import useSWRMutation, {
   TriggerWithoutArgs,
 } from 'swr/mutation';
 import useSWR, { KeyedMutator } from 'swr';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { getStorePda } from '@/lib/pda';
 import { useConfig } from './ConfigProvider';
 import { CONNECTION } from '@/lib/constants';
 import { PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 interface StoreTokenAccount {
   mint: string;
@@ -58,7 +58,7 @@ export function useStore() {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { configData } = useConfig();
 
   const {

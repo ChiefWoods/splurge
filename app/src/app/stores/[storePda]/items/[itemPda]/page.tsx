@@ -16,7 +16,7 @@ import { useOrder } from '@/providers/OrderProvider';
 import { useReview } from '@/providers/ReviewProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { useStore } from '@/providers/StoreProvider';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -26,7 +26,7 @@ export default function Page() {
     storePda: string;
     itemPda: string;
   }>();
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const [reviewOrderPda, setReviewOrderPda] = useState<string>('');
   const { itemData, itemIsMutating, itemTrigger } = useItem();
   const { storeData, storeIsMutating, storeTrigger } = useStore();

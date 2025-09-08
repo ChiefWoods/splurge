@@ -4,11 +4,11 @@ import '@dialectlabs/react-ui/index.css';
 import { DialectSolanaSdk } from '@dialectlabs/react-sdk-blockchain-solana';
 import { NotificationsButton } from '@dialectlabs/react-ui';
 import { SPLURGE_PROGRAM } from '@/lib/constants';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function DialectNotification() {
-  const { publicKey, signTransaction, signMessage } = useWallet();
+  const { publicKey, signTransaction, signMessage } = useUnifiedWallet();
 
   const walletAdapter = useMemo(
     () => ({

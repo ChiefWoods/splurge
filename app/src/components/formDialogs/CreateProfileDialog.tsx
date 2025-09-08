@@ -24,7 +24,7 @@ import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
@@ -36,10 +36,11 @@ import { confirmTransaction } from '@solana-developers/helpers';
 import { useShopper } from '@/providers/ShopperProvider';
 import { getShopperPda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function CreateProfileDialog() {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);

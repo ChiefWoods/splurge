@@ -24,7 +24,7 @@ import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
@@ -40,10 +40,11 @@ import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { MINT_DECIMALS } from '@/lib/constants';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { upload } = useIrysUploader();
   const { allItemsTrigger } = useItem();
   const [isOpen, setIsOpen] = useState(false);

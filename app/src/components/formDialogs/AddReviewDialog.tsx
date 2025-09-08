@@ -2,7 +2,7 @@
 
 import { CreateReviewFormData, createReviewSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
@@ -34,6 +34,7 @@ import { createReviewIx } from '@/lib/instructions';
 import { getReviewPda, getShopperPda } from '@/lib/pda';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useReview } from '@/providers/ReviewProvider';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function AddReviewDialog({
   itemPda,
@@ -43,7 +44,7 @@ export function AddReviewDialog({
   orderPda: string;
 }) {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { allReviewsTrigger } = useReview();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

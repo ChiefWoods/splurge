@@ -1,6 +1,6 @@
 'use client';
 
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
 import {
   Dialog,
@@ -34,6 +34,7 @@ import { TransactionToast } from '../TransactionToast';
 import { getShopperPda } from '@/lib/pda';
 import { alertOrderUpdate } from '@/lib/dialect';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function UpdateOrderDialog({
   name,
@@ -63,7 +64,7 @@ export function UpdateOrderDialog({
   authority: string;
 }) {
   const { connection } = useConnection();
-  const { signMessage } = useWallet();
+  const { signMessage } = useUnifiedWallet();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
   const { personalStoreData } = useStore();

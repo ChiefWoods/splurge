@@ -1,15 +1,17 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import {
+  useUnifiedWallet,
+  useUnifiedWalletContext,
+} from '@jup-ag/wallet-adapter';
 
 export function useWalletAuth() {
-  const { connected } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { connected } = useUnifiedWallet();
+  const { setShowModal } = useUnifiedWalletContext();
 
   function checkAuth(callback: () => void) {
     if (!connected) {
-      setVisible(true);
+      setShowModal(true);
     } else {
       callback();
     }

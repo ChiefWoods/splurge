@@ -2,8 +2,6 @@
 
 import { ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
-import { WalletMultiButtonDynamic } from '@/providers/SolanaProvider';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { useShopper } from '@/providers/ShopperProvider';
@@ -12,9 +10,10 @@ import { useMemo } from 'react';
 import { Keypair } from '@solana/web3.js';
 import { getDicebearEndpoint } from '@/lib/api';
 import { DialectNotification } from './DialectNotification';
+import { UnifiedWalletButton, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function Header() {
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { shopperData, shopperIsLoading } = useShopper();
   const { personalStoreData } = useStore();
 
@@ -73,7 +72,7 @@ export function Header() {
           </Avatar>
         </Link>
         <DialectNotification />
-        <WalletMultiButtonDynamic />
+        <UnifiedWalletButton />
       </nav>
     </header>
   );

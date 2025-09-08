@@ -19,8 +19,9 @@ import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStore } from '@/providers/StoreProvider';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -34,7 +35,7 @@ interface RowBalance {
 
 export default function Page() {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const {
     storeTokenAccountsData,
     storeTokenAccountsIsLoading,

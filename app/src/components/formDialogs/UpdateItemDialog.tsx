@@ -27,7 +27,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
 import { toast } from 'sonner';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import Image from 'next/image';
 import { updateItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
@@ -35,6 +35,7 @@ import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function UpdateItemDialog({
   name,
@@ -54,7 +55,7 @@ export function UpdateItemDialog({
   storePda: string;
 }) {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { allItemsTrigger } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

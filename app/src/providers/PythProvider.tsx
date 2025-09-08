@@ -1,7 +1,7 @@
 'use client';
 
 import { ACCEPTED_MINTS_METADATA, HERMES_CLIENT } from '@/lib/constants';
-import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import {
   createContext,
   ReactNode,
@@ -14,6 +14,7 @@ import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { Wallet } from '@coral-xyz/anchor';
 import { getPriorityFee } from '@/lib/solana-helpers';
 import { VersionedTransaction, Signer } from '@solana/web3.js';
+import { useAnchorWallet } from '@jup-ag/wallet-adapter';
 
 interface Price {
   mint: string;

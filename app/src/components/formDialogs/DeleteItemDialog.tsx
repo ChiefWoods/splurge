@@ -1,7 +1,7 @@
 'use client';
 
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
@@ -21,6 +21,7 @@ import { useItem } from '@/providers/ItemProvider';
 import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function DeleteItemDialog({
   name,
@@ -32,7 +33,7 @@ export function DeleteItemDialog({
   storePda: string;
 }) {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { allItemsTrigger } = useItem();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

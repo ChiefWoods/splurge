@@ -38,6 +38,7 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 - [@helium/tuktuk-idls](https://github.com/helium/tuktuk)
 - [@helium/tuktuk-sdk](https://github.com/helium/tuktuk)
 - [@solana/wallet-adapter-react](https://github.com/anza-xyz/wallet-adapter)
+- [@jup-ag/wallet-adapter](https://github.com/TeamRaccoons/Unified-Wallet-Kit)
 - [@solana-developers/helpers](https://github.com/solana-developers/helpers)
 - [@irys/web-upload](https://irys.xyz/)
 - [@pythnetwork/hermes-client](https://www.pyth.network/)

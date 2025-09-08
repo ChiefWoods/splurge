@@ -5,7 +5,7 @@ import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { Button } from '@/components/ui/button';
 import { getShopperPda } from '@/lib/pda';
 import { useShopper } from '@/providers/ShopperProvider';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
   const router = useRouter();
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { shopperData, shopperIsLoading } = useShopper();
 
   useEffect(() => {

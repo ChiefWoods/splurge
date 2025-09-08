@@ -15,17 +15,17 @@ import { Separator } from '@/components/ui/separator';
 import { getStorePda } from '@/lib/pda';
 import { useItem } from '@/providers/ItemProvider';
 import { useStore } from '@/providers/StoreProvider';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { atomicToUsd } from '@/lib/utils';
 import { PublicKey } from '@solana/web3.js';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { storeData, storeIsMutating, storeTrigger } = useStore();
   const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
 

@@ -2,7 +2,7 @@
 
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
@@ -50,6 +50,7 @@ import { Skeleton } from '../ui/skeleton';
 import { MintIcon } from '../MintIcon';
 import { usePyth } from '@/providers/PythProvider';
 import { alertNewOrders, alertOutOfStock } from '@/lib/dialect';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function CheckoutDialog({
   name,
@@ -75,7 +76,7 @@ export function CheckoutDialog({
   children: ReactNode;
 }) {
   const { connection } = useConnection();
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configIsLoading } = useConfig();
   const { allItemsTrigger } = useItem();

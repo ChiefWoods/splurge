@@ -24,7 +24,7 @@ import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
@@ -36,10 +36,11 @@ import { getDicebearFile } from '@/lib/api';
 import { useStore } from '@/providers/StoreProvider';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function CreateStoreDialog() {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useUnifiedWallet();
   const { personalStoreMutate } = useStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);

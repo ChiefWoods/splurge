@@ -3,10 +3,10 @@
 import { ParsedShopper } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { getShopperPda } from '@/lib/pda';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
 import useSWRMutation, { TriggerWithoutArgs } from 'swr/mutation';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 interface ShopperContextType {
   allShoppersData: ParsedShopper[] | undefined;
@@ -28,7 +28,7 @@ export function useShopper() {
 }
 
 export function ShopperProvider({ children }: { children: ReactNode }) {
-  const { publicKey } = useWallet();
+  const { publicKey } = useUnifiedWallet();
 
   const {
     data: allShoppersData,
