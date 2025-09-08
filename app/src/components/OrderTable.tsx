@@ -1,6 +1,16 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import {
@@ -11,111 +21,250 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
-import { SortButton } from './SortButton';
-import { capitalizeFirstLetter } from '@/lib/utils';
+import { Button } from './ui/button';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { capitalizeFirstLetter, atomicToUsd } from '@/lib/utils';
 import { ParsedItem, ParsedOrder } from '@/types/accounts';
 import { InfoTooltip } from './InfoTooltip';
+import { TimestampTooltip } from './TimestampTooltip';
+import Image from 'next/image';
+import Link from 'next/link';
+import { getAccountLink } from '@/lib/solana-helpers';
+import { SquareArrowOutUpRight } from 'lucide-react';
+import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 
 const ORDER_TABS = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
 
-enum SortOption {
-  Name,
-  Amount,
-  Total,
-  Date,
-}
+type OrderWithItem = ParsedOrder & {
+  itemData: ParsedItem;
+  statusElement: ReactNode;
+};
 
 export function OrderTable({
   allOrdersData,
   allItemsData,
   isFetching,
   showTotalTooltip = false,
-  sortedOrdersMapper,
+  statusRenderer,
 }: {
   allOrdersData: ParsedOrder[] | undefined;
   allItemsData: ParsedItem[] | undefined;
   isFetching: boolean;
   showTotalTooltip?: boolean;
-  sortedOrdersMapper: (sortedOrders: ParsedOrder) => ReactNode;
+  statusRenderer: (order: ParsedOrder) => ReactNode;
 }) {
-  const [sortedOrders, setSortedOrders] = useState<ParsedOrder[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'timestamp', desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [tabValue, setTabValue] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
-  const [sortNameAsc, setSortNameAsc] = useState<boolean>(true);
-  const [sortAmountAsc, setSortAmountAsc] = useState<boolean>(false);
-  const [sortTotalAsc, setSortTotalAsc] = useState<boolean>(false);
-  const [sortDateAsc, setSortDateAsc] = useState<boolean>(false);
-  const [activeSortColumn, setActiveSortColumn] = useState<SortOption>(
-    SortOption.Date
+
+  const data = useMemo<OrderWithItem[]>(() => {
+    if (!allOrdersData || !allItemsData) return [];
+
+    return allOrdersData
+      .map((order) => {
+        const itemData = allItemsData.find(
+          ({ publicKey }) => publicKey === order.item
+        );
+
+        if (!itemData) {
+          throw new Error('Matching item not found for order.');
+        }
+
+        return {
+          ...order,
+          itemData,
+          statusElement: statusRenderer(order),
+        };
+      })
+      .filter((order) => {
+        if (tabValue !== 'all') {
+          // @ts-expect-error status is a DecodeEnum but is actually a string
+          if (order.status !== tabValue) return false;
+        }
+
+        if (searchValue) {
+          return order.itemData.name
+            .toLowerCase()
+            .includes(searchValue.toLowerCase());
+        }
+
+        return true;
+      });
+  }, [allOrdersData, allItemsData, tabValue, searchValue, statusRenderer]);
+
+  const columns = useMemo<ColumnDef<OrderWithItem>[]>(
+    () => [
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => row.original.statusElement,
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'itemData.name',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 hover:bg-transparent"
+          >
+            Item
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const { itemData } = row.original;
+          return (
+            <div className="flex items-center gap-x-4">
+              <div className="h-12 w-12 flex-shrink-0 rounded-lg border bg-[#f4f4f5] p-1">
+                <Image
+                  src={itemData.image}
+                  alt={itemData.name}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="text-md truncate">{itemData.name}</span>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'amount',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 hover:bg-transparent"
+          >
+            Amount
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+      },
+      {
+        id: 'total',
+        accessorFn: (row) => row.paymentSubtotal + row.platformFee,
+        header: ({ column }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === 'asc')
+              }
+              className="h-auto p-0 hover:bg-transparent"
+            >
+              Total
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="ml-2 h-4 w-4" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="ml-2 h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+            {showTotalTooltip && (
+              <InfoTooltip text="A small additional platform fee is applied on top of each order." />
+            )}
+          </div>
+        ),
+        cell: ({ row }) => {
+          const { paymentSubtotal, platformFee, paymentMint } = row.original;
+          const metadata = ACCEPTED_MINTS_METADATA.get(paymentMint);
+
+          if (!metadata) {
+            throw new Error(`Metadata not found for mint: ${paymentMint}`);
+          }
+
+          return (
+            <div className="flex items-center gap-x-2">
+              <span className="truncate">
+                {atomicToUsd(paymentSubtotal + platformFee)}
+              </span>
+              <Image
+                src={metadata.image}
+                alt={metadata.name}
+                width={20}
+                height={20}
+                className="flex-shrink-0"
+              />
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'timestamp',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 hover:bg-transparent"
+          >
+            Created At
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <TimestampTooltip timestamp={row.original.timestamp} />
+        ),
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <Button
+            asChild
+            size={'icon'}
+            type="button"
+            variant={'ghost'}
+            className="h-fit w-fit"
+          >
+            <Link href={getAccountLink(row.original.publicKey)} target="_blank">
+              <SquareArrowOutUpRight />
+            </Link>
+          </Button>
+        ),
+        enableSorting: false,
+      },
+    ],
+    [showTotalTooltip]
   );
 
-  useEffect(() => {
-    if (allOrdersData && allItemsData) {
-      const sortedOrders = allOrdersData
-        .filter((order) => {
-          return tabValue === 'all'
-            ? true
-            : // @ts-expect-error status is a DecodeEnum but is actually a string
-              order.status === tabValue;
-        })
-        .filter((order) => {
-          const item = allItemsData?.find(
-            ({ publicKey }) => publicKey === order.item
-          );
-
-          if (!item) {
-            throw new Error('Matching item not found for order.');
-          }
-
-          return item.name.toLowerCase().includes(searchValue.toLowerCase());
-        })
-        .sort((a, b) => {
-          switch (activeSortColumn) {
-            case SortOption.Amount:
-              return sortAmountAsc ? a.amount - b.amount : b.amount - a.amount;
-
-            case SortOption.Total:
-              const totalA = a.paymentSubtotal + a.platformFee;
-              const totalB = b.paymentSubtotal + b.platformFee;
-              return sortTotalAsc ? totalA - totalB : totalB - totalA;
-
-            case SortOption.Date:
-              return sortDateAsc
-                ? a.timestamp - b.timestamp
-                : b.timestamp - a.timestamp;
-
-            case SortOption.Name:
-            default:
-              const itemA = allItemsData?.find(
-                ({ publicKey }) => publicKey === a.item
-              );
-              const itemB = allItemsData?.find(
-                ({ publicKey }) => publicKey === b.item
-              );
-
-              if (!itemA || !itemB) {
-                throw new Error('Matching item not found for order.');
-              }
-
-              return sortNameAsc
-                ? itemA.name.localeCompare(itemB.name)
-                : itemB.name.localeCompare(itemA.name);
-          }
-        });
-
-      setSortedOrders(sortedOrders ?? []);
-    }
-  }, [
-    allOrdersData,
-    allItemsData,
-    tabValue,
-    searchValue,
-    sortNameAsc,
-    sortAmountAsc,
-    sortTotalAsc,
-    sortDateAsc,
-    activeSortColumn,
-  ]);
+  const table = useReactTable({
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
 
   return (
     <Tabs
@@ -131,84 +280,74 @@ export function OrderTable({
           </TabsTrigger>
         ))}
       </TabsList>
+
       <Input
-        placeholder="Search..."
+        placeholder="Search items..."
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
       />
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>Status</TableHead>
-            <TableHead>
-              <SortButton
-                onClick={() => {
-                  setActiveSortColumn(SortOption.Name);
-                  setSortNameAsc(!sortNameAsc);
-                }}
-                state={sortNameAsc}
-              >
-                Item
-              </SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton
-                onClick={() => {
-                  setActiveSortColumn(SortOption.Amount);
-                  setSortAmountAsc(!sortAmountAsc);
-                }}
-                state={sortAmountAsc}
-              >
-                Amount
-              </SortButton>
-            </TableHead>
-            <TableHead className="flex items-center gap-2">
-              <SortButton
-                onClick={() => {
-                  setActiveSortColumn(SortOption.Total);
-                  setSortTotalAsc(!sortTotalAsc);
-                }}
-                state={sortTotalAsc}
-              >
-                Total
-              </SortButton>
-              {showTotalTooltip && (
-                <InfoTooltip text="A small additional platform fee is applied on top of each order." />
-              )}
-            </TableHead>
-            <TableHead>
-              <SortButton
-                onClick={() => {
-                  setActiveSortColumn(SortOption.Date);
-                  setSortDateAsc(!sortDateAsc);
-                }}
-                state={sortDateAsc}
-              >
-                Created At
-              </SortButton>
-            </TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isFetching ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center">
-                Loading...
-              </TableCell>
-            </TableRow>
-          ) : allItemsData && sortedOrders.length ? (
-            sortedOrders.map(sortedOrdersMapper)
-          ) : (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center">
-                No orders found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <p className="muted-text text-sm">{sortedOrders.length} item(s) found.</p>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    style={{ width: header.getSize() }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isFetching ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: cell.column.getSize() }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  No orders found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <p className="muted-text text-sm">
+        {table.getRowModel().rows.length} item(s) found.
+      </p>
     </Tabs>
   );
 }

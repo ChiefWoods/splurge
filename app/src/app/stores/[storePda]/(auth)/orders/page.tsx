@@ -2,7 +2,6 @@
 
 import { UpdateOrderDialog } from '@/components/formDialogs/UpdateOrderDialog';
 import { OrderTable } from '@/components/OrderTable';
-import { OrderTableRow } from '@/components/OrderTableRow';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrder } from '@/providers/OrderProvider';
@@ -37,70 +36,45 @@ export default function Page() {
         isFetching={
           allOrdersIsMutating || allItemsIsMutating || allShoppersIsMutating
         }
-        sortedOrdersMapper={({
-          amount,
-          item: itemPda,
-          paymentMint,
-          paymentSubtotal,
-          platformFee,
-          publicKey: orderPda,
-          status,
-          shopper,
-          timestamp,
-        }) => {
-          const orderItem = allItemsData?.find(
-            ({ publicKey }) => publicKey === itemPda
-          );
+        statusRenderer={(order) => {
+          // @ts-expect-error status is a DecodeEnum but is actually a string
+          if (order.status === 'pending') {
+            const orderItem = allItemsData?.find(
+              ({ publicKey }) => publicKey === order.item
+            );
 
-          if (!orderItem) {
-            throw new Error('Matching item not found for order.');
+            if (!orderItem) {
+              throw new Error('Matching item not found for order.');
+            }
+
+            const orderShopper = allShoppersData?.find(
+              ({ publicKey }) => publicKey === order.shopper
+            );
+
+            if (!orderShopper) {
+              throw new Error('Matching shopper not found for order.');
+            }
+
+            return (
+              <UpdateOrderDialog
+                address={orderShopper.address}
+                amount={order.amount}
+                image={orderItem.image}
+                name={orderItem.name}
+                status={order.status}
+                orderPda={order.publicKey}
+                paymentSubtotal={order.paymentSubtotal}
+                orderTimestamp={order.timestamp}
+                itemPda={order.item}
+                paymentMint={order.paymentMint}
+                storePda={storePda}
+                authority={orderShopper.authority}
+              />
+            );
+          } else {
+            // @ts-expect-error status is a DecodeEnum but is actually a string
+            return <StatusBadge status={order.status} />;
           }
-
-          const orderShopper = allShoppersData?.find(
-            ({ publicKey }) => publicKey === shopper
-          );
-
-          if (!orderShopper) {
-            throw new Error('Matching shopper not found for order.');
-          }
-
-          return (
-            <OrderTableRow
-              key={orderPda}
-              amount={amount}
-              firstCell={
-                <>
-                  {/* @ts-expect-error status is a DecodeEnum but is actually a string */}
-                  {status === 'pending' ? (
-                    <UpdateOrderDialog
-                      address={orderShopper.address}
-                      amount={amount}
-                      image={orderItem.image}
-                      name={orderItem.name}
-                      status={status}
-                      orderPda={orderPda}
-                      paymentSubtotal={paymentSubtotal}
-                      orderTimestamp={timestamp}
-                      itemPda={itemPda}
-                      paymentMint={paymentMint}
-                      storePda={storePda}
-                      authority={orderShopper.authority}
-                    />
-                  ) : (
-                    // @ts-expect-error status is a DecodeEnum but is actually a string
-                    <StatusBadge status={status} />
-                  )}
-                </>
-              }
-              itemImage={orderItem.image}
-              itemName={orderItem.name}
-              orderPda={orderPda}
-              paymentMint={paymentMint}
-              paymentSubtotal={paymentSubtotal}
-              platformFee={platformFee}
-              timestamp={timestamp}
-            />
-          );
         }}
       />
     </section>
