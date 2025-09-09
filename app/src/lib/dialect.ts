@@ -142,12 +142,6 @@ export async function alertOrderUpdate({
       : parsedStatus === 'cancelled'
         ? 'cancelled'
         : 'completed';
-  const notificationTypeId =
-    parsedStatus === 'shipping'
-      ? '481ecda0-6845-4ad6-9f88-bb5d08c6b92f'
-      : parsedStatus === 'cancelled'
-        ? '19369f5b-6f8b-4b08-b794-b73db3325778'
-        : '7f8e2290-6002-4266-921f-f5fe3a399ce6';
 
   await dapp.messages.send({
     title: `Order ${titleEnding}`,
@@ -163,7 +157,7 @@ Order Details:
 
 Track your orders in your dashboard.`,
     recipient: shopperAuthority,
-    notificationTypeId,
+    notificationTypeId: '481ecda0-6845-4ad6-9f88-bb5d08c6b92f',
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
     actionsV2: {
       type: DappMessageActionType.LINK,
