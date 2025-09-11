@@ -1,0 +1,8 @@
+[program]
+name = "splurge"
+version = "0.1.0"
+program_id = "SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd"
+network = "devnet"
+description = "On-chain e-commerce platform"
+repository = "https://github.com/ChiefWoods/splurge"
+authority_keypair = "splurge-wallet.json"
