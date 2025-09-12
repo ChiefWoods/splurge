@@ -8,7 +8,7 @@ import { useShopper } from '@/providers/ShopperProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { useMemo } from 'react';
 import { Keypair } from '@solana/web3.js';
-import { getDicebearEndpoint } from '@/lib/api';
+import { getDicebearEndpoint } from '@/lib/dicebear';
 import { DialectNotification } from './DialectNotification';
 import { UnifiedWalletButton, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
