@@ -1,16 +1,10 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import {
-  CONNECTION,
-  SPLURGE_PROGRAM,
-  TASK_QUEUE,
-  TUKTUK_PROGRAM,
-} from './constants';
+import { SPLURGE_PROGRAM, TASK_QUEUE, TUKTUK_PROGRAM } from './constants';
 import {
   CreateReviewArgs,
   InitializeShopperArgs,
   InitializeStoreArgs,
   ListItemArgs,
-  OrderStatus,
   UpdateItemArgs,
 } from '../types/accounts';
 import { BN } from '@coral-xyz/anchor';

@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function Error({
   error,
