@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'programs/**'
+      - 'tests/**'
+      - 'Anchor.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'package.json'
+      - 'bun.lockb'
 
 env:
   SOLANA_VERSION: '2.1.0'
