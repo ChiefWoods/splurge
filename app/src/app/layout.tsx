@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Splurge',
-  description: 'Splurge on Solana',
+  description: 'On-chain e-commerce platform on Solana.',
 };
 
 export default function RootLayout({
