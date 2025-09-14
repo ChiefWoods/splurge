@@ -15,7 +15,7 @@ import {
 import { getStorePda } from './pda';
 import { PublicKey } from '@solana/web3.js';
 import { truncateAddress } from './utils';
-import { OrderStatus } from '@/types/accounts';
+import { OrderStatus, parseEnum } from '@/types/accounts';
 
 const environment: DialectCloudEnvironment = 'production';
 
@@ -129,7 +129,7 @@ export async function alertOrderUpdate({
   orderTimestamp: number;
   status: OrderStatus;
 }) {
-  const parsedStatus = Object.keys(status)[0];
+  const parsedStatus = parseEnum(status);
   const titleEnding =
     parsedStatus === 'shipping'
       ? 'Shipped'

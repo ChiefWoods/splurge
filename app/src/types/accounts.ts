@@ -73,7 +73,7 @@ export interface ParsedReview extends ParsedProgramAccount {
   text: string;
 }
 
-function parseEnum<T>(field: object): T {
+export function parseEnum<T>(field: object): T {
   return Object.keys(field)[0] as T;
 }
 

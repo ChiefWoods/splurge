@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import { OrderStatus } from '@/types/accounts';
+import { OrderStatus, parseEnum } from '@/types/accounts';
 import Image from 'next/image';
 import { Button } from '../ui/button';
 import { Pencil, Truck, X } from 'lucide-react';
@@ -106,7 +106,7 @@ export function UpdateOrderDialog({
 
           const tx = await buildTx(
             [
-              Object.keys(status)[0] === 'shipping'
+              parseEnum(status) === 'shipping'
                 ? await shipOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
@@ -130,7 +130,7 @@ export function UpdateOrderDialog({
 
           await signMessage(
             new TextEncoder().encode(
-              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(Object.keys(status)[0])}' status.`
+              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(parseEnum(status))}' status.`
             )
           );
 
