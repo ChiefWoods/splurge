@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   try {
     if (!pdas.length) {
-      let reviews = await fetchAllReviews([]);
+      let reviews = await fetchAllReviews();
 
       // filter for reviews with a matching order PDA
       if (itemPda) {

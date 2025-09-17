@@ -28,7 +28,7 @@ export async function fetchConfig(): Promise<ParsedConfig | null> {
 }
 
 export async function fetchAllItems(
-  filters: GetProgramAccountsFilter[]
+  filters: GetProgramAccountsFilter[] = []
 ): Promise<ParsedItem[]> {
   const itemAccs = await SPLURGE_PROGRAM.account.item.all(filters);
 
@@ -57,7 +57,7 @@ export async function fetchItem(pda: string): Promise<ParsedItem | null> {
 }
 
 export async function fetchAllOrders(
-  filters: GetProgramAccountsFilter[]
+  filters: GetProgramAccountsFilter[] = []
 ): Promise<ParsedOrder[]> {
   const orderAccs = await SPLURGE_PROGRAM.account.order.all(filters);
 
@@ -86,7 +86,7 @@ export async function fetchOrder(pda: string): Promise<ParsedOrder | null> {
 }
 
 export async function fetchAllReviews(
-  filters: GetProgramAccountsFilter[]
+  filters: GetProgramAccountsFilter[] = []
 ): Promise<ParsedReview[]> {
   const reviewAccs = await SPLURGE_PROGRAM.account.review.all(filters);
 
@@ -114,8 +114,10 @@ export async function fetchReview(pda: string): Promise<ParsedReview | null> {
   return reviewAcc ? { publicKey: pda, ...parseReview(reviewAcc) } : null;
 }
 
-export async function fetchAllShoppers(): Promise<ParsedShopper[]> {
-  const shopperAccs = await SPLURGE_PROGRAM.account.shopper.all();
+export async function fetchAllShoppers(
+  filters: GetProgramAccountsFilter[] = []
+): Promise<ParsedShopper[]> {
+  const shopperAccs = await SPLURGE_PROGRAM.account.shopper.all(filters);
 
   return shopperAccs.map(({ account, publicKey }) => {
     return {
@@ -141,8 +143,10 @@ export async function fetchShopper(pda: string): Promise<ParsedShopper | null> {
   return shopperAcc ? { publicKey: pda, ...parseShopper(shopperAcc) } : null;
 }
 
-export async function fetchAllStores(): Promise<ParsedStore[]> {
-  const storeAccs = await SPLURGE_PROGRAM.account.store.all();
+export async function fetchAllStores(
+  filters: GetProgramAccountsFilter[] = []
+): Promise<ParsedStore[]> {
+  const storeAccs = await SPLURGE_PROGRAM.account.store.all(filters);
 
   return storeAccs.map(({ account, publicKey }) => {
     return {
