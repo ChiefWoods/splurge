@@ -267,7 +267,7 @@ export function UpdateOrderDialog({
               Cancel
             </Button>
             <Button
-              onClick={() => onSubmit(ParsedOrderStatus.Shipping)}
+              onClick={() => onSubmit('shipping')}
               disabled={isSubmitting}
               className="bg-completed hover:bg-completed-hover"
             >
@@ -275,7 +275,7 @@ export function UpdateOrderDialog({
               Shipped
             </Button>
             <Button
-              onClick={() => onSubmit(ParsedOrderStatus.Cancelled)}
+              onClick={() => onSubmit('cancelled')}
               disabled={isSubmitting}
               className="bg-cancelled hover:bg-cancelled-hover"
             >

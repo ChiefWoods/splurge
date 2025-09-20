@@ -1,6 +1,7 @@
 import { BN, IdlAccounts, IdlTypes } from '@coral-xyz/anchor';
 import { Splurge } from './splurge';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { ExtractDefinedKeys } from './generators';
 
 type Config = IdlAccounts<Splurge>['config'];
 type Shopper = IdlAccounts<Splurge>['shopper'];
@@ -9,18 +10,14 @@ type Item = IdlAccounts<Splurge>['item'];
 type Order = IdlAccounts<Splurge>['order'];
 type Review = IdlAccounts<Splurge>['review'];
 type AcceptedMint = IdlTypes<Splurge>['acceptedMint'];
+export type OrderStatus = IdlTypes<Splurge>['orderStatus'];
 export type InitializeShopperArgs = IdlTypes<Splurge>['initializeShopperArgs'];
 export type InitializeStoreArgs = IdlTypes<Splurge>['initializeStoreArgs'];
 export type ListItemArgs = IdlTypes<Splurge>['listItemArgs'];
 export type UpdateItemArgs = IdlTypes<Splurge>['updateItemArgs'];
 export type CreateReviewArgs = IdlTypes<Splurge>['createReviewArgs'];
 
-export enum ParsedOrderStatus {
-  Pending = 'pending',
-  Shipping = 'shipping',
-  Completed = 'completed',
-  Cancelled = 'cancelled',
-}
+export type ParsedOrderStatus = ExtractDefinedKeys<OrderStatus>;
 
 export interface ParsedProgramAccount {
   publicKey: string;
