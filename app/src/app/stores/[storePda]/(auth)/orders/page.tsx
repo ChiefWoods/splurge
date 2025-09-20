@@ -37,7 +37,6 @@ export default function Page() {
           allOrdersIsMutating || allItemsIsMutating || allShoppersIsMutating
         }
         statusRenderer={(order) => {
-          // @ts-expect-error status is a DecodeEnum but is actually a string
           if (order.status === 'pending') {
             const orderItem = allItemsData?.find(
               ({ publicKey }) => publicKey === order.item
@@ -72,7 +71,6 @@ export default function Page() {
               />
             );
           } else {
-            // @ts-expect-error status is a DecodeEnum but is actually a string
             return <StatusBadge status={order.status} />;
           }
         }}

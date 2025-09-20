@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import { OrderStatus, parseEnum } from '@/types/accounts';
+import { ParsedOrderStatus } from '@/types/accounts';
 import Image from 'next/image';
 import { Button } from '../ui/button';
 import { Pencil, Truck, X } from 'lucide-react';
@@ -54,7 +54,7 @@ export function UpdateOrderDialog({
   image: string;
   amount: number;
   address: string;
-  status: string;
+  status: ParsedOrderStatus;
   orderPda: string;
   orderTimestamp: number;
   paymentSubtotal: number;
@@ -73,7 +73,7 @@ export function UpdateOrderDialog({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const onSubmit = useCallback(
-    (status: OrderStatus) => {
+    (status: ParsedOrderStatus) => {
       toast.promise(
         async () => {
           if (!signMessage) {
@@ -106,7 +106,7 @@ export function UpdateOrderDialog({
 
           const tx = await buildTx(
             [
-              parseEnum(status) === 'shipping'
+              status === 'shipping'
                 ? await shipOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
@@ -130,7 +130,7 @@ export function UpdateOrderDialog({
 
           await signMessage(
             new TextEncoder().encode(
-              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(parseEnum(status))}' status.`
+              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(status)}' status.`
             )
           );
 
@@ -267,7 +267,7 @@ export function UpdateOrderDialog({
               Cancel
             </Button>
             <Button
-              onClick={() => onSubmit({ shipping: {} })}
+              onClick={() => onSubmit(ParsedOrderStatus.Shipping)}
               disabled={isSubmitting}
               className="bg-completed hover:bg-completed-hover"
             >
@@ -275,7 +275,7 @@ export function UpdateOrderDialog({
               Shipped
             </Button>
             <Button
-              onClick={() => onSubmit({ cancelled: {} })}
+              onClick={() => onSubmit(ParsedOrderStatus.Cancelled)}
               disabled={isSubmitting}
               className="bg-cancelled hover:bg-cancelled-hover"
             >

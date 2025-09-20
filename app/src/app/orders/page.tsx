@@ -34,7 +34,6 @@ export default function Page() {
           allItemsData={allItemsData}
           allOrdersData={allOrdersData}
           isFetching={allOrdersIsMutating || allItemsIsMutating}
-          // @ts-expect-error status is a DecodeEnum but is actually a string
           statusRenderer={(order) => <StatusBadge status={order.status} />}
           showTotalTooltip={true}
         />

@@ -1,19 +1,19 @@
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 import { ReactNode } from 'react';
+import { cva } from 'class-variance-authority';
+import { ParsedOrderStatus } from '@/types/accounts';
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'pending':
-      return 'bg-pending hover:bg-pending';
-    case 'shipping':
-      return 'bg-shipping hover:bg-shipping';
-    case 'completed':
-      return 'bg-completed hover:bg-completed';
-    case 'cancelled':
-      return 'bg-cancelled hover:bg-cancelled';
-  }
-}
+const badgeVariants = cva('flex w-fit items-center gap-2', {
+  variants: {
+    status: {
+      pending: 'bg-pending hover:bg-pending',
+      shipping: 'bg-shipping hover:bg-shipping',
+      completed: 'bg-completed hover:bg-completed',
+      cancelled: 'bg-cancelled hover:bg-cancelled',
+    },
+  },
+});
 
 export function StatusBadge({
   status,
@@ -21,18 +21,14 @@ export function StatusBadge({
   onClick,
   children,
 }: {
-  status: string;
+  status: ParsedOrderStatus;
   className?: string;
   onClick?: () => void;
   children?: ReactNode;
 }) {
   return (
     <Badge
-      className={cn(
-        getStatusColor(status),
-        className,
-        'flex w-fit items-center gap-2'
-      )}
+      className={cn(badgeVariants({ status }), className)}
       onClick={onClick}
     >
       {capitalizeFirstLetter(status)}

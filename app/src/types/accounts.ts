@@ -9,12 +9,18 @@ type Item = IdlAccounts<Splurge>['item'];
 type Order = IdlAccounts<Splurge>['order'];
 type Review = IdlAccounts<Splurge>['review'];
 type AcceptedMint = IdlTypes<Splurge>['acceptedMint'];
-export type OrderStatus = IdlTypes<Splurge>['orderStatus'];
 export type InitializeShopperArgs = IdlTypes<Splurge>['initializeShopperArgs'];
 export type InitializeStoreArgs = IdlTypes<Splurge>['initializeStoreArgs'];
 export type ListItemArgs = IdlTypes<Splurge>['listItemArgs'];
 export type UpdateItemArgs = IdlTypes<Splurge>['updateItemArgs'];
 export type CreateReviewArgs = IdlTypes<Splurge>['createReviewArgs'];
+
+export enum ParsedOrderStatus {
+  Pending = 'pending',
+  Shipping = 'shipping',
+  Completed = 'completed',
+  Cancelled = 'cancelled',
+}
 
 export interface ParsedProgramAccount {
   publicKey: string;
@@ -59,7 +65,7 @@ export interface ParsedOrder extends ParsedProgramAccount {
   shopper: string;
   item: string;
   timestamp: number;
-  status: OrderStatus;
+  status: ParsedOrderStatus;
   amount: number;
   paymentSubtotal: number;
   platformFee: number;
@@ -170,7 +176,7 @@ export function parseOrder({
     shopper: parsePublicKey(shopper),
     item: parsePublicKey(item),
     timestamp: parseBN(timestamp),
-    status: parseEnum<OrderStatus>(status),
+    status: parseEnum<ParsedOrderStatus>(status),
     amount,
     paymentSubtotal: parseBN(paymentSubtotal),
     platformFee: parseBN(platformFee),

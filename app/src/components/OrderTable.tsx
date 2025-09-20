@@ -81,7 +81,6 @@ export function OrderTable({
       })
       .filter((order) => {
         if (tabValue !== 'all') {
-          // @ts-expect-error status is a DecodeEnum but is actually a string
           if (order.status !== tabValue) return false;
         }
 

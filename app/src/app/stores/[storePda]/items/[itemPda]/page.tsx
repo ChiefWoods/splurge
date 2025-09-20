@@ -57,7 +57,6 @@ export default function Page() {
         (order) =>
           order.item === itemPda &&
           order.shopper === getShopperPda(publicKey).toBase58() &&
-          // @ts-expect-error status is a DecodeEnum but is actually a string
           order.status === 'completed'
       );
 
