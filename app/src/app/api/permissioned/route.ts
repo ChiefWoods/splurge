@@ -1,7 +1,6 @@
 import { VersionedTransaction } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_KEYPAIR } from '../constants';
-import { CONNECTION } from '@/lib/constants';
+import { ADMIN_KEYPAIR, CONNECTION } from '@/lib/solana';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { validateProgramIx } from '@/lib/utils';
 

@@ -1,6 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
-import { MAX_ITEM_NAME_LENGTH, SPLURGE_PROGRAM } from './constants';
+import { MAX_ITEM_NAME_LENGTH } from './constants';
 import { BN } from '@coral-xyz/anchor';
+import { SPLURGE_PROGRAM } from './solana-client';
 
 export function getConfigPda(): PublicKey {
   return PublicKey.findProgramAddressSync(

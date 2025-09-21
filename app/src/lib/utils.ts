@@ -1,11 +1,9 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import {
-  DISCRIMINATOR_SIZE,
-  MINT_DECIMALS,
-  SPLURGE_PROGRAM,
-} from './constants';
+import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 import { TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { MINT_DECIMALS } from './constants';
+import { SPLURGE_PROGRAM } from './solana-client';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

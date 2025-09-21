@@ -1,6 +1,6 @@
 'use client';
 
-import { CONNECTION } from '@/lib/constants';
+import { CONNECTION } from '@/lib/solana-client';
 import { WebUploader } from '@irys/web-upload';
 import { WebSolana } from '@irys/web-upload-solana';
 import BaseWebIrys from '@irys/web-upload/esm/base';

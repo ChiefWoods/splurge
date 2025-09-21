@@ -1,20 +1,4 @@
 import { VersionedTransaction } from '@solana/web3.js';
-import { getDicebearEndpoint } from './dicebear';
-
-export async function getDicebearFile(
-  type: string,
-  seed: string = ''
-): Promise<File> {
-  const res = await fetch(`${getDicebearEndpoint(type)}?seed=${seed}`, {
-    headers: {
-      'Content-Type': 'image/jpeg',
-    },
-  });
-
-  const file = await res.blob();
-
-  return new File([file], seed, { type: file.type });
-}
 
 export async function wrappedFetch(url: string) {
   const res = await fetch(url);

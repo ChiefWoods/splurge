@@ -2,7 +2,7 @@ import { Button } from './ui/button';
 import { SquareArrowOutUpRight } from 'lucide-react';
 import { truncateAddress } from '@/lib/utils';
 import Link from 'next/link';
-import { getAccountLink } from '@/lib/solana-helpers';
+import { getAccountLink } from '@/lib/solana-client';
 
 export function AccountLinkText({
   prefix,

@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { toast } from 'sonner';
 import { useConnection } from '@solana/wallet-adapter-react';
 import Image from 'next/image';

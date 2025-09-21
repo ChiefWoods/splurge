@@ -1,5 +1,9 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { SPLURGE_PROGRAM, TASK_QUEUE, TUKTUK_PROGRAM } from './constants';
+import {
+  SPLURGE_PROGRAM,
+  TASK_QUEUE,
+  TUKTUK_PROGRAM,
+} from '@/lib/solana-client';
 import {
   CreateReviewArgs,
   InitializeShopperArgs,

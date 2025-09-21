@@ -6,7 +6,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import {
@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { z } from 'zod';
-import { ACCEPTED_MINTS_METADATA, MINT_DECIMALS } from '@/lib/constants';
+import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
@@ -51,6 +51,7 @@ import { MintIcon } from '../MintIcon';
 import { usePyth } from '@/providers/PythProvider';
 import { alertNewOrders, alertOutOfStock } from '@/lib/dialect';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { MINT_DECIMALS } from '@/lib/constants';
 
 export function CheckoutDialog({
   name,

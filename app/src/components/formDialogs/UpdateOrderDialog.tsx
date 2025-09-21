@@ -17,7 +17,7 @@ import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { cancelOrderIx, shipOrderIx } from '@/lib/instructions';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';

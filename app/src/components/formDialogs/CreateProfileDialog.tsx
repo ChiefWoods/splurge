@@ -29,9 +29,9 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { createShopperIx } from '@/lib/instructions';
-import { getDicebearFile } from '@/lib/api';
+import { DicebearStyles, getDicebearFile } from '@/lib/dicebear';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useShopper } from '@/providers/ShopperProvider';
 import { getShopperPda } from '@/lib/pda';
@@ -67,7 +67,10 @@ export function CreateProfileDialog() {
           setIsUploading(true);
           const imageUri = await upload(
             data.image ??
-              (await getDicebearFile('shopper', publicKey.toBase58()))
+              (await getDicebearFile(
+                DicebearStyles.Shopper,
+                publicKey.toBase58()
+              ))
           );
 
           return { imageUri, publicKey };

@@ -3,7 +3,7 @@
 import '@dialectlabs/react-ui/index.css';
 import { DialectSolanaSdk } from '@dialectlabs/react-sdk-blockchain-solana';
 import { NotificationsButton } from '@dialectlabs/react-ui';
-import { SPLURGE_PROGRAM } from '@/lib/constants';
+import { SPLURGE_PROGRAM } from '@/lib/solana-client';
 import { useMemo } from 'react';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 

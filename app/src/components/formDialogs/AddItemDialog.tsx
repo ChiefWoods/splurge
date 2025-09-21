@@ -29,9 +29,9 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { Textarea } from '../ui/textarea';
-import { getDicebearFile } from '@/lib/api';
+import { DicebearStyles, getDicebearFile } from '@/lib/dicebear';
 import { listItemIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItem } from '@/providers/ItemProvider';
@@ -74,7 +74,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
           const imageUri = await upload(
             data.image ??
               (await getDicebearFile(
-                'item',
+                DicebearStyles.Item,
                 publicKey.toBase58() + new Date().toString()
               ))
           );

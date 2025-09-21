@@ -10,10 +10,10 @@ import useSWRMutation, {
 import useSWR, { KeyedMutator } from 'swr';
 import { getStorePda } from '@/lib/pda';
 import { useConfig } from './ConfigProvider';
-import { CONNECTION } from '@/lib/constants';
 import { PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { CONNECTION } from '@/lib/solana-client';
 
 interface StoreTokenAccount {
   mint: string;

@@ -15,7 +15,7 @@ import {
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { withdrawEarningsIx } from '@/lib/instructions';
 import { getStorePda } from '@/lib/pda';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStore } from '@/providers/StoreProvider';

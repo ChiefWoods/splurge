@@ -1,15 +1,24 @@
-const DicebearStyles: Map<string, string> = new Map([
-  ['shopper', 'personas'],
-  ['store', 'shapes'],
-  ['item', 'icons'],
-]);
+export enum DicebearStyles {
+  Shopper = 'personas',
+  Store = 'shapes',
+  Item = 'icons',
+}
 
-export function getDicebearEndpoint(type: string) {
-  const style = DicebearStyles.get(type);
+export function getDicebearEndpoint(style: string, seed: string = ''): string {
+  return `${process.env.NEXT_PUBLIC_DICEBEAR_API}/${style}/svg?seed=${seed}`;
+}
 
-  if (!style) {
-    throw new Error('Invalid type');
-  }
+export async function getDicebearFile(
+  style: string,
+  seed: string = ''
+): Promise<File> {
+  const res = await fetch(getDicebearEndpoint(style, seed), {
+    headers: {
+      'Content-Type': 'image/jpeg',
+    },
+  });
 
-  return `${process.env.NEXT_PUBLIC_DICEBEAR_API}/${style}/svg`;
+  const file = await res.blob();
+
+  return new File([file], seed, { type: file.type });
 }

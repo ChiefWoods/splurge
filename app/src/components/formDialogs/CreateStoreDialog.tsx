@@ -27,12 +27,12 @@ import { ImageInput } from '@/components/ImageInput';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-helpers';
+import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { getDicebearFile } from '@/lib/api';
+import { DicebearStyles, getDicebearFile } from '@/lib/dicebear';
 import { useStore } from '@/providers/StoreProvider';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
@@ -66,7 +66,11 @@ export function CreateStoreDialog() {
 
           setIsUploading(true);
           const imageUri = await upload(
-            data.image ?? (await getDicebearFile('store', publicKey.toBase58()))
+            data.image ??
+              (await getDicebearFile(
+                DicebearStyles.Store,
+                publicKey.toBase58()
+              ))
           );
 
           return { imageUri, publicKey };

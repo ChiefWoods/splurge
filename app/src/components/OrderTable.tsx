@@ -29,7 +29,7 @@ import { InfoTooltip } from './InfoTooltip';
 import { TimestampTooltip } from './TimestampTooltip';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAccountLink } from '@/lib/solana-helpers';
+import { getAccountLink } from '@/lib/solana-client';
 import { SquareArrowOutUpRight } from 'lucide-react';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 

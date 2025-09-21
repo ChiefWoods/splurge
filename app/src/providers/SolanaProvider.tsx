@@ -7,7 +7,7 @@ import {
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { ReactNode, useMemo } from 'react';
-import { CLUSTER, CONNECTION } from '@/lib/constants';
+import { CLUSTER, CONNECTION } from '@/lib/solana-client';
 import { toast } from 'sonner';
 
 const metadata = {
