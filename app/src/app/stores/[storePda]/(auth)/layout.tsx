@@ -10,17 +10,17 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { storePda } = useParams<{ storePda: string }>();
   const router = useRouter();
   const { publicKey } = useUnifiedWallet();
-  const { storeData, storeIsMutating } = useStore();
+  const { storeData, storeLoading } = useStore();
 
   useEffect(() => {
     if (!publicKey) {
       router.replace('/');
     } else if (getStorePda(publicKey).toBase58() !== storePda) {
       router.replace('/');
-    } else if (!storeIsMutating && !storeData) {
+    } else if (!storeLoading && !storeData) {
       router.replace('/stores/create');
     }
-  }, [router, publicKey, storePda, storeData, storeIsMutating]);
+  }, [router, publicKey, storePda, storeData, storeLoading]);
 
   return <>{children}</>;
 }

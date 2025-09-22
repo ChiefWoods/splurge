@@ -4,12 +4,12 @@ import { CreateSection } from '@/components/CreateSection';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/Spinner';
 import { CreateStoreDialog } from '@/components/formDialogs/CreateStoreDialog';
-import { useStore } from '@/providers/StoreProvider';
 import { useEffect } from 'react';
+import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 
 export default function Page() {
   const router = useRouter();
-  const { personalStoreData, personalStoreIsLoading } = useStore();
+  const { personalStoreData, personalStoreLoading } = usePersonalStore();
 
   useEffect(() => {
     if (personalStoreData) {
@@ -17,7 +17,7 @@ export default function Page() {
     }
   }, [personalStoreData, router]);
 
-  if (personalStoreIsLoading) {
+  if (personalStoreLoading) {
     return <Spinner />;
   }
 

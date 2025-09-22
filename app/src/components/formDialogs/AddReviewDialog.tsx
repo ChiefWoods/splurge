@@ -33,7 +33,7 @@ import { Slider } from '../ui/slider';
 import { createReviewIx } from '@/lib/instructions';
 import { getReviewPda, getShopperPda } from '@/lib/pda';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useReview } from '@/providers/ReviewProvider';
+import { useReviews } from '@/providers/ReviewsProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 export function AddReviewDialog({
@@ -45,7 +45,7 @@ export function AddReviewDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
-  const { allReviewsTrigger } = useReview();
+  const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -89,32 +89,30 @@ export function AddReviewDialog({
         {
           loading: 'Waiting for signature...',
           success: async (signature) => {
-            await allReviewsTrigger(
-              { itemPda },
+            const newReview = {
+              publicKey: getReviewPda(new PublicKey(orderPda)).toBase58(),
+              order: orderPda,
+              rating: data.rating,
+              timestamp: Date.now() / 1000,
+              text: data.text,
+            };
+
+            await reviewsMutate(
+              (prev) => {
+                if (!prev) {
+                  throw new Error('Reviews should not be null.');
+                }
+
+                return [...prev, newReview];
+              },
               {
-                optimisticData: (prev) => {
-                  if (prev) {
-                    return [
-                      ...prev,
-                      {
-                        publicKey: getReviewPda(
-                          new PublicKey(orderPda)
-                        ).toBase58(),
-                        order: orderPda,
-                        rating: data.rating,
-                        timestamp: Date.now() / 1000,
-                        text: data.text,
-                      },
-                    ];
-                  } else {
-                    return [];
-                  }
-                },
+                revalidate: false,
               }
             );
-            form.reset();
-            setIsSubmitting(false);
+
             setIsOpen(false);
+            setIsSubmitting(false);
+            form.reset();
 
             return (
               <TransactionToast
@@ -131,15 +129,7 @@ export function AddReviewDialog({
         }
       );
     },
-    [
-      allReviewsTrigger,
-      connection,
-      form,
-      itemPda,
-      orderPda,
-      publicKey,
-      sendTransaction,
-    ]
+    [reviewsMutate, connection, form, orderPda, publicKey, sendTransaction]
   );
 
   return (

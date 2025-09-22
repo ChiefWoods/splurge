@@ -1,39 +1,25 @@
 'use client';
 
-import { getShopperPda } from '@/lib/pda';
-import { useItem } from '@/providers/ItemProvider';
-import { useOrder } from '@/providers/OrderProvider';
-import { useEffect } from 'react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { NoResultText } from '@/components/NoResultText';
 import { OrderTable } from '@/components/OrderTable';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useOrders } from '@/providers/OrdersProvider';
+import { useItems } from '@/providers/ItemsProvider';
 
 export default function Page() {
   const { publicKey } = useUnifiedWallet();
-  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
-  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
-
-  useEffect(() => {
-    if (!publicKey) return;
-
-    (async () => {
-      await allOrdersTrigger({
-        shopperPda: getShopperPda(publicKey).toBase58(),
-      });
-      await allItemsTrigger({});
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicKey]);
+  const { ordersData, ordersLoading } = useOrders();
+  const { itemsData, itemsLoading } = useItems();
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full text-start">My Orders</h2>
       {publicKey ? (
         <OrderTable
-          allItemsData={allItemsData}
-          allOrdersData={allOrdersData}
-          isFetching={allOrdersIsMutating || allItemsIsMutating}
+          itemsData={itemsData}
+          ordersData={ordersData}
+          isFetching={ordersLoading || itemsLoading}
           statusRenderer={(order) => <StatusBadge status={order.status} />}
           showTotalTooltip={true}
         />

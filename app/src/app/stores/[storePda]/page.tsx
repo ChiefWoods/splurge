@@ -13,39 +13,19 @@ import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { getStorePda } from '@/lib/pda';
-import { useItem } from '@/providers/ItemProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { atomicToUsd } from '@/lib/utils';
-import { PublicKey } from '@solana/web3.js';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useItems } from '@/providers/ItemsProvider';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useUnifiedWallet();
-  const { storeData, storeIsMutating, storeTrigger } = useStore();
-  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
-
-  useEffect(() => {
-    try {
-      new PublicKey(storePda);
-    } catch {
-      notFound();
-    }
-
-    (async () => {
-      await storeTrigger({ publicKey: storePda });
-      await allItemsTrigger({ storePda });
-
-      if (!storeIsMutating && !allItemsIsMutating && !storeData) {
-        notFound();
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storePda]);
+  const { storeData, storeLoading } = useStore();
+  const { itemsData, itemsLoading } = useItems();
 
   const buttons = [
     {
@@ -62,7 +42,7 @@ export default function Page() {
 
   return (
     <section className="main-section flex-1">
-      {storeIsMutating ? (
+      {storeLoading ? (
         <AccountSectionSkeleton />
       ) : (
         storeData && (
@@ -101,14 +81,14 @@ export default function Page() {
       <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
         <h2>Store Items</h2>
         <div className="flex w-full flex-1 flex-wrap gap-6">
-          {allItemsIsMutating || storeIsMutating ? (
+          {itemsLoading || storeLoading ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ItemCardSkeleton key={i} />
               ))}
             </>
-          ) : allItemsData?.length ? (
-            allItemsData.map(
+          ) : itemsData?.length ? (
+            itemsData.map(
               ({
                 publicKey: pda,
                 name,

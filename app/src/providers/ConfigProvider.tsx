@@ -7,7 +7,7 @@ import useSWR, { KeyedMutator } from 'swr';
 
 interface ConfigContextType {
   configData: ParsedConfig | undefined;
-  configIsLoading: boolean;
+  configLoading: boolean;
   configMutate: KeyedMutator<ParsedConfig>;
 }
 
@@ -22,7 +22,7 @@ export function useConfig() {
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const {
     data: configData,
-    isLoading: configIsLoading,
+    isLoading: configLoading,
     mutate: configMutate,
   } = useSWR(apiEndpoint, async (url) => {
     return (await wrappedFetch(url)).config as ParsedConfig;
@@ -32,7 +32,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     <ConfigContext.Provider
       value={{
         configData,
-        configIsLoading,
+        configLoading,
         configMutate,
       }}
     >

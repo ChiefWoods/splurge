@@ -12,9 +12,9 @@ import { Separator } from '@/components/ui/separator';
 import { getShopperPda, getStorePda } from '@/lib/pda';
 import { atomicToUsd } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
-import { useOrder } from '@/providers/OrderProvider';
-import { useReview } from '@/providers/ReviewProvider';
-import { useShopper } from '@/providers/ShopperProvider';
+import { useOrders } from '@/providers/OrdersProvider';
+import { useReviews } from '@/providers/ReviewsProvider';
+import { useShoppers } from '@/providers/ShoppersProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart } from 'lucide-react';
@@ -28,32 +28,23 @@ export default function Page() {
   }>();
   const { publicKey } = useUnifiedWallet();
   const [reviewOrderPda, setReviewOrderPda] = useState<string>('');
-  const { itemData, itemIsMutating, itemTrigger } = useItem();
-  const { storeData, storeIsMutating, storeTrigger } = useStore();
-  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
-  const { allReviewsData, allReviewsIsMutating, allReviewsTrigger } =
-    useReview();
-  const { allShoppersData, allShoppersIsMutating, allShoppersTrigger } =
-    useShopper();
+  const { itemData, itemLoading } = useItem();
+  const { storeData, storeLoading } = useStore();
+  const { ordersData, ordersLoading } = useOrders();
+  const { reviewsData, reviewsLoading } = useReviews();
+  const { shoppersData, shoppersLoading } = useShoppers();
 
   useEffect(() => {
     (async () => {
-      await itemTrigger({ publicKey: itemPda });
-      await storeTrigger({ publicKey: storePda });
-      await allOrdersTrigger({ storePda });
-      await allReviewsTrigger({ itemPda });
-      await allShoppersTrigger();
-
-      if ((!itemIsMutating && !itemData) || (!storeIsMutating && !storeData)) {
+      if ((!itemLoading && !itemData) || (!storeLoading && !storeData)) {
         notFound();
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicKey, storePda, itemPda]);
+  }, [itemLoading, itemData, storeLoading, storeData]);
 
   useEffect(() => {
-    if (publicKey && allOrdersData && allReviewsData) {
-      const completedShopperOrders = allOrdersData.filter(
+    if (publicKey && ordersData && reviewsData) {
+      const completedShopperOrders = ordersData.filter(
         (order) =>
           order.item === itemPda &&
           order.shopper === getShopperPda(publicKey).toBase58() &&
@@ -61,9 +52,7 @@ export default function Page() {
       );
 
       for (const order of completedShopperOrders) {
-        if (
-          !allReviewsData.find((review) => review.order === order.publicKey)
-        ) {
+        if (!reviewsData.find((review) => review.order === order.publicKey)) {
           setReviewOrderPda(order.publicKey);
           return;
         }
@@ -71,11 +60,11 @@ export default function Page() {
     }
 
     setReviewOrderPda('');
-  }, [publicKey, itemPda, allOrdersData, allReviewsData]);
+  }, [publicKey, itemPda, ordersData, reviewsData]);
 
   return (
     <section className="main-section flex-1">
-      {itemIsMutating ? (
+      {itemLoading ? (
         <AccountSectionSkeleton />
       ) : (
         itemData &&
@@ -129,48 +118,46 @@ export default function Page() {
           )}
         </div>
         <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
-          {allOrdersIsMutating ||
-          allShoppersIsMutating ||
-          allReviewsIsMutating ||
-          storeIsMutating ||
-          itemIsMutating ? (
+          {ordersLoading ||
+          shoppersLoading ||
+          reviewsLoading ||
+          storeLoading ||
+          itemLoading ? (
             <>
               {[...Array(3)].map((_, i) => (
                 <ReviewRowSkeleton key={i} />
               ))}
             </>
-          ) : allOrdersData && allShoppersData && allReviewsData?.length ? (
-            allReviewsData.map(
-              ({ publicKey, order, rating, timestamp, text }) => {
-                const reviewOrder = allOrdersData?.find(
-                  ({ publicKey }) => publicKey === order
-                );
+          ) : ordersData && shoppersData && reviewsData?.length ? (
+            reviewsData.map(({ publicKey, order, rating, timestamp, text }) => {
+              const reviewOrder = ordersData?.find(
+                ({ publicKey }) => publicKey === order
+              );
 
-                if (!reviewOrder) {
-                  throw new Error('Matching order not found for review.');
-                }
-
-                const shopper = allShoppersData?.find(
-                  (shopper) => shopper.publicKey === reviewOrder.shopper
-                );
-
-                if (!shopper) {
-                  throw new Error('Matching shopper not found for order.');
-                }
-
-                return (
-                  <ReviewRow
-                    key={publicKey}
-                    shopperPda={shopper.publicKey}
-                    shopperName={shopper.name}
-                    shopperImage={shopper.image}
-                    timestamp={timestamp}
-                    rating={rating}
-                    text={text}
-                  />
-                );
+              if (!reviewOrder) {
+                throw new Error('Matching order not found for review.');
               }
-            )
+
+              const shopper = shoppersData?.find(
+                (shopper) => shopper.publicKey === reviewOrder.shopper
+              );
+
+              if (!shopper) {
+                throw new Error('Matching shopper not found for order.');
+              }
+
+              return (
+                <ReviewRow
+                  key={publicKey}
+                  shopperPda={shopper.publicKey}
+                  shopperName={shopper.name}
+                  shopperImage={shopper.image}
+                  timestamp={timestamp}
+                  rating={rating}
+                  text={text}
+                />
+              );
+            })
           ) : (
             <NoResultText text="No reviews made." />
           )}

@@ -5,15 +5,11 @@ import { wrappedFetch } from '@/lib/api';
 import { getShopperPda } from '@/lib/pda';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
-import useSWRMutation, { TriggerWithoutArgs } from 'swr/mutation';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 
 interface ShopperContextType {
-  allShoppersData: ParsedShopper[] | undefined;
-  allShoppersIsMutating: boolean;
-  allShoppersTrigger: TriggerWithoutArgs<ParsedShopper[], any, string, never>;
   shopperData: ParsedShopper | undefined;
-  shopperIsLoading: boolean;
+  shopperLoading: boolean;
   shopperMutate: KeyedMutator<ParsedShopper>;
 }
 
@@ -31,34 +27,24 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
   const { publicKey } = useUnifiedWallet();
 
   const {
-    data: allShoppersData,
-    isMutating: allShoppersIsMutating,
-    trigger: allShoppersTrigger,
-  } = useSWRMutation(apiEndpoint, async (url) => {
-    return (await wrappedFetch(url)).shoppers as ParsedShopper[];
-  });
-
-  const {
     data: shopperData,
-    isLoading: shopperIsLoading,
+    isLoading: shopperLoading,
     mutate: shopperMutate,
   } = useSWR(
-    publicKey ? { url: apiEndpoint, publicKey } : null,
-    async ({ url, publicKey }) => {
-      return (
-        await wrappedFetch(`${url}?pda=${getShopperPda(publicKey).toBase58()}`)
-      ).shopper as ParsedShopper;
+    publicKey
+      ? { apiEndpoint, pda: getShopperPda(publicKey).toBase58() }
+      : null,
+    async ({ apiEndpoint, pda }) => {
+      return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
+        .shopper as ParsedShopper;
     }
   );
 
   return (
     <ShopperContext.Provider
       value={{
-        allShoppersData,
-        allShoppersIsMutating,
-        allShoppersTrigger,
         shopperData,
-        shopperIsLoading,
+        shopperLoading,
         shopperMutate,
       }}
     >

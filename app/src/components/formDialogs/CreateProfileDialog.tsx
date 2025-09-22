@@ -103,23 +103,22 @@ export function CreateProfileDialog() {
               {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
-                  setIsSubmitting(false);
-                  setIsOpen(false);
-                  form.reset();
-                  setImagePreview('');
+                  const newShopper = {
+                    address: data.address,
+                    authority: publicKey.toBase58(),
+                    image: imageUri,
+                    name: data.name,
+                    publicKey: getShopperPda(publicKey).toBase58(),
+                  };
 
-                  await shopperMutate(
-                    {
-                      address: data.address,
-                      authority: publicKey.toBase58(),
-                      image: imageUri,
-                      name: data.name,
-                      publicKey: getShopperPda(publicKey).toBase58(),
-                    },
-                    {
-                      revalidate: false,
-                    }
-                  );
+                  await shopperMutate(newShopper, {
+                    revalidate: false,
+                  });
+
+                  setIsOpen(false);
+                  setIsSubmitting(false);
+                  setImagePreview('');
+                  form.reset();
 
                   return (
                     <TransactionToast

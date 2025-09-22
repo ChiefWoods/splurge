@@ -32,7 +32,7 @@ import Image from 'next/image';
 import { updateItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useItem } from '@/providers/ItemProvider';
+import { useItems } from '@/providers/ItemsProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
@@ -56,7 +56,7 @@ export function UpdateItemDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
-  const { allItemsTrigger } = useItem();
+  const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -104,34 +104,35 @@ export function UpdateItemDialog({
         {
           loading: 'Waiting for signature...',
           success: async ({ signature, inventoryCount, price }) => {
-            await allItemsTrigger(
-              { storePda },
-              {
-                optimisticData: (prev) => {
-                  if (prev) {
-                    return prev.map((item) => {
-                      if (item.publicKey === itemPda) {
-                        return {
-                          ...item,
-                          price: Number(data.price.toFixed(2)),
-                          inventoryCount:
-                            item.inventoryCount - data.inventoryCount,
-                        };
-                      }
-                      return item;
-                    });
+            await itemsMutate(
+              (prev) => {
+                if (!prev) {
+                  throw new Error('Items should not be null.');
+                }
+
+                return prev.map((item) => {
+                  if (item.publicKey === itemPda) {
+                    return {
+                      ...item,
+                      price: Number(price.toFixed(2)),
+                      inventoryCount,
+                    };
                   } else {
-                    return [];
+                    return item;
                   }
-                },
+                });
+              },
+              {
+                revalidate: false,
               }
             );
+
+            setIsOpen(false);
+            setIsSubmitting(false);
             form.reset({
               inventoryCount,
               price,
             });
-            setIsSubmitting(false);
-            setIsOpen(false);
 
             return (
               <TransactionToast
@@ -149,7 +150,7 @@ export function UpdateItemDialog({
       );
     },
     [
-      allItemsTrigger,
+      itemsMutate,
       connection,
       form,
       itemPda,

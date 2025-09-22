@@ -2,12 +2,9 @@
 
 import { wrappedFetch } from '@/lib/api';
 import { ConfigProvider } from '@/providers/ConfigProvider';
-import { ItemProvider } from '@/providers/ItemProvider';
-import { OrderProvider } from '@/providers/OrderProvider';
-import { ReviewProvider } from '@/providers/ReviewProvider';
 import { ShopperProvider } from '@/providers/ShopperProvider';
 import { SolanaProvider } from '@/providers/SolanaProvider';
-import { StoreProvider } from '@/providers/StoreProvider';
+import { PersonalStoreProvider } from '@/providers/PersonalStoreProvider';
 import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import { TooltipProvider } from './ui/tooltip';
@@ -27,13 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <PythProvider>
             <ConfigProvider>
               <ShopperProvider>
-                <StoreProvider>
-                  <ItemProvider>
-                    <OrderProvider>
-                      <ReviewProvider>{children}</ReviewProvider>
-                    </OrderProvider>
-                  </ItemProvider>
-                </StoreProvider>
+                <PersonalStoreProvider>{children}</PersonalStoreProvider>
               </ShopperProvider>
             </ConfigProvider>
           </PythProvider>

@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
-import { useItem } from '@/providers/ItemProvider';
+import { useItems } from '@/providers/ItemsProvider';
 import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
@@ -34,7 +34,7 @@ export function DeleteItemDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
-  const { allItemsTrigger } = useItem();
+  const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,22 +70,23 @@ export function DeleteItemDialog({
         {
           loading: 'Waiting for signature...',
           success: async (signature) => {
-            await allItemsTrigger(
-              { storePda },
+            await itemsMutate(
+              (prev) => {
+                if (!prev) {
+                  throw new Error('Items should not be null.');
+                }
+
+                return prev.filter((item) => {
+                  return item.publicKey !== itemPda;
+                });
+              },
               {
-                optimisticData: (prev) => {
-                  if (prev) {
-                    return prev.filter((item) => {
-                      return item.publicKey !== itemPda;
-                    });
-                  } else {
-                    return [];
-                  }
-                },
+                revalidate: false,
               }
             );
-            setIsSubmitting(false);
+
             setIsOpen(false);
+            setIsSubmitting(false);
 
             return (
               <TransactionToast
@@ -102,7 +103,7 @@ export function DeleteItemDialog({
         }
       );
     },
-    [allItemsTrigger, connection, itemPda, publicKey, sendTransaction, storePda]
+    [itemsMutate, connection, itemPda, publicKey, sendTransaction, storePda]
   );
 
   return (

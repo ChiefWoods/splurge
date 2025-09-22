@@ -18,7 +18,7 @@ import { getStorePda } from '@/lib/pda';
 import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
-import { useStore } from '@/providers/StoreProvider';
+import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useConnection } from '@solana/wallet-adapter-react';
@@ -38,9 +38,9 @@ export default function Page() {
   const { publicKey, sendTransaction } = useUnifiedWallet();
   const {
     storeTokenAccountsData,
-    storeTokenAccountsIsLoading,
+    storeTokenAccountsLoading,
     storeTokenAccountsMutate,
-  } = useStore();
+  } = useStoreTokenAccount();
   const { pricesData, pricesIsLoading } = usePyth();
   const [balanceRows, setBalanceRows] = useState<RowBalance[]>([]);
   const [totalBalance, setTotalBalance] = useState<number>(0);
@@ -125,7 +125,17 @@ export default function Page() {
       {
         loading: 'Withdrawing...',
         success: async (signature) => {
-          await storeTokenAccountsMutate();
+          await storeTokenAccountsMutate((prev) => {
+            if (!prev) {
+              throw new Error('Store token accounts should not be null.');
+            }
+
+            return prev.map((account) => ({
+              ...account,
+              amount: 0,
+            }));
+          });
+
           setIsWithdrawing(false);
 
           return (
@@ -168,7 +178,7 @@ export default function Page() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {storeTokenAccountsIsLoading || pricesIsLoading ? (
+          {storeTokenAccountsLoading || pricesIsLoading ? (
             <TableRow>
               <TableCell colSpan={2} className="text-center">
                 Loading...

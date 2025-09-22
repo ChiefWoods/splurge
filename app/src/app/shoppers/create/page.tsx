@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 
 export default function Page() {
   const router = useRouter();
-  const { shopperData, shopperIsLoading } = useShopper();
+  const { shopperData, shopperLoading } = useShopper();
 
   useEffect(() => {
     if (shopperData) {
@@ -17,7 +17,7 @@ export default function Page() {
     }
   }, [shopperData, router]);
 
-  if (shopperIsLoading) {
+  if (shopperLoading) {
     return <Spinner />;
   }
 

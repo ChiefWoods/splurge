@@ -33,7 +33,7 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { createStoreIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { DicebearStyles, getDicebearFile } from '@/lib/dicebear';
-import { useStore } from '@/providers/StoreProvider';
+import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
@@ -41,7 +41,7 @@ import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 export function CreateStoreDialog() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
-  const { personalStoreMutate } = useStore();
+  const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -103,23 +103,22 @@ export function CreateStoreDialog() {
               {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
-                  setIsSubmitting(false);
-                  setIsOpen(false);
-                  form.reset();
-                  setImagePreview('');
+                  const newStore = {
+                    about: data.about,
+                    authority: publicKey.toBase58(),
+                    image: imageUri,
+                    name: data.name,
+                    publicKey: getStorePda(publicKey).toBase58(),
+                  };
 
-                  await personalStoreMutate(
-                    {
-                      about: data.about,
-                      authority: publicKey.toBase58(),
-                      image: imageUri,
-                      name: data.name,
-                      publicKey: getStorePda(publicKey).toBase58(),
-                    },
-                    {
-                      revalidate: false,
-                    }
-                  );
+                  await personalStoreMutate(newStore, {
+                    revalidate: false,
+                  });
+
+                  setIsOpen(false);
+                  setIsSubmitting(false);
+                  setImagePreview('');
+                  form.reset();
 
                   return (
                     <TransactionToast

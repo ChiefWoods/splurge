@@ -28,8 +28,8 @@ import {
   capitalizeFirstLetter,
   truncateAddress,
 } from '@/lib/utils';
-import { useOrder } from '@/providers/OrderProvider';
-import { useStore } from '@/providers/StoreProvider';
+import { useOrders } from '@/providers/OrdersProvider';
+import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { TransactionToast } from '../TransactionToast';
 import { getShopperPda } from '@/lib/pda';
 import { alertOrderUpdate } from '@/lib/dialect';
@@ -67,8 +67,8 @@ export function UpdateOrderDialog({
   const { signMessage } = useUnifiedWallet();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
-  const { personalStoreData } = useStore();
-  const { allOrdersTrigger } = useOrder();
+  const { personalStoreData } = usePersonalStore();
+  const { ordersMutate } = useOrders();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -140,38 +140,31 @@ export function UpdateOrderDialog({
 
           return {
             signature,
-            storePda: personalStoreData.publicKey,
             storeName: personalStoreData.name,
           };
         },
         {
           loading: 'Waiting for signature...',
-          success: async ({ signature, storePda, storeName }) => {
-            await allOrdersTrigger(
-              {
-                storePda,
-              },
-              {
-                optimisticData: (prev) => {
-                  if (prev) {
-                    return prev.map((order) => {
-                      if (order.publicKey === orderPda) {
-                        return {
-                          ...order,
-                          status,
-                        };
-                      }
-                      return order;
-                    });
-                  } else {
-                    return [];
-                  }
-                },
+          success: async ({ signature, storeName }) => {
+            await ordersMutate((prev) => {
+              if (!prev) {
+                throw new Error('Orders should not be null.');
               }
-            );
 
-            setIsSubmitting(false);
+              return prev.map((order) => {
+                if (order.publicKey === orderPda) {
+                  return {
+                    ...order,
+                    status,
+                  };
+                } else {
+                  return order;
+                }
+              });
+            });
+
             setIsOpen(false);
+            setIsSubmitting(false);
 
             const paymentMintSymbol =
               ACCEPTED_MINTS_METADATA.get(paymentMint)?.symbol;
@@ -208,7 +201,7 @@ export function UpdateOrderDialog({
       );
     },
     [
-      allOrdersTrigger,
+      ordersMutate,
       connection,
       configData,
       orderPda,

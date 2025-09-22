@@ -34,7 +34,7 @@ import { Textarea } from '../ui/textarea';
 import { DicebearStyles, getDicebearFile } from '@/lib/dicebear';
 import { listItemIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useItem } from '@/providers/ItemProvider';
+import { useItems } from '@/providers/ItemsProvider';
 import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
@@ -46,7 +46,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
   const { upload } = useIrysUploader();
-  const { allItemsTrigger } = useItem();
+  const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -111,36 +111,36 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
-                  await allItemsTrigger(
-                    { storePda },
+                  const newItem = {
+                    publicKey: getItemPda(
+                      new PublicKey(storePda),
+                      data.name
+                    ).toBase58(),
+                    store: storePda,
+                    price: data.price * 10 ** MINT_DECIMALS,
+                    inventoryCount: data.inventoryCount,
+                    name: data.name,
+                    image: imageUri,
+                    description: data.description,
+                  };
+
+                  await itemsMutate(
+                    (prev) => {
+                      if (!prev) {
+                        throw new Error('Items should not be null.');
+                      }
+
+                      return [...prev, newItem];
+                    },
                     {
-                      optimisticData: (prev) => {
-                        if (prev) {
-                          return [
-                            ...prev,
-                            {
-                              publicKey: getItemPda(
-                                new PublicKey(storePda),
-                                data.name
-                              ).toBase58(),
-                              store: storePda,
-                              price: data.price * 10 ** MINT_DECIMALS,
-                              inventoryCount: data.inventoryCount,
-                              name: data.name,
-                              image: imageUri,
-                              description: data.description,
-                            },
-                          ];
-                        } else {
-                          return [];
-                        }
-                      },
+                      revalidate: false,
                     }
                   );
-                  form.reset();
-                  setIsSubmitting(false);
+
                   setIsOpen(false);
+                  setIsSubmitting(false);
                   setImagePreview('');
+                  form.reset();
 
                   return (
                     <TransactionToast
@@ -173,7 +173,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       publicKey,
       connection,
       sendTransaction,
-      allItemsTrigger,
+      itemsMutate,
       storePda,
       form,
     ]

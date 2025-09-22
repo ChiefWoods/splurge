@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { useShopper } from '@/providers/ShopperProvider';
-import { useStore } from '@/providers/StoreProvider';
+import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { useMemo } from 'react';
 import { Keypair } from '@solana/web3.js';
 import { DialectNotification } from './DialectNotification';
@@ -14,8 +14,8 @@ import { DicebearStyles, getDicebearEndpoint } from '@/lib/dicebear';
 
 export function Header() {
   const { publicKey } = useUnifiedWallet();
-  const { shopperData, shopperIsLoading } = useShopper();
-  const { personalStoreData } = useStore();
+  const { shopperData, shopperLoading } = useShopper();
+  const { personalStoreData } = usePersonalStore();
 
   const avatarSeed = useMemo(() => {
     return publicKey?.toBase58() ?? Keypair.generate().publicKey.toBase58();
@@ -58,7 +58,7 @@ export function Header() {
           }
         >
           <Avatar>
-            {shopperIsLoading ? (
+            {shopperLoading ? (
               <Skeleton className="h-full w-full" />
             ) : (
               <AvatarImage

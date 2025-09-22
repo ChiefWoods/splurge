@@ -15,24 +15,24 @@ export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
   const router = useRouter();
   const { publicKey } = useUnifiedWallet();
-  const { shopperData, shopperIsLoading } = useShopper();
+  const { shopperData, shopperLoading } = useShopper();
 
   useEffect(() => {
     if (!publicKey) {
       router.replace('/shoppers/create');
     } else if (
       shopperPda !== getShopperPda(publicKey).toBase58() &&
-      !shopperIsLoading
+      !shopperLoading
     ) {
       router.replace(
         shopperData ? `/shoppers/${shopperData.publicKey}` : '/shoppers/create'
       );
     }
-  }, [publicKey, router, shopperPda, shopperData, shopperIsLoading]);
+  }, [publicKey, router, shopperPda, shopperData, shopperLoading]);
 
   return (
     <section className="main-section flex-1">
-      {shopperIsLoading ? (
+      {shopperLoading ? (
         <AccountSectionSkeleton header={true} />
       ) : (
         shopperData && (

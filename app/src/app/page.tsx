@@ -4,44 +4,42 @@ import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { NoResultText } from '@/components/NoResultText';
+import { getStorePda } from '@/lib/pda';
 import { atomicToUsd, truncateAddress } from '@/lib/utils';
-import { useItem } from '@/providers/ItemProvider';
+import { ItemsProvider, useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
-import { useStore } from '@/providers/StoreProvider';
+import { StoresProvider, useStores } from '@/providers/StoresProvider';
 import { ParsedItem } from '@/types/accounts';
+import { useWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-export default function Page() {
+function Section() {
+  const { publicKey } = useWallet();
   const { shopperData } = useShopper();
-  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
-  const {
-    allStoresData,
-    allStoresIsMutating,
-    allStoresTrigger,
-    personalStoreData,
-    personalStoreIsLoading,
-  } = useStore();
+  const { storesData, storesLoading } = useStores();
+  const { itemsData, itemsLoading } = useItems();
   const [filteredItems, setFilteredItems] = useState<ParsedItem[]>([]);
 
   useEffect(() => {
-    (async () => {
-      await allItemsTrigger({});
-      await allStoresTrigger();
-    })();
-  }, [allItemsTrigger, allStoresTrigger]);
+    if (itemsData) {
+      let filteredItems = itemsData.filter(
+        ({ inventoryCount }) => inventoryCount > 0
+      );
 
-  useEffect(() => {
-    if (allItemsData) {
-      const filteredItems = allItemsData
-        .filter(({ store }) => store !== personalStoreData?.publicKey)
-        .filter(({ inventoryCount }) => inventoryCount > 0);
+      if (publicKey) {
+        const storePda = getStorePda(publicKey);
+
+        filteredItems = filteredItems.filter(
+          ({ store }) => store !== storePda.toBase58()
+        );
+      }
 
       setFilteredItems(filteredItems);
     }
-  }, [allItemsData, personalStoreData]);
+  }, [itemsData, publicKey]);
 
   return (
     <section className="main-section flex-1">
@@ -51,15 +49,13 @@ export default function Page() {
           : 'Welcome to Splurge!'}
       </h2>
       <div className="flex w-full flex-1 flex-wrap gap-6">
-        {allItemsIsMutating || allStoresIsMutating || personalStoreIsLoading ? (
+        {itemsLoading || storesLoading ? (
           <>
             {[...Array(6)].map((_, i) => (
               <ItemCardSkeleton key={i} />
             ))}
           </>
-        ) : allItemsData?.length &&
-          allStoresData?.length &&
-          filteredItems.length ? (
+        ) : itemsData?.length && storesData?.length && filteredItems.length ? (
           <>
             {filteredItems.map(
               ({
@@ -70,14 +66,12 @@ export default function Page() {
                 price,
                 store: storePda,
               }) => {
-                const itemStore = allStoresData?.find(
+                const itemStore = storesData?.find(
                   ({ publicKey }) => publicKey === storePda
                 );
-
                 if (!itemStore) {
                   throw new Error('Matching store not found for item.');
                 }
-
                 return (
                   <ItemCard
                     key={itemPda}
@@ -137,5 +131,15 @@ export default function Page() {
         )}
       </div>
     </section>
+  );
+}
+
+export default function Page() {
+  return (
+    <StoresProvider>
+      <ItemsProvider>
+        <Section />
+      </ItemsProvider>
+    </StoresProvider>
   );
 }

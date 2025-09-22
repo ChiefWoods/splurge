@@ -3,42 +3,27 @@
 import { UpdateOrderDialog } from '@/components/formDialogs/UpdateOrderDialog';
 import { OrderTable } from '@/components/OrderTable';
 import { StatusBadge } from '@/components/StatusBadge';
-import { useItem } from '@/providers/ItemProvider';
-import { useOrder } from '@/providers/OrderProvider';
-import { useShopper } from '@/providers/ShopperProvider';
+import { useItems } from '@/providers/ItemsProvider';
+import { useOrders } from '@/providers/OrdersProvider';
+import { useShoppers } from '@/providers/ShoppersProvider';
 import { useParams } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
-  const { allOrdersData, allOrdersIsMutating, allOrdersTrigger } = useOrder();
-  const { allItemsData, allItemsIsMutating, allItemsTrigger } = useItem();
-  const { allShoppersData, allShoppersIsMutating, allShoppersTrigger } =
-    useShopper();
-
-  useEffect(() => {
-    (async () => {
-      await allItemsTrigger({ storePda });
-      await allShoppersTrigger();
-      await allOrdersTrigger({
-        storePda,
-      });
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storePda]);
+  const { ordersData, ordersLoading } = useOrders();
+  const { itemsData, itemsLoading } = useItems();
+  const { shoppersData, shoppersLoading } = useShoppers();
 
   return (
     <section className="main-section flex-1">
       <h2 className="w-full text-start">Manage Orders</h2>
       <OrderTable
-        allItemsData={allItemsData}
-        allOrdersData={allOrdersData}
-        isFetching={
-          allOrdersIsMutating || allItemsIsMutating || allShoppersIsMutating
-        }
+        itemsData={itemsData}
+        ordersData={ordersData}
+        isFetching={ordersLoading || itemsLoading || shoppersLoading}
         statusRenderer={(order) => {
           if (order.status === 'pending') {
-            const orderItem = allItemsData?.find(
+            const orderItem = itemsData?.find(
               ({ publicKey }) => publicKey === order.item
             );
 
@@ -46,7 +31,7 @@ export default function Page() {
               throw new Error('Matching item not found for order.');
             }
 
-            const orderShopper = allShoppersData?.find(
+            const orderShopper = shoppersData?.find(
               ({ publicKey }) => publicKey === order.shopper
             );
 

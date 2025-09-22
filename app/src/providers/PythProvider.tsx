@@ -25,12 +25,7 @@ interface Price {
 interface PythContextType {
   pricesData: Price[] | undefined;
   pricesIsLoading: boolean;
-  pricesMutate: KeyedMutator<
-    {
-      mint: string;
-      price: number;
-    }[]
-  >;
+  pricesMutate: KeyedMutator<Price[]>;
   pythSolanaReceiver: PythSolanaReceiver | null;
   getUpdatePriceFeedTx: (
     id: string

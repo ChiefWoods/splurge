@@ -41,7 +41,7 @@ import { z } from 'zod';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
-import { useItem } from '@/providers/ItemProvider';
+import { useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
 import { useConfig } from '@/providers/ConfigProvider';
@@ -79,8 +79,8 @@ export function CheckoutDialog({
   const { connection } = useConnection();
   const { publicKey } = useUnifiedWallet();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
-  const { configData, configIsLoading } = useConfig();
-  const { allItemsTrigger } = useItem();
+  const { configData, configLoading } = useConfig();
+  const { itemsMutate } = useItems();
   const { shopperData } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -174,29 +174,31 @@ export function CheckoutDialog({
           success: async ({ signature, shopperData, paymentMintSymbol }) => {
             const newInventoryCount = maxAmount - data.amount;
 
-            await allItemsTrigger(
-              {},
-              {
-                optimisticData: (prev) => {
-                  if (prev) {
-                    return prev.map((item) => {
-                      if (item.publicKey === itemPda) {
-                        return {
-                          ...item,
-                          inventoryCount: newInventoryCount,
-                        };
-                      }
-                      return item;
-                    });
+            await itemsMutate(
+              (prev) => {
+                if (!prev) {
+                  throw new Error('Items should not be null.');
+                }
+
+                return prev.map((item) => {
+                  if (item.publicKey === itemPda) {
+                    return {
+                      ...item,
+                      inventoryCount: newInventoryCount,
+                    };
                   } else {
-                    return [];
+                    return item;
                   }
-                },
+                });
+              },
+              {
+                revalidate: false,
               }
             );
-            form.reset();
-            setIsSubmitting(false);
+
             setIsOpen(false);
+            setIsSubmitting(false);
+            form.reset();
 
             await alertNewOrders({
               storeAuthority,
@@ -237,7 +239,7 @@ export function CheckoutDialog({
       storePda,
       itemPda,
       connection,
-      allItemsTrigger,
+      itemsMutate,
       form,
       pythSolanaReceiver,
       getUpdatePriceFeedTx,
@@ -363,7 +365,7 @@ export function CheckoutDialog({
             <div className="flex flex-col gap-1">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Platform Fee</p>
-                {configIsLoading ? (
+                {configLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
                   configData && (
@@ -378,7 +380,7 @@ export function CheckoutDialog({
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Subtotal</p>
-                {configIsLoading ? (
+                {configLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
                   configData && <p>{atomicToUsd(orderSubtotal)} USD</p>
@@ -386,7 +388,7 @@ export function CheckoutDialog({
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm font-semibold">Total</p>
-                {configIsLoading ? (
+                {configLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
                   configData && (
