@@ -23,6 +23,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="icon"
+          href="/favicon-dark.svg"
+          media="(prefers-color-scheme: light)"
+        />
+        <link
+          rel="icon"
+          href="/favicon-light.svg"
+          media="(prefers-color-scheme: dark)"
+        />
+        <link
+          rel="icon"
+          href="/favicon-light.svg"
+          media="(prefers-color-scheme: no-preference)"
+        />
+      </head>
       <body
         className={`${moderustic.variable} flex min-h-screen flex-col antialiased`}
       >
