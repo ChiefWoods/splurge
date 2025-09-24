@@ -1,18 +1,13 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Moderustic } from 'next/font/google';
 import './globals.css';
 import { ReactNode } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { Providers } from '@/components/Providers';
 import { Header } from '@/components/Header';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const moderustic = Moderustic({
+  variable: '--font-moderustic',
   subsets: ['latin'],
 });
 
@@ -29,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
+        className={`${moderustic.variable} flex min-h-screen flex-col antialiased`}
       >
         <Providers>
           <Header />
