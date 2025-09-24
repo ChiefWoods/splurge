@@ -3,7 +3,6 @@
 import { ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarImage } from './ui/avatar';
-import { Skeleton } from './ui/skeleton';
 import { useShopper } from '@/providers/ShopperProvider';
 import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { useMemo } from 'react';
@@ -11,10 +10,11 @@ import { Keypair } from '@solana/web3.js';
 import { DialectNotification } from './DialectNotification';
 import { UnifiedWalletButton, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { DicebearStyles, getDicebearEndpoint } from '@/lib/dicebear';
+import { ModeToggle } from './ModeToggle';
 
 export function Header() {
   const { publicKey } = useUnifiedWallet();
-  const { shopperData, shopperLoading } = useShopper();
+  const { shopperData } = useShopper();
   const { personalStoreData } = usePersonalStore();
 
   const avatarSeed = useMemo(() => {
@@ -35,44 +35,41 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between bg-slate-200 px-9 py-6">
-      <Link href={'/'} className="flex items-center gap-4">
-        <ShoppingCartIcon size={36} />
-        <h1>Splurge</h1>
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-secondary px-6 py-4">
+      <Link href={'/'} className="flex items-center gap-2">
+        <ShoppingCartIcon size={32} />
+        <h1 className="font-medium">Splurge</h1>
       </Link>
-      <nav className="flex items-center gap-8">
-        <ul className="flex items-center gap-6">
+      <nav className="flex items-center gap-6">
+        <ul className="flex items-center gap-4">
           {navLinks.map(({ name, href }) => (
             <li key={href}>
-              <Link href={href} className="hover:underline">
+              <Link href={href} className="font-medium hover:underline">
                 {name}
               </Link>
             </li>
           ))}
         </ul>
-        <Link
-          href={
-            shopperData
-              ? `/shoppers/${shopperData.publicKey}`
-              : '/shoppers/create'
-          }
-        >
-          <Avatar>
-            {shopperLoading ? (
-              <Skeleton className="h-full w-full" />
-            ) : (
-              <AvatarImage
-                src={
-                  shopperData?.image ??
-                  getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)
-                }
-                className="bg-white"
-              />
-            )}
-          </Avatar>
-        </Link>
-        <DialectNotification />
-        <UnifiedWalletButton />
+        <div className="flex items-center gap-3">
+          {shopperData && (
+            <Link href={`/shoppers/${shopperData.publicKey}`}>
+              <Avatar className="size-7">
+                <AvatarImage
+                  src={
+                    shopperData.image ??
+                    getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)
+                  }
+                  className="bg-white"
+                />
+              </Avatar>
+            </Link>
+          )}
+          <UnifiedWalletButton />
+        </div>
+        <div className="flex gap-1">
+          <DialectNotification />
+          <ModeToggle />
+        </div>
       </nav>
     </header>
   );
