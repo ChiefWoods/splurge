@@ -2,6 +2,7 @@
 
 import { AccountSection } from '@/components/AccountSection';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
+import { MainSection } from '@/components/MainSection';
 import { Button } from '@/components/ui/button';
 import { getShopperPda } from '@/lib/pda';
 import { useShopper } from '@/providers/ShopperProvider';
@@ -31,7 +32,7 @@ export default function Page() {
   }, [publicKey, router, shopperPda, shopperData, shopperLoading]);
 
   return (
-    <section className="main-section flex-1">
+    <MainSection className="flex-1">
       {shopperLoading ? (
         <AccountSectionSkeleton header={true} />
       ) : (
@@ -43,9 +44,9 @@ export default function Page() {
             image={shopperData.image}
             prefix="Shopper ID:"
             address={shopperPda}
-            content={<p className="text-primary">{shopperData.address}</p>}
+            content={<p>{shopperData.address}</p>}
             buttons={
-              <Button asChild variant={'secondary'} size={'sm'}>
+              <Button asChild size={'sm'}>
                 <Link href="/orders">
                   <ClipboardList />
                   View Orders
@@ -55,6 +56,6 @@ export default function Page() {
           />
         )
       )}
-    </section>
+    </MainSection>
   );
 }

@@ -6,14 +6,10 @@ import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
 import { Trash2 } from 'lucide-react';
-import { Button } from '../ui/button';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
@@ -22,6 +18,11 @@ import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
 export function DeleteItemDialog({
   name,
@@ -113,38 +114,27 @@ export function DeleteItemDialog({
           <Trash2 />
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[500px] flex-col overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Delete Item
-          </DialogTitle>
-          <DialogDescription>
+          <FormDialogTitle title="Delete Item" />
+          <DialogDescription className="text-foreground">
             Are you sure you want to delete {name}? Warning: reviews will be
             lost forever!
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-6">
-          <DialogFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setIsOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant={'destructive'}
+        <form onSubmit={onSubmit}>
+          <FormDialogFooter>
+            <FormCancelButton onClick={() => setIsOpen(false)} />
+            <FormSubmitButton
+              Icon={Trash2}
+              text="Delete Item"
               disabled={isSubmitting}
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Item
-            </Button>
-          </DialogFooter>
+              variant="destructive"
+              className="text-foreground"
+            />
+          </FormDialogFooter>
         </form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

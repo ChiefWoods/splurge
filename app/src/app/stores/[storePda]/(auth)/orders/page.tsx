@@ -1,7 +1,9 @@
 'use client';
 
 import { UpdateOrderDialog } from '@/components/formDialogs/UpdateOrderDialog';
+import { MainSection } from '@/components/MainSection';
 import { OrderTable } from '@/components/OrderTable';
+import { SectionHeader } from '@/components/SectionHeader';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useItems } from '@/providers/ItemsProvider';
 import { useOrders } from '@/providers/OrdersProvider';
@@ -15,8 +17,8 @@ export default function Page() {
   const { shoppersData, shoppersLoading } = useShoppers();
 
   return (
-    <section className="main-section flex-1">
-      <h2 className="w-full text-start">Manage Orders</h2>
+    <MainSection className="flex-1">
+      <SectionHeader text="Manage Orders" />
       <OrderTable
         itemsData={itemsData}
         ordersData={ordersData}
@@ -60,6 +62,6 @@ export default function Page() {
           }
         }}
       />
-    </section>
+    </MainSection>
   );
 }

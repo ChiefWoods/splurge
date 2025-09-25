@@ -1,7 +1,9 @@
 'use client';
 
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { MainSection } from '@/components/MainSection';
 import { MintIcon } from '@/components/MintIcon';
+import { SectionHeader } from '@/components/SectionHeader';
 import { TransactionToast } from '@/components/TransactionToast';
 import { Button } from '@/components/ui/button';
 import {
@@ -155,13 +157,13 @@ export default function Page() {
   }
 
   return (
-    <section className="main-section flex-1">
+    <MainSection className="flex-1">
       <div className="flex w-full items-center justify-between">
-        <h2 className="w-full text-start">Your Earnings</h2>
+        <SectionHeader text="Your Earnings" />
         <Button
           size={'sm'}
           onClick={onWithdraw}
-          disabled={isWithdrawing || !totalBalance}
+          disabled={isWithdrawing || totalBalance === 0}
         >
           <HandCoins />
           Withdraw All
@@ -207,6 +209,6 @@ export default function Page() {
           )}
         </TableBody>
       </Table>
-    </section>
+    </MainSection>
   );
 }

@@ -50,27 +50,20 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        info: {
-          DEFAULT: 'var(--info-blue)',
-        },
         rating: {
-          DEFAULT: 'var(--rating-yellow)',
+          DEFAULT: 'hsl(var(--rating-yellow))',
         },
         pending: {
-          DEFAULT: 'var(--order-pending)',
-          hover: 'var(--order-pending-hover)',
+          DEFAULT: 'hsl(var(--order-pending))',
         },
         shipping: {
-          DEFAULT: 'var(--order-shipping)',
-          hover: 'var(--order-shipping-hover)',
+          DEFAULT: 'hsl(var(--order-shipping))',
         },
         completed: {
-          DEFAULT: 'var(--order-completed)',
-          hover: 'var(--order-completed-hover)',
+          DEFAULT: 'hsl(var(--order-completed))',
         },
         cancelled: {
-          DEFAULT: 'var(--order-cancelled)',
-          hover: 'var(--order-cancelled-hover)',
+          DEFAULT: 'hsl(var(--order-cancelled))',
         },
       },
       borderRadius: {

@@ -20,7 +20,7 @@ export function ReviewRow({
   return (
     <li className="flex flex-col gap-y-4">
       <div className="flex w-full justify-between gap-y-2">
-        <div className="flex items-center justify-start gap-x-4">
+        <div className="flex items-center justify-start gap-x-2">
           <Image
             src={shopperImage}
             alt={shopperName}
@@ -29,7 +29,9 @@ export function ReviewRow({
             className="rounded-full border"
           />
           <h3 className="text-xl">{shopperName}</h3>
-          <p className="muted-text">{truncateAddress(shopperPda)}</p>
+          <p className="text-sm text-muted-foreground">
+            {truncateAddress(shopperPda)}
+          </p>
         </div>
         <div className="flex items-center justify-end gap-x-3">
           <div className="flex items-center gap-x-1">
@@ -37,7 +39,7 @@ export function ReviewRow({
               <Star key={i} className="text-rating" size={12} />
             ))}
           </div>
-          <p className="muted-text">{getRelativeTime(timestamp)}</p>
+          <p className="text-muted-foreground">{getRelativeTime(timestamp)}</p>
         </div>
       </div>
       <p>{text}</p>

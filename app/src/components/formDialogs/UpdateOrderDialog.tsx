@@ -2,16 +2,8 @@
 
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
 import { ParsedOrderStatus } from '@/types/accounts';
-import Image from 'next/image';
 import { Button } from '../ui/button';
 import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
@@ -35,6 +27,11 @@ import { getShopperPda } from '@/lib/pda';
 import { alertOrderUpdate } from '@/lib/dialect';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '../FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormCancelButton } from '../FormCancelButton';
+import { LargeImage } from '../LargeImage';
 
 export function UpdateOrderDialog({
   name,
@@ -226,58 +223,43 @@ export function UpdateOrderDialog({
           className="cursor-pointer"
           onClick={() => checkAuth(() => setIsOpen(true))}
         >
-          <Pencil size={12} />
+          <Pencil size={12} className="text-foreground" />
         </StatusBadge>
       </DialogTrigger>
-      <DialogContent className="max-h-[500px] overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Update Order
-          </DialogTitle>
+          <FormDialogTitle title="Update Order" />
         </DialogHeader>
         <section className="flex flex-col items-stretch gap-y-4">
-          <Image
-            src={image}
-            alt={name}
-            width={200}
-            height={200}
-            className="aspect-square self-center rounded-lg border"
-            priority
-          />
+          <LargeImage src={image} alt={name} />
           <div className="flex flex-col gap-2">
-            <h3 className="truncate">{name}</h3>
+            <h3 className="truncate font-medium">{name}</h3>
             <p className="text-sm">Amount - {amount}</p>
             <p className="text-sm">{address}</p>
           </div>
-          <DialogFooter className="flex w-full justify-end gap-2">
+          <FormDialogFooter>
+            <FormCancelButton onClick={() => setIsOpen(false)} />
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setIsOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
+              size={'sm'}
               onClick={() => onSubmit('shipping')}
               disabled={isSubmitting}
-              className="bg-completed hover:bg-completed-hover"
+              className="bg-completed transition-colors hover:bg-completed/90"
             >
-              <Truck className="h-4 w-4" />
+              <Truck className="size-4" />
               Shipped
             </Button>
             <Button
+              size={'sm'}
               onClick={() => onSubmit('cancelled')}
               disabled={isSubmitting}
-              className="bg-cancelled hover:bg-cancelled-hover"
+              className="bg-cancelled transition-colors hover:bg-cancelled/90"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Reject
             </Button>
-          </DialogFooter>
+          </FormDialogFooter>
         </section>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

@@ -1,14 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -37,6 +29,11 @@ import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
 export function CreateStoreDialog() {
   const { connection } = useConnection();
@@ -55,6 +52,12 @@ export function CreateStoreDialog() {
       about: '',
     },
   });
+
+  const closeAndReset = useCallback(() => {
+    setIsOpen(false);
+    form.reset();
+    setImagePreview('');
+  }, [form]);
 
   const onSubmit = useCallback(
     (data: CreateStoreFormData) => {
@@ -115,10 +118,8 @@ export function CreateStoreDialog() {
                     revalidate: false,
                   });
 
-                  setIsOpen(false);
-                  setIsSubmitting(false);
+                  closeAndReset();
                   setImagePreview('');
-                  form.reset();
 
                   return (
                     <TransactionToast
@@ -146,7 +147,14 @@ export function CreateStoreDialog() {
         }
       );
     },
-    [connection, form, personalStoreMutate, publicKey, sendTransaction, upload]
+    [
+      connection,
+      personalStoreMutate,
+      publicKey,
+      sendTransaction,
+      upload,
+      closeAndReset,
+    ]
   );
 
   return (
@@ -157,14 +165,12 @@ export function CreateStoreDialog() {
           Create Store
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Create Store
-          </DialogTitle>
+          <FormDialogTitle title="Create Store" />
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -208,26 +214,17 @@ export function CreateStoreDialog() {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  form.reset();
-                  setImagePreview('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isUploading || isSubmitting}>
-                <Store className="h-4 w-4" />
-                Create Store
-              </Button>
-            </DialogFooter>
+            <FormDialogFooter>
+              <FormCancelButton onClick={closeAndReset} />
+              <FormSubmitButton
+                Icon={Store}
+                disabled={isUploading || isSubmitting}
+                text="Create Store"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

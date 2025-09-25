@@ -9,14 +9,7 @@ import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
 import {
   Form,
@@ -27,8 +20,7 @@ import {
   FormMessage,
 } from '../ui/form';
 import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Loader2, Package } from 'lucide-react';
+import { Package } from 'lucide-react';
 import Image from 'next/image';
 import {
   Select,
@@ -52,6 +44,12 @@ import { usePyth } from '@/providers/PythProvider';
 import { alertNewOrders, alertOutOfStock } from '@/lib/dialect';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { MINT_DECIMALS } from '@/lib/constants';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
+import { LargeImage } from '../LargeImage';
 
 export function CheckoutDialog({
   name,
@@ -108,6 +106,11 @@ export function CheckoutDialog({
       paymentMint: ACCEPTED_MINTS_METADATA.keys().next().value,
     },
   });
+
+  const closeAndReset = useCallback(() => {
+    setIsOpen(false);
+    form.reset();
+  }, [form]);
 
   const onSubmit = useCallback(
     (data: CreateOrderFormData) => {
@@ -196,9 +199,8 @@ export function CheckoutDialog({
               }
             );
 
-            setIsOpen(false);
+            closeAndReset();
             setIsSubmitting(false);
-            form.reset();
 
             await alertNewOrders({
               storeAuthority,
@@ -240,13 +242,13 @@ export function CheckoutDialog({
       itemPda,
       connection,
       itemsMutate,
-      form,
       pythSolanaReceiver,
       getUpdatePriceFeedTx,
       maxAmount,
       name,
       storeAuthority,
       orderSubtotal,
+      closeAndReset,
     ]
   );
 
@@ -275,37 +277,25 @@ export function CheckoutDialog({
           {children}
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="max-h-[500px] overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Checkout
-          </DialogTitle>
+          <FormDialogTitle title="Checkout" />
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col items-stretch gap-y-4"
-          >
-            <Image
-              src={image}
-              alt={name}
-              width={200}
-              height={200}
-              className="aspect-square self-center rounded-lg border"
-              priority
-            />
-            <h3 className="truncate">{name}</h3>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <LargeImage src={image} alt={name} />
+            <h3 className="truncate text-base font-medium">{name}</h3>
             <div className="flex w-full flex-col gap-y-2">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Price</p>
-                <p>{atomicToUsd(price)} USD</p>
+                <p className="text-sm">{atomicToUsd(price)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
-                    <FormItem className="w-full">
+                    <FormItem className="flex-1">
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
                         <Input
@@ -331,7 +321,7 @@ export function CheckoutDialog({
                   control={form.control}
                   name="paymentMint"
                   render={({ field }) => (
-                    <FormItem className="w-full">
+                    <FormItem className="flex-1">
                       <FormLabel>Payment Token</FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -346,7 +336,11 @@ export function CheckoutDialog({
                           {/* Accepted mints should be obtained from config account, but hardcoded here due to devnet constraints */}
                           {Array.from(ACCEPTED_MINTS_METADATA.entries()).map(
                             ([mint, { name, image, symbol }]) => (
-                              <SelectItem key={mint} value={mint}>
+                              <SelectItem
+                                key={mint}
+                                value={mint}
+                                className="cursor-pointer"
+                              >
                                 <div className="flex items-center justify-start gap-x-2">
                                   <MintIcon src={image} alt={name} />
                                   <p className="text-sm">{symbol}</p>
@@ -369,7 +363,7 @@ export function CheckoutDialog({
                   <Skeleton className="w-[80px]" />
                 ) : (
                   configData && (
-                    <p>
+                    <p className="text-sm">
                       {removeTrailingZeroes(
                         atomicToUsd(platformFee, MINT_DECIMALS)
                       )}{' '}
@@ -383,7 +377,9 @@ export function CheckoutDialog({
                 {configLoading ? (
                   <Skeleton className="w-[80px]" />
                 ) : (
-                  configData && <p>{atomicToUsd(orderSubtotal)} USD</p>
+                  configData && (
+                    <p className="text-sm">{atomicToUsd(orderSubtotal)} USD</p>
+                  )
                 )}
               </div>
               <div className="flex justify-between gap-x-2">
@@ -392,7 +388,7 @@ export function CheckoutDialog({
                   <Skeleton className="w-[80px]" />
                 ) : (
                   configData && (
-                    <p className="font-semibold">
+                    <p className="text-sm font-semibold">
                       {removeTrailingZeroes(
                         atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)
                       )}{' '}
@@ -402,29 +398,17 @@ export function CheckoutDialog({
                 )}
               </div>
             </div>
-            <DialogFooter className="flex w-full justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  form.reset();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Package className="h-4 w-4" />
-                )}
-                Place Order
-              </Button>
-            </DialogFooter>
+            <FormDialogFooter>
+              <FormCancelButton onClick={closeAndReset} />
+              <FormSubmitButton
+                Icon={Package}
+                disabled={isSubmitting}
+                text="Place Order"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

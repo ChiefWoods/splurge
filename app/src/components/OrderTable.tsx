@@ -20,34 +20,19 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
 } from './ui/table';
-import { Button } from './ui/button';
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ChevronsLeft,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsRight,
-} from 'lucide-react';
 import { capitalizeFirstLetter, atomicToUsd } from '@/lib/utils';
 import { ParsedItem, ParsedOrder } from '@/types/accounts';
 import { InfoTooltip } from './InfoTooltip';
 import { TimestampTooltip } from './TimestampTooltip';
 import Image from 'next/image';
-import Link from 'next/link';
 import { getAccountLink } from '@/lib/solana-client';
-import { SquareArrowOutUpRight } from 'lucide-react';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
+import { OrderTablePagination } from './OrderTablePagination';
+import { AccountLinkButton } from './AccountLinkButton';
+import { SortButton } from './SortButton';
+import { OrderTableRow } from './OrderTableRow';
+import { MintIcon } from './MintIcon';
 
 const ORDER_TABS = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
 
@@ -114,86 +99,40 @@ export function OrderTable({
     () => [
       {
         accessorKey: 'status',
-        header: 'Status',
+        // header: 'Status',
+        header: ({ column }) => <span className="text-foreground">Status</span>,
         cell: ({ row }) => row.original.statusElement,
         enableSorting: false,
       },
       {
         accessorKey: 'itemData.name',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 hover:bg-transparent"
-          >
-            Item
-            {column.getIsSorted() === 'asc' ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        ),
+        header: ({ column }) => <SortButton text="Item" column={column} />,
         cell: ({ row }) => {
           const { itemData } = row.original;
           return (
             <div className="flex items-center gap-x-4">
-              <div className="h-12 w-12 flex-shrink-0 rounded-lg border bg-[#f4f4f5] p-1">
-                <Image
-                  src={itemData.image}
-                  alt={itemData.name}
-                  width={40}
-                  height={40}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <span className="text-md truncate">{itemData.name}</span>
+              <Image
+                src={itemData.image}
+                alt={itemData.name}
+                width={40}
+                height={40}
+                className="flex-shrink-0 rounded-lg object-cover"
+              />
+              <span className="truncate">{itemData.name}</span>
             </div>
           );
         },
       },
       {
         accessorKey: 'amount',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 hover:bg-transparent"
-          >
-            Amount
-            {column.getIsSorted() === 'asc' ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        ),
+        header: ({ column }) => <SortButton text="Amount" column={column} />,
       },
       {
         id: 'total',
         accessorFn: (row) => row.paymentSubtotal + row.platformFee,
         header: ({ column }) => (
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-              className="h-auto p-0 hover:bg-transparent"
-            >
-              Total
-              {column.getIsSorted() === 'asc' ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === 'desc' ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
+            <SortButton text="Total" column={column} />
             {showTotalTooltip && (
               <InfoTooltip text="A small additional platform fee is applied on top of each order." />
             )}
@@ -212,13 +151,7 @@ export function OrderTable({
               <span className="truncate">
                 {atomicToUsd(paymentSubtotal + platformFee)}
               </span>
-              <Image
-                src={metadata.image}
-                alt={metadata.name}
-                width={20}
-                height={20}
-                className="flex-shrink-0"
-              />
+              <MintIcon src={metadata.image} alt={metadata.name} />
             </div>
           );
         },
@@ -226,20 +159,7 @@ export function OrderTable({
       {
         accessorKey: 'timestamp',
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 hover:bg-transparent"
-          >
-            Created At
-            {column.getIsSorted() === 'asc' ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
+          <SortButton text="Created At" column={column} />
         ),
         cell: ({ row }) => (
           <TimestampTooltip timestamp={row.original.timestamp} />
@@ -249,17 +169,7 @@ export function OrderTable({
         id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <Button
-            asChild
-            size={'icon'}
-            type="button"
-            variant={'ghost'}
-            className="h-fit w-fit"
-          >
-            <Link href={getAccountLink(row.original.publicKey)} target="_blank">
-              <SquareArrowOutUpRight />
-            </Link>
-          </Button>
+          <AccountLinkButton href={getAccountLink(row.original.publicKey)} />
         ),
         enableSorting: false,
       },
@@ -291,8 +201,8 @@ export function OrderTable({
     >
       <TabsList className="flex w-full">
         {ORDER_TABS.map((tab) => (
-          <TabsTrigger key={tab} value={tab} className="flex-1">
-            {capitalizeFirstLetter(tab)}
+          <TabsTrigger key={tab} value={tab} className="flex-1 text-background">
+            <span>{capitalizeFirstLetter(tab)}</span>
           </TabsTrigger>
         ))}
       </TabsList>
@@ -305,9 +215,9 @@ export function OrderTable({
 
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-secondary">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              <OrderTableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -321,19 +231,19 @@ export function OrderTable({
                         )}
                   </TableHead>
                 ))}
-              </TableRow>
+              </OrderTableRow>
             ))}
           </TableHeader>
           <TableBody>
             {isFetching ? (
-              <TableRow>
+              <OrderTableRow>
                 <TableCell colSpan={columns.length} className="text-center">
                   Loading...
                 </TableCell>
-              </TableRow>
+              </OrderTableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <OrderTableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                 >
@@ -348,93 +258,19 @@ export function OrderTable({
                       )}
                     </TableCell>
                   ))}
-                </TableRow>
+                </OrderTableRow>
               ))
             ) : (
-              <TableRow>
+              <OrderTableRow>
                 <TableCell colSpan={columns.length} className="text-center">
                   No orders found.
                 </TableCell>
-              </TableRow>
+              </OrderTableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between px-2">
-        <p className="text-sm text-muted-foreground">
-          {table.getRowCount()} item(s) found.
-        </p>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
-            <Select
-              value={`${table.getState().pagination.pageSize}`}
-              onValueChange={(value) => {
-                table.setPageSize(Number(value));
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
-                />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="hidden size-8 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to first page</span>
-              <ChevronsLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-8"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to previous page</span>
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-8"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to next page</span>
-              <ChevronRight />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="hidden size-8 lg:flex"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to last page</span>
-              <ChevronsRight />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <OrderTablePagination table={table} />
     </Tabs>
   );
 }

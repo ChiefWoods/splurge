@@ -37,8 +37,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between bg-secondary px-6 py-4">
       <Link href={'/'} className="flex items-center gap-2">
-        <ShoppingCartIcon size={32} />
-        <h1 className="font-medium">Splurge</h1>
+        <ShoppingCartIcon size={24} />
+        <h1 className="text-3xl font-medium">Splurge</h1>
       </Link>
       <nav className="flex items-center gap-6">
         <ul className="flex items-center gap-4">

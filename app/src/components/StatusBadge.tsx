@@ -31,7 +31,7 @@ export function StatusBadge({
       className={cn(badgeVariants({ status }), className)}
       onClick={onClick}
     >
-      {capitalizeFirstLetter(status)}
+      <span className="text-background">{capitalizeFirstLetter(status)}</span>
       {children}
     </Badge>
   );

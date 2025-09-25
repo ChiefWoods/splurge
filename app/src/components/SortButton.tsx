@@ -1,20 +1,29 @@
-import { ReactNode } from 'react';
 import { Button } from './ui/button';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { Column } from '@tanstack/react-table';
 
-export function SortButton({
-  onClick,
-  state,
-  children,
+export function SortButton<TData>({
+  text,
+  column,
 }: {
-  onClick: () => void;
-  state: boolean;
-  children?: ReactNode;
+  text: string;
+  column: Column<TData>;
 }) {
+  const Icon =
+    column.getIsSorted() === 'asc'
+      ? ArrowUp
+      : column.getIsSorted() === 'desc'
+        ? ArrowDown
+        : ArrowUpDown;
+
   return (
-    <Button size={'sm'} variant={'ghost'} onClick={onClick}>
-      {children}
-      {state ? <ArrowUp /> : <ArrowDown />}
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      className="h-auto p-0 text-foreground hover:bg-transparent"
+    >
+      {text}
+      <Icon className="ml-2 size-4" />
     </Button>
   );
 }

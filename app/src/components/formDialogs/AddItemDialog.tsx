@@ -1,14 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -41,6 +33,11 @@ import { BN } from '@coral-xyz/anchor';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { MINT_DECIMALS } from '@/lib/constants';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
@@ -61,6 +58,12 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       price: 1.0,
     },
   });
+
+  const closeAndReset = useCallback(() => {
+    setIsOpen(false);
+    form.reset();
+    setImagePreview('');
+  }, [form]);
 
   const onSubmit = useCallback(
     (data: CreateItemFormData) => {
@@ -137,10 +140,8 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                     }
                   );
 
-                  setIsOpen(false);
+                  closeAndReset();
                   setIsSubmitting(false);
-                  setImagePreview('');
-                  form.reset();
 
                   return (
                     <TransactionToast
@@ -175,26 +176,24 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       sendTransaction,
       itemsMutate,
       storePda,
-      form,
+      closeAndReset,
     ]
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="secondary" size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton size={'sm'} setOpen={setIsOpen}>
           <Plus />
           Add Item
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="max-h-[500px] overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Add Item
-          </DialogTitle>
+          <FormDialogTitle title="Add Item" />
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -294,26 +293,17 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  form.reset();
-                  setImagePreview('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isUploading || isSubmitting}>
-                <Plus className="h-4 w-4" />
-                Add Item
-              </Button>
-            </DialogFooter>
+            <FormDialogFooter>
+              <FormCancelButton onClick={closeAndReset} />
+              <FormSubmitButton
+                Icon={Plus}
+                disabled={isUploading || isSubmitting}
+                text="Add Item"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

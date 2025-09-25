@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { MainSection } from './MainSection';
 
 export function CreateSection({
   header,
@@ -8,9 +9,9 @@ export function CreateSection({
   children: ReactNode;
 }) {
   return (
-    <section className="main-section only:my-auto">
-      <h2 className="text-center">{header}</h2>
+    <MainSection className="only:my-auto">
+      <h2 className="text-center text-2xl font-medium">{header}</h2>
       {children}
-    </section>
+    </MainSection>
   );
 }

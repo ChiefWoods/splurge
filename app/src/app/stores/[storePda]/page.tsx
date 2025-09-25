@@ -20,6 +20,8 @@ import { useParams } from 'next/navigation';
 import { atomicToUsd } from '@/lib/utils';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useItems } from '@/providers/ItemsProvider';
+import { SectionHeader } from '@/components/SectionHeader';
+import { MainSection } from '@/components/MainSection';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
@@ -30,18 +32,18 @@ export default function Page() {
   const buttons = [
     {
       href: `/stores/${storePda}/orders`,
-      icon: <ClipboardList />,
+      Icon: ClipboardList,
       text: 'Manage Orders',
     },
     {
       href: `/stores/${storePda}/earnings`,
-      icon: <CircleDollarSign />,
+      Icon: CircleDollarSign,
       text: 'View Earnings',
     },
   ];
 
   return (
-    <section className="main-section flex-1">
+    <MainSection className="flex-1">
       {storeLoading ? (
         <AccountSectionSkeleton />
       ) : (
@@ -52,21 +54,16 @@ export default function Page() {
             image={storeData.image}
             prefix="Store ID:"
             address={storePda}
-            content={<p className="text-primary">{storeData.about}</p>}
+            content={<p>{storeData.about}</p>}
             buttons={
               publicKey &&
               storeData.publicKey === getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
-                  {buttons.map(({ href, icon, text }) => (
-                    <Button
-                      key={href}
-                      asChild
-                      variant={'secondary'}
-                      size={'sm'}
-                    >
+                  {buttons.map(({ href, Icon, text }) => (
+                    <Button key={href} asChild size={'sm'}>
                       <Link href={href}>
-                        {icon}
+                        <Icon />
                         {text}
                       </Link>
                     </Button>
@@ -77,9 +74,9 @@ export default function Page() {
           />
         )
       )}
-      <Separator />
-      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
-        <h2>Store Items</h2>
+      {storeLoading && storeData && <Separator />}
+      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-6">
+        <SectionHeader text="Store Items" />
         <div className="flex w-full flex-1 flex-wrap gap-6">
           {itemsLoading || storeLoading ? (
             <>
@@ -107,8 +104,8 @@ export default function Page() {
                   >
                     <>
                       <div className="flex w-full flex-col justify-between overflow-hidden">
-                        <p className="muted-text">{atomicToUsd(price)} USD</p>
-                        <p className="muted-text">{inventoryCount} left</p>
+                        <p>{atomicToUsd(price)} USD</p>
+                        <p>{inventoryCount} left</p>
                       </div>
                       {publicKey &&
                       storeData.publicKey ===
@@ -155,6 +152,6 @@ export default function Page() {
           )}
         </div>
       </section>
-    </section>
+    </MainSection>
   );
 }

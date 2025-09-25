@@ -5,9 +5,11 @@ import { AccountSectionButtonTab } from '@/components/AccountSectionButtonTab';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { AddReviewDialog } from '@/components/formDialogs/AddReviewDialog';
 import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
+import { MainSection } from '@/components/MainSection';
 import { NoResultText } from '@/components/NoResultText';
 import { ReviewRow } from '@/components/ReviewRow';
 import { ReviewRowSkeleton } from '@/components/ReviewRowSkeleton';
+import { SectionHeader } from '@/components/SectionHeader';
 import { Separator } from '@/components/ui/separator';
 import { getShopperPda, getStorePda } from '@/lib/pda';
 import { atomicToUsd } from '@/lib/utils';
@@ -63,7 +65,7 @@ export default function Page() {
   }, [publicKey, itemPda, ordersData, reviewsData]);
 
   return (
-    <section className="main-section flex-1">
+    <MainSection className="flex-1">
       {itemLoading ? (
         <AccountSectionSkeleton />
       ) : (
@@ -77,13 +79,11 @@ export default function Page() {
             address={storePda}
             content={
               <>
-                <p className="truncate text-primary">{itemData.description}</p>
-                <p className="font-semibold text-primary">
+                <p>{itemData.description}</p>
+                <p className="font-semibold">
                   {atomicToUsd(itemData.price)} USD
                 </p>
-                <p className="muted-text">
-                  {itemData.inventoryCount} in inventory
-                </p>
+                <p>{itemData.inventoryCount} in inventory</p>
               </>
             }
             buttons={
@@ -110,11 +110,11 @@ export default function Page() {
         )
       )}
       <Separator />
-      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-y-8">
+      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-6">
         <div className="flex w-full items-center justify-between">
-          <h2>Reviews</h2>
+          <SectionHeader text="Reviews" />
           {itemData && reviewOrderPda && (
-            <AddReviewDialog itemPda={itemPda} orderPda={reviewOrderPda} />
+            <AddReviewDialog orderPda={reviewOrderPda} />
           )}
         </div>
         <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
@@ -163,6 +163,6 @@ export default function Page() {
           )}
         </ul>
       </section>
-    </section>
+    </MainSection>
   );
 }

@@ -1,8 +1,6 @@
-import { Button } from './ui/button';
-import { SquareArrowOutUpRight } from 'lucide-react';
 import { truncateAddress } from '@/lib/utils';
-import Link from 'next/link';
 import { getAccountLink } from '@/lib/solana-client';
+import { AccountLinkButton } from './AccountLinkButton';
 
 export function AccountLinkText({
   prefix,
@@ -12,21 +10,11 @@ export function AccountLinkText({
   subject: string;
 }) {
   return (
-    <div className="flex items-center gap-x-4">
+    <div className="flex items-center gap-2">
       <p className="text-muted-foreground">
         {prefix} {truncateAddress(subject)}
       </p>
-      <Button
-        asChild
-        size={'icon'}
-        type="button"
-        variant={'ghost'}
-        className="h-fit w-fit"
-      >
-        <Link href={getAccountLink(subject)} target="_blank">
-          <SquareArrowOutUpRight />
-        </Link>
-      </Button>
+      <AccountLinkButton href={getAccountLink(subject)} />
     </div>
   );
 }

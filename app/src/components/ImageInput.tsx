@@ -1,3 +1,5 @@
+'use client';
+
 import { ACCEPTED_IMAGE_TYPES } from '@/lib/constants';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -35,13 +37,13 @@ export function ImageInput({
     <div className="relative flex justify-between gap-x-4">
       <Button
         type="button"
-        className="relative flex h-32 w-32 items-center justify-center rounded-lg border bg-background p-0 hover:bg-background"
+        className="relative flex size-32 items-center justify-center rounded-lg border bg-background p-0 hover:bg-background"
         onClick={() => imageFileInput.current?.click()}
       >
         <Input
           type="file"
           accept={ACCEPTED_IMAGE_TYPES.join(',')}
-          className="pointer-events-none absolute h-full w-full cursor-pointer select-none opacity-0"
+          className="pointer-events-none absolute size-full cursor-pointer select-none opacity-0"
           tabIndex={-1}
           ref={(e) => {
             field.ref(e);
@@ -60,7 +62,7 @@ export function ImageInput({
           <Image
             src={imagePreview}
             alt="Preview"
-            className="pointer-events-none h-full w-full rounded-lg object-cover"
+            className="pointer-events-none size-full rounded-lg object-cover"
             fill
           />
         ) : (
@@ -74,7 +76,7 @@ export function ImageInput({
           size="icon"
           onClick={handleImageDelete}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="size-4" />
         </Button>
       )}
     </div>

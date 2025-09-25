@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { ReactNode } from 'react';
 import {
   Card,
@@ -9,6 +8,8 @@ import {
   CardTitle,
 } from './ui/card';
 import { AccountLinkText } from './AccountLinkText';
+import { SectionHeader } from './SectionHeader';
+import { LargeImage } from './LargeImage';
 
 export function AccountSection({
   header,
@@ -28,19 +29,13 @@ export function AccountSection({
   buttons?: ReactNode;
 }) {
   return (
-    <section className="flex w-full flex-col gap-y-8">
-      {header && <h2 className="w-full text-start">{header}</h2>}
+    <section className="flex w-full flex-col gap-6">
+      {header && <SectionHeader text={header} />}
       <div className="flex h-fit w-full gap-x-6">
-        <Image
-          src={image}
-          className="aspect-square h-[200px] w-[200px] rounded-lg border"
-          width={200}
-          height={200}
-          alt={title}
-        />
+        <LargeImage src={image} alt={title} />
         <Card className="flex w-full flex-1 flex-col justify-between gap-y-4 overflow-hidden border-none shadow-none">
           <CardHeader className="flex flex-1 flex-col p-0">
-            <CardTitle className="max-w-full truncate">{title}</CardTitle>
+            <CardTitle className="truncate font-medium">{title}</CardTitle>
             <CardDescription>
               <AccountLinkText prefix={prefix} subject={address} />
             </CardDescription>

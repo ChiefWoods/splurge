@@ -1,14 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -37,6 +29,11 @@ import { useShopper } from '@/providers/ShopperProvider';
 import { getShopperPda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
 export function CreateProfileDialog() {
   const { connection } = useConnection();
@@ -45,8 +42,8 @@ export function CreateProfileDialog() {
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const form = useForm<CreateProfileFormData>({
     resolver: zodResolver(createProfileSchema),
@@ -55,6 +52,12 @@ export function CreateProfileDialog() {
       address: '',
     },
   });
+
+  const closeAndReset = useCallback(() => {
+    setIsOpen(false);
+    form.reset();
+    setImagePreview('');
+  }, [form]);
 
   const onSubmit = useCallback(
     (data: CreateProfileFormData) => {
@@ -115,10 +118,8 @@ export function CreateProfileDialog() {
                     revalidate: false,
                   });
 
-                  setIsOpen(false);
+                  closeAndReset();
                   setIsSubmitting(false);
-                  setImagePreview('');
-                  form.reset();
 
                   return (
                     <TransactionToast
@@ -146,7 +147,14 @@ export function CreateProfileDialog() {
         }
       );
     },
-    [connection, form, sendTransaction, shopperMutate, upload, publicKey]
+    [
+      connection,
+      sendTransaction,
+      shopperMutate,
+      upload,
+      publicKey,
+      closeAndReset,
+    ]
   );
 
   return (
@@ -157,14 +165,12 @@ export function CreateProfileDialog() {
           Create Profile
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Create Profile
-          </DialogTitle>
+          <FormDialogTitle title="Create Profile" />
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -208,26 +214,17 @@ export function CreateProfileDialog() {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  form.reset();
-                  setImagePreview('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isUploading || isSubmitting}>
-                <UserRound className="h-4 w-4" />
-                Create Profile
-              </Button>
-            </DialogFooter>
+            <FormDialogFooter>
+              <FormCancelButton onClick={closeAndReset} />
+              <FormSubmitButton
+                Icon={UserRound}
+                disabled={isUploading || isSubmitting}
+                text="Create Profile"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

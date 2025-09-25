@@ -7,7 +7,7 @@ export function MintIcon({ src, alt }: { src: string; alt: string }) {
       alt={alt}
       width={20}
       height={20}
-      className="rounded-full"
+      className="flex-shrink-0 rounded-full"
     />
   );
 }

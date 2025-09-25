@@ -9,16 +9,8 @@ import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/solana-client';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
-import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
 import {
   Form,
@@ -35,14 +27,13 @@ import { getReviewPda, getShopperPda } from '@/lib/pda';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useReviews } from '@/providers/ReviewsProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '@/components/FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
-export function AddReviewDialog({
-  itemPda,
-  orderPda,
-}: {
-  itemPda: string;
-  orderPda: string;
-}) {
+export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useUnifiedWallet();
   const { reviewsMutate } = useReviews();
@@ -56,6 +47,11 @@ export function AddReviewDialog({
       text: '',
     },
   });
+
+  const closeAndReset = useCallback(() => {
+    setIsOpen(false);
+    form.reset();
+  }, [form]);
 
   const onSubmit = useCallback(
     (data: CreateReviewFormData) => {
@@ -110,9 +106,8 @@ export function AddReviewDialog({
               }
             );
 
-            setIsOpen(false);
+            closeAndReset();
             setIsSubmitting(false);
-            form.reset();
 
             return (
               <TransactionToast
@@ -129,25 +124,30 @@ export function AddReviewDialog({
         }
       );
     },
-    [reviewsMutate, connection, form, orderPda, publicKey, sendTransaction]
+    [
+      reviewsMutate,
+      connection,
+      orderPda,
+      publicKey,
+      sendTransaction,
+      closeAndReset,
+    ]
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="default" size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton variant="secondary" size={'sm'} setOpen={setIsOpen}>
           <Plus />
           Add Review
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="max-h-[500px] overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Add Review
-          </DialogTitle>
+          <FormDialogTitle title="Add Review" />
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="rating"
@@ -192,25 +192,17 @@ export function AddReviewDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  form.reset();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                <Plus className="h-4 w-4" />
-                Add Review
-              </Button>
-            </DialogFooter>
+            <FormDialogFooter>
+              <FormCancelButton onClick={closeAndReset} />
+              <FormSubmitButton
+                Icon={Plus}
+                disabled={isSubmitting}
+                text="Add Review"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

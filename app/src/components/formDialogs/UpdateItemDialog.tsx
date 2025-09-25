@@ -3,14 +3,7 @@
 import { Pencil } from 'lucide-react';
 import { WalletGuardButton } from '../WalletGuardButton';
 import { useCallback, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
 import {
   Form,
   FormControl,
@@ -20,7 +13,6 @@ import {
   FormMessage,
 } from '../ui/form';
 import { Input } from '../ui/input';
-import { Button } from '../ui/button';
 import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,6 +28,11 @@ import { useItems } from '@/providers/ItemsProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { FormDialogTitle } from '../FormDialogTitle';
+import { FormDialogContent } from '../FormDialogContent';
+import { FormDialogFooter } from '../FormDialogFooter';
+import { FormSubmitButton } from '../FormSubmitButton';
+import { FormCancelButton } from '../FormCancelButton';
 
 export function UpdateItemDialog({
   name,
@@ -128,11 +125,11 @@ export function UpdateItemDialog({
             );
 
             setIsOpen(false);
-            setIsSubmitting(false);
             form.reset({
               inventoryCount,
               price,
             });
+            setIsSubmitting(false);
 
             return (
               <TransactionToast
@@ -167,11 +164,9 @@ export function UpdateItemDialog({
           <Pencil />
         </WalletGuardButton>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[500px] flex-col overflow-scroll sm:max-w-[425px]">
+      <FormDialogContent>
         <DialogHeader>
-          <DialogTitle className="text-start text-xl font-semibold">
-            Update Item
-          </DialogTitle>
+          <FormDialogTitle title="Update Item" />
         </DialogHeader>
         <section className="flex items-start gap-x-4">
           <Image
@@ -184,11 +179,11 @@ export function UpdateItemDialog({
           />
           <div className="flex flex-1 flex-col gap-y-1">
             <p className="truncate text-lg font-semibold">{name}</p>
-            <p className="muted-text text-wrap">{description}</p>
+            <p className="text-wrap text-sm">{description}</p>
           </div>
         </section>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="inventoryCount"
@@ -239,25 +234,22 @@ export function UpdateItemDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
+            <FormDialogFooter>
+              <FormCancelButton
                 onClick={() => {
                   setIsOpen(false);
                   form.reset();
                 }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                <Pencil className="h-4 w-4" />
-                Update Item
-              </Button>
-            </DialogFooter>
+              />
+              <FormSubmitButton
+                Icon={Pencil}
+                disabled={isSubmitting}
+                text="Update Item"
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }
