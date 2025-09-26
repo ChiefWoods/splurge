@@ -192,7 +192,7 @@ export function UpdateOrderDialog({
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message;
+            return err.message || 'Something went wrong.';
           },
         }
       );
@@ -223,7 +223,7 @@ export function UpdateOrderDialog({
           className="cursor-pointer"
           onClick={() => checkAuth(() => setIsOpen(true))}
         >
-          <Pencil size={12} className="text-foreground" />
+          <Pencil size={12} className="text-background" />
         </StatusBadge>
       </DialogTrigger>
       <FormDialogContent>

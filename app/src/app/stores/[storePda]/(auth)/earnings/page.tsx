@@ -150,7 +150,7 @@ export default function Page() {
         error: (err) => {
           console.error(err);
           setIsWithdrawing(false);
-          return err.message;
+          return err.message || 'Something went wrong.';
         },
       }
     );

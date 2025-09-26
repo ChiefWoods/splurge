@@ -153,7 +153,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 error: (err) => {
                   console.error(err);
                   setIsSubmitting(false);
-                  return err.message;
+                  return err.message || 'Something went wrong.';
                 },
               }
             );
@@ -164,7 +164,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
           error: (err) => {
             console.error(err);
             setIsUploading(false);
-            return err.message;
+            return err.message || 'Something went wrong.';
           },
         }
       );

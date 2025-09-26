@@ -99,7 +99,7 @@ export function DeleteItemDialog({
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message;
+            return err.message || 'Something went wrong.';
           },
         }
       );
