@@ -1,6 +1,5 @@
 const buildEslintCommand = (filenames) =>
-  `next lint --fix --file ${filenames
-    .join(' --file ')}`;
+  `eslint ${filenames.join(' ')} --fix`;
 
 const buildPrettierCommand = (filenames) =>
   `prettier ${filenames
