@@ -4,14 +4,15 @@ use anchor_spl::{
     token_2022::spl_token_2022::extension::transfer_fee::MAX_FEE_BASIS_POINTS,
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
+#[cfg(not(feature = "no-staleness-check"))]
 use pyth_solana_receiver_sdk::error::GetPriceError;
 use pyth_solana_receiver_sdk::price_update::{PriceFeedMessage, PriceUpdateV2};
 use spl_math::precise_number::PreciseNumber;
 
+#[cfg(not(feature = "no-staleness-check"))]
+use crate::constants::MAX_ORACLE_STALENESS;
 use crate::{
-    constants::{
-        CONFIG_SEED, MAX_ORACLE_STALENESS, ORDER_SEED, SHOPPER_SEED, STORE_SEED, TREASURY_SEED,
-    },
+    constants::{CONFIG_SEED, ORDER_SEED, SHOPPER_SEED, STORE_SEED, TREASURY_SEED},
     error::SplurgeError,
     events::OrderCreated,
     imprecise_number, precise_number,
@@ -112,6 +113,7 @@ impl CreateOrder<'_> {
         let PriceFeedMessage {
             exponent,
             price,
+            #[cfg(not(feature = "no-staleness-check"))]
             publish_time,
             ..
         } = price_update_v2.price_message;
