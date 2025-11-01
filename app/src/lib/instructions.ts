@@ -3,7 +3,7 @@ import {
   SPLURGE_PROGRAM,
   TASK_QUEUE,
   TUKTUK_PROGRAM,
-} from '@/lib/solana-client';
+} from '@/lib/client/solana';
 import {
   CreateReviewArgs,
   InitializeShopperArgs,

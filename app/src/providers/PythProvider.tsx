@@ -12,10 +12,10 @@ import {
 import useSWR, { KeyedMutator } from 'swr';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { Wallet } from '@coral-xyz/anchor';
-import { getPriorityFee } from '@/lib/solana-client';
+import { getPriorityFee } from '@/lib/client/solana';
 import { VersionedTransaction, Signer } from '@solana/web3.js';
 import { useAnchorWallet } from '@jup-ag/wallet-adapter';
-import { HERMES_CLIENT } from '@/lib/pyth';
+import { HERMES_CLIENT } from '@/lib/client/pyth';
 
 interface Price {
   mint: string;

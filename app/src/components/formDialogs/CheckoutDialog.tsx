@@ -3,10 +3,10 @@
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-client';
+import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
@@ -21,7 +21,6 @@ import {
 } from '../ui/form';
 import { Input } from '../ui/input';
 import { Package } from 'lucide-react';
-import Image from 'next/image';
 import {
   Select,
   SelectContent,
@@ -41,7 +40,7 @@ import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
 import { Skeleton } from '../ui/skeleton';
 import { MintIcon } from '../MintIcon';
 import { usePyth } from '@/providers/PythProvider';
-import { alertNewOrders, alertOutOfStock } from '@/lib/dialect';
+import { alertNewOrders, alertOutOfStock } from '@/lib/server/dialect';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { MINT_DECIMALS } from '@/lib/constants';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -82,15 +81,6 @@ export function CheckoutDialog({
   const { shopperData } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
-
-  const platformFee = useMemo(() => {
-    return configData
-      ? Math.floor(
-          (orderSubtotal * configData.orderFeeBps) / MAX_FEE_BASIS_POINTS
-        )
-      : 0;
-  }, [configData, orderSubtotal]);
 
   const createOrderSchema = z.object({
     amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
@@ -106,6 +96,20 @@ export function CheckoutDialog({
       paymentMint: ACCEPTED_MINTS_METADATA.keys().next().value,
     },
   });
+
+  const amount = useWatch({
+    control: form.control,
+    name: 'amount',
+  });
+  const orderSubtotal = useMemo(() => price * (amount || 0), [price, amount]);
+
+  const platformFee = useMemo(() => {
+    return configData
+      ? Math.floor(
+          (orderSubtotal * configData.orderFeeBps) / MAX_FEE_BASIS_POINTS
+        )
+      : 0;
+  }, [configData, orderSubtotal]);
 
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
@@ -252,20 +256,6 @@ export function CheckoutDialog({
     ]
   );
 
-  useEffect(() => {
-    if (isOpen) {
-      setOrderSubtotal(price * form.getValues('amount'));
-    }
-  }, [isOpen, price, form]);
-
-  useEffect(() => {
-    const currentAmount = form.getValues('amount');
-    if (currentAmount > maxAmount) {
-      form.setValue('amount', maxAmount);
-      setOrderSubtotal(price * maxAmount);
-    }
-  }, [maxAmount, price, form]);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -307,9 +297,6 @@ export function CheckoutDialog({
                           onChange={(e) => {
                             const value = parseInt(e.target.value);
                             field.onChange(isNaN(value) ? 0 : value);
-                            if (!isNaN(value)) {
-                              setOrderSubtotal(price * value);
-                            }
                           }}
                         />
                       </FormControl>

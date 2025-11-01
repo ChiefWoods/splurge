@@ -17,7 +17,7 @@ import {
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { withdrawEarningsIx } from '@/lib/instructions';
 import { getStorePda } from '@/lib/pda';
-import { buildTx, getTransactionLink } from '@/lib/solana-client';
+import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
@@ -26,14 +26,8 @@ import { confirmTransaction } from '@solana-developers/helpers';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-interface RowBalance {
-  name: string;
-  image: string;
-  balance: string;
-}
 
 export default function Page() {
   const { connection } = useConnection();
@@ -44,44 +38,40 @@ export default function Page() {
     storeTokenAccountsMutate,
   } = useStoreTokenAccount();
   const { pricesData, pricesIsLoading } = usePyth();
-  const [balanceRows, setBalanceRows] = useState<RowBalance[]>([]);
-  const [totalBalance, setTotalBalance] = useState<number>(0);
   const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (storeTokenAccountsData && pricesData) {
-      let totalBalance = 0;
+  const balanceRows = useMemo(() => {
+    if (!storeTokenAccountsData || !pricesData) return [];
 
-      setBalanceRows(
-        storeTokenAccountsData.map(({ amount, mint }) => {
-          const metadata = ACCEPTED_MINTS_METADATA.get(mint);
+    return storeTokenAccountsData.map(({ amount, mint }) => {
+      const metadata = ACCEPTED_MINTS_METADATA.get(mint);
 
-          if (!metadata) {
-            throw new Error(`Metadata not found for mint: ${mint}`);
-          }
+      if (!metadata) {
+        throw new Error(`Metadata not found for mint: ${mint}`);
+      }
 
-          const mintPrice = pricesData?.find((p) => {
-            return p.mint === mint;
-          });
+      const mintPrice = pricesData?.find((p) => {
+        return p.mint === mint;
+      });
 
-          if (!mintPrice) {
-            throw new Error(`Price not found for mint: ${mint}`);
-          }
+      if (!mintPrice) {
+        throw new Error(`Price not found for mint: ${mint}`);
+      }
 
-          const balance = atomicToUsd(amount * mintPrice.price);
-          totalBalance += Number(balance);
+      const balance = atomicToUsd(amount * mintPrice.price);
 
-          return {
-            name: metadata.name,
-            image: metadata.image,
-            balance,
-          };
-        })
-      );
-
-      setTotalBalance(totalBalance);
-    }
+      return {
+        name: metadata.name,
+        image: metadata.image,
+        balance,
+      };
+    });
   }, [storeTokenAccountsData, pricesData]);
+
+  const totalBalance = balanceRows.reduce(
+    (sum, row) => sum + Number(row.balance),
+    0
+  );
 
   function onWithdraw() {
     toast.promise(

@@ -1,4 +1,4 @@
-import { SPLURGE_PROGRAM, TUKTUK_PROGRAM } from '@/lib/solana-client';
+import { SPLURGE_PROGRAM, TUKTUK_PROGRAM } from '@/lib/client/solana';
 import { GetProgramAccountsFilter, PublicKey } from '@solana/web3.js';
 import { getConfigPda } from './pda';
 import {

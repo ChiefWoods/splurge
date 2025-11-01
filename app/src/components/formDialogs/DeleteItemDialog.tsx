@@ -1,6 +1,6 @@
 'use client';
 
-import { buildTx, getTransactionLink } from '@/lib/solana-client';
+import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';

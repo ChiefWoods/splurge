@@ -21,7 +21,7 @@ import { useStore } from '@/providers/StoreProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export default function Page() {
   const { storePda, itemPda } = useParams<{
@@ -29,7 +29,6 @@ export default function Page() {
     itemPda: string;
   }>();
   const { publicKey } = useUnifiedWallet();
-  const [reviewOrderPda, setReviewOrderPda] = useState<string>('');
   const { itemData, itemLoading } = useItem();
   const { storeData, storeLoading } = useStore();
   const { ordersData, ordersLoading } = useOrders();
@@ -44,24 +43,23 @@ export default function Page() {
     })();
   }, [itemLoading, itemData, storeLoading, storeData]);
 
-  useEffect(() => {
-    if (publicKey && ordersData && reviewsData) {
-      const completedShopperOrders = ordersData.filter(
-        (order) =>
-          order.item === itemPda &&
-          order.shopper === getShopperPda(publicKey).toBase58() &&
-          order.status === 'completed'
-      );
+  const reviewOrderPda = useMemo(() => {
+    if (!publicKey || !ordersData || !reviewsData) return '';
 
-      for (const order of completedShopperOrders) {
-        if (!reviewsData.find((review) => review.order === order.publicKey)) {
-          setReviewOrderPda(order.publicKey);
-          return;
-        }
+    const completedShopperOrders = ordersData.filter(
+      (order) =>
+        order.item === itemPda &&
+        order.shopper === getShopperPda(publicKey).toBase58() &&
+        order.status === 'completed'
+    );
+
+    for (const order of completedShopperOrders) {
+      if (!reviewsData.find((review) => review.order === order.publicKey)) {
+        return order.publicKey;
       }
     }
 
-    setReviewOrderPda('');
+    return '';
   }, [publicKey, itemPda, ordersData, reviewsData]);
 
   return (

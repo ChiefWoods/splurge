@@ -3,7 +3,7 @@
 import '@dialectlabs/react-ui/index.css';
 import { DialectSolanaSdk } from '@dialectlabs/react-sdk-blockchain-solana';
 import { NotificationsButton, ThemeType } from '@dialectlabs/react-ui';
-import { SPLURGE_PROGRAM } from '@/lib/solana-client';
+import { SPLURGE_PROGRAM } from '@/lib/client/solana';
 import { useEffect, useMemo, useState } from 'react';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useTheme } from 'next-themes';
@@ -12,7 +12,14 @@ import { Bell } from 'lucide-react';
 
 export function DialectNotification() {
   const { publicKey, signTransaction, signMessage } = useUnifiedWallet();
-  const [dialectTheme, setDialectTheme] = useState<'light' | 'dark'>('light');
+  const [dialectTheme, setDialectTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    }
+    return 'light';
+  });
   const { theme } = useTheme();
 
   const walletAdapter = useMemo(
@@ -26,7 +33,6 @@ export function DialectNotification() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setDialectTheme(mediaQuery.matches ? 'dark' : 'light');
 
     const handler = (e: MediaQueryListEvent) => {
       setDialectTheme(e.matches ? 'dark' : 'light');

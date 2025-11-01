@@ -11,36 +11,29 @@ import { atomicToUsd, truncateAddress } from '@/lib/utils';
 import { ItemsProvider, useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { StoresProvider, useStores } from '@/providers/StoresProvider';
-import { ParsedItem } from '@/types/accounts';
 import { useWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 
 function Section() {
   const { publicKey } = useWallet();
   const { shopperData } = useShopper();
   const { storesData, storesLoading } = useStores();
   const { itemsData, itemsLoading } = useItems();
-  const [filteredItems, setFilteredItems] = useState<ParsedItem[]>([]);
 
-  useEffect(() => {
-    if (itemsData) {
-      let filteredItems = itemsData.filter(
-        ({ inventoryCount }) => inventoryCount > 0
-      );
+  const filteredItems = useMemo(() => {
+    if (!itemsData) return [];
 
-      if (publicKey) {
-        const storePda = getStorePda(publicKey);
+    let filtered = itemsData.filter(({ inventoryCount }) => inventoryCount > 0);
 
-        filteredItems = filteredItems.filter(
-          ({ store }) => store !== storePda.toBase58()
-        );
-      }
-
-      setFilteredItems(filteredItems);
+    if (publicKey) {
+      const storePda = getStorePda(publicKey);
+      filtered = filtered.filter(({ store }) => store !== storePda.toBase58());
     }
+
+    return filtered;
   }, [itemsData, publicKey]);
 
   return (

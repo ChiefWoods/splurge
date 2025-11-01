@@ -13,7 +13,7 @@ import { TransactionInstruction } from '@solana/web3.js';
 import { AddressLookupTableAccount } from '@solana/web3.js';
 import { clusterApiUrl, Connection } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
-import idl from '../idl/splurge.json';
+import idl from '../../idl/splurge.json';
 import tuktukIdl from '@/idl/tuktuk.json';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??

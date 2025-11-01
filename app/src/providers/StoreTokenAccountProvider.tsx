@@ -6,7 +6,7 @@ import { useConfig } from './ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { CONNECTION } from '@/lib/solana-client';
+import { CONNECTION } from '@/lib/client/solana';
 import { usePersonalStore } from './PersonalStoreProvider';
 
 interface StoreTokenAccount {

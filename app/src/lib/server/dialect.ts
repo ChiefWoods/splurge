@@ -12,9 +12,9 @@ import {
   DialectCloudEnvironment,
   DialectSdk,
 } from '@dialectlabs/sdk';
-import { getStorePda } from './pda';
+import { getStorePda } from '../pda';
 import { PublicKey } from '@solana/web3.js';
-import { truncateAddress } from './utils';
+import { truncateAddress } from '../utils';
 import { ParsedOrderStatus } from '@/types/accounts';
 
 const environment: DialectCloudEnvironment = 'production';

@@ -1,5 +1,5 @@
 import { truncateAddress } from '@/lib/utils';
-import { getAccountLink } from '@/lib/solana-client';
+import { getAccountLink } from '@/lib/client/solana';
 import { AccountLinkButton } from './AccountLinkButton';
 
 export function AccountLinkText({

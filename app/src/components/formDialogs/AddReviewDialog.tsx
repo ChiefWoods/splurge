@@ -6,7 +6,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/solana-client';
+import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Plus } from 'lucide-react';

@@ -26,7 +26,7 @@ import { ParsedItem, ParsedOrder } from '@/types/accounts';
 import { InfoTooltip } from './InfoTooltip';
 import { TimestampTooltip } from './TimestampTooltip';
 import Image from 'next/image';
-import { getAccountLink } from '@/lib/solana-client';
+import { getAccountLink } from '@/lib/client/solana';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { OrderTablePagination } from './OrderTablePagination';
 import { AccountLinkButton } from './AccountLinkButton';
@@ -177,6 +177,7 @@ export function OrderTable({
     [showTotalTooltip]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
