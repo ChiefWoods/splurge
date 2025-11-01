@@ -19,11 +19,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
-import { useConnection } from '@solana/wallet-adapter-react';
 import Image from 'next/image';
 import { updateItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { useItems } from '@/providers/ItemsProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
@@ -33,6 +31,7 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
+import { sendTx } from '@/lib/api';
 
 export function UpdateItemDialog({
   name,
@@ -51,8 +50,7 @@ export function UpdateItemDialog({
   itemPda: string;
   storePda: string;
 }) {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,13 +67,13 @@ export function UpdateItemDialog({
     (data: UpdateItemFormData) => {
       toast.promise(
         async () => {
-          if (!publicKey) {
+          if (!publicKey || !signTransaction) {
             throw new Error('Wallet not connected.');
           }
 
           setIsSubmitting(true);
 
-          const tx = await buildTx(
+          let tx = await buildTx(
             [
               await updateItemIx({
                 price: new BN(Number(data.price.toFixed(2))),
@@ -88,9 +86,8 @@ export function UpdateItemDialog({
             publicKey
           );
 
-          const signature = await sendTransaction(tx, connection);
-
-          await confirmTransaction(connection, signature);
+          tx = await signTransaction(tx);
+          const signature = await sendTx(tx);
 
           return {
             signature,
@@ -146,15 +143,7 @@ export function UpdateItemDialog({
         }
       );
     },
-    [
-      itemsMutate,
-      connection,
-      form,
-      itemPda,
-      publicKey,
-      sendTransaction,
-      storePda,
-    ]
+    [itemsMutate, form, itemPda, publicKey, signTransaction, storePda]
   );
 
   return (

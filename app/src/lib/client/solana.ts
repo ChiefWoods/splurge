@@ -1,12 +1,8 @@
 import { Splurge } from '@/types/splurge';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
-import {
-  getExplorerLink,
-  getSimulationComputeUnits,
-} from '@solana-developers/helpers';
+import { getExplorerLink } from '@solana-developers/helpers';
 import { PublicKey } from '@solana/web3.js';
-import { ComputeBudgetProgram } from '@solana/web3.js';
 import { VersionedTransaction } from '@solana/web3.js';
 import { TransactionMessage } from '@solana/web3.js';
 import { TransactionInstruction } from '@solana/web3.js';
@@ -15,6 +11,8 @@ import { clusterApiUrl, Connection } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
 import idl from '../../idl/splurge.json';
 import tuktukIdl from '@/idl/tuktuk.json';
+import { CuPriceRange, JitoTipRange } from '../server/solana';
+import { optimizeTx } from '../api';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;
@@ -60,42 +58,25 @@ export async function getALTs(
 }
 
 export async function buildTx(
-  ixs: TransactionInstruction[],
+  instructions: TransactionInstruction[],
   payer: PublicKey,
-  lookupTables: AddressLookupTableAccount[] = []
-) {
+  lookupTables: AddressLookupTableAccount[] = [],
+  cuPriceRange: CuPriceRange = 'low',
+  jitoTipRange: JitoTipRange = 'low'
+): Promise<VersionedTransaction> {
   const mainALT = await getALTs([
     new PublicKey(process.env.NEXT_PUBLIC_ADDRESS_LOOKUP_TABLE as string),
   ]);
 
-  const units = await getSimulationComputeUnits(
-    CONNECTION,
-    ixs,
-    payer,
-    lookupTables.concat(mainALT)
-  );
-
-  if (!units) {
-    throw new Error('Unable to get compute limits.');
-  }
-
-  const ixsWithCompute = [
-    ComputeBudgetProgram.setComputeUnitLimit({
-      units: Math.ceil(units * 1.1),
-    }),
-    ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: await getPriorityFee(),
-    }),
-    ...ixs,
-  ];
-
   const messageV0 = new TransactionMessage({
     payerKey: payer,
     recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
-    instructions: ixsWithCompute,
-  }).compileToV0Message(lookupTables);
+    instructions,
+  }).compileToV0Message(lookupTables.concat(mainALT));
 
-  return new VersionedTransaction(messageV0);
+  const v0Tx = new VersionedTransaction(messageV0);
+
+  return await optimizeTx(v0Tx, cuPriceRange, jitoTipRange);
 }
 
 export function getTransactionLink(signature: string): string {

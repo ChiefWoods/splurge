@@ -96,3 +96,7 @@ export function getRelativeTime(timestamp: number): string {
   if (diffMonths < 12) return `${diffMonths}mo ago`;
   return `${diffYears}y ago`;
 }
+
+export function v0TxToBase64(tx: VersionedTransaction): string {
+  return Buffer.from(tx.serialize()).toString('base64');
+}

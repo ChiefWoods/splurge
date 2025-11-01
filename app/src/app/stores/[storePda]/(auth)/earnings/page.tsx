@@ -22,16 +22,14 @@ import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { confirmTransaction } from '@solana-developers/helpers';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { sendTx } from '@/lib/api';
 
 export default function Page() {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const {
     storeTokenAccountsData,
     storeTokenAccountsLoading,
@@ -76,7 +74,7 @@ export default function Page() {
   function onWithdraw() {
     toast.promise(
       async () => {
-        if (!publicKey) {
+        if (!publicKey || !signTransaction) {
           throw new Error('Wallet not connected.');
         }
 
@@ -86,7 +84,7 @@ export default function Page() {
 
         setIsWithdrawing(true);
 
-        const tx = await buildTx(
+        let tx = await buildTx(
           await Promise.all(
             storeTokenAccountsData
               .filter(({ amount }) => amount > 0)
@@ -108,9 +106,8 @@ export default function Page() {
           publicKey
         );
 
-        const signature = await sendTransaction(tx, connection);
-
-        await confirmTransaction(connection, signature);
+        tx = await signTransaction(tx);
+        const signature = await sendTx(tx);
 
         return signature;
       },

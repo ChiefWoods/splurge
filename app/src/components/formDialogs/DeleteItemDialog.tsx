@@ -1,7 +1,6 @@
 'use client';
 
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
@@ -16,13 +15,13 @@ import { WalletGuardButton } from '../WalletGuardButton';
 import { useItems } from '@/providers/ItemsProvider';
 import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
+import { sendTx } from '@/lib/api';
 
 export function DeleteItemDialog({
   name,
@@ -33,8 +32,7 @@ export function DeleteItemDialog({
   itemPda: string;
   storePda: string;
 }) {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,13 +43,13 @@ export function DeleteItemDialog({
 
       toast.promise(
         async () => {
-          if (!publicKey) {
+          if (!publicKey || !signTransaction) {
             throw new Error('Wallet not connected.');
           }
 
           setIsSubmitting(true);
 
-          const tx = await buildTx(
+          let tx = await buildTx(
             [
               await unlistItemIx({
                 authority: publicKey,
@@ -62,9 +60,8 @@ export function DeleteItemDialog({
             publicKey
           );
 
-          const signature = await sendTransaction(tx, connection);
-
-          await confirmTransaction(connection, signature);
+          tx = await signTransaction(tx);
+          const signature = await sendTx(tx);
 
           return signature;
         },
@@ -104,7 +101,7 @@ export function DeleteItemDialog({
         }
       );
     },
-    [itemsMutate, connection, itemPda, publicKey, sendTransaction, storePda]
+    [itemsMutate, itemPda, publicKey, signTransaction, storePda]
   );
 
   return (

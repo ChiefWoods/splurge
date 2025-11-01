@@ -1,8 +1,7 @@
 import { VersionedTransaction } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_KEYPAIR, CONNECTION } from '@/lib/server/solana';
-import { confirmTransaction } from '@solana-developers/helpers';
-import { validateProgramIx } from '@/lib/utils';
+import { ADMIN_KEYPAIR, CONNECTION, sendTx } from '@/lib/server/solana';
+import { v0TxToBase64, validateProgramIx } from '@/lib/utils';
 
 const allowedIxs = ['ship_order', 'cancel_order'];
 
@@ -30,10 +29,14 @@ export async function POST(req: NextRequest) {
 
     tx.sign([ADMIN_KEYPAIR]);
 
-    const signature = await CONNECTION.sendTransaction(tx);
+    const res = await sendTx(v0TxToBase64(tx));
 
-    await confirmTransaction(CONNECTION, signature);
+    if (res.error) {
+      return NextResponse.json({ error: res.error.message }, { status: 500 });
+    }
 
+    const signature = res.result!;
+    await CONNECTION.confirmTransaction(signature, 'confirmed');
     return NextResponse.json({ signature });
   } catch (err) {
     console.error(err);

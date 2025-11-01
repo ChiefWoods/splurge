@@ -16,14 +16,12 @@ import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { createStoreIx } from '@/lib/instructions';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { getStorePda } from '@/lib/pda';
@@ -34,10 +32,10 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
+import { sendTx } from '@/lib/api';
 
 export function CreateStoreDialog() {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -63,7 +61,7 @@ export function CreateStoreDialog() {
     (data: CreateStoreFormData) => {
       toast.promise(
         async () => {
-          if (!publicKey) {
+          if (!publicKey || !signTransaction) {
             throw new Error('Wallet not connected.');
           }
 
@@ -76,16 +74,16 @@ export function CreateStoreDialog() {
               ))
           );
 
-          return { imageUri, publicKey };
+          return { imageUri, publicKey, signTransaction };
         },
         {
           loading: 'Uploading image...',
-          success: ({ imageUri, publicKey }) => {
+          success: ({ imageUri, publicKey, signTransaction }) => {
             toast.promise(
               async () => {
                 setIsSubmitting(true);
 
-                const tx = await buildTx(
+                let tx = await buildTx(
                   [
                     await createStoreIx({
                       name: data.name,
@@ -97,9 +95,8 @@ export function CreateStoreDialog() {
                   publicKey
                 );
 
-                const signature = await sendTransaction(tx, connection);
-
-                await confirmTransaction(connection, signature);
+                tx = await signTransaction(tx);
+                const signature = await sendTx(tx);
 
                 return signature;
               },
@@ -147,14 +144,7 @@ export function CreateStoreDialog() {
         }
       );
     },
-    [
-      connection,
-      personalStoreMutate,
-      publicKey,
-      sendTransaction,
-      upload,
-      closeAndReset,
-    ]
+    [personalStoreMutate, publicKey, signTransaction, upload, closeAndReset]
   );
 
   return (

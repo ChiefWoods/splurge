@@ -14,7 +14,6 @@ import { cancelOrderIx, shipOrderIx } from '@/lib/instructions';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
-import { confirmTransaction } from '@solana-developers/helpers';
 import {
   atomicToUsd,
   capitalizeFirstLetter,
@@ -132,8 +131,6 @@ export function UpdateOrderDialog({
           );
 
           const signature = await sendPermissionedTx(tx);
-
-          await confirmTransaction(connection, signature);
 
           return {
             signature,

@@ -2,7 +2,6 @@
 
 import { CreateReviewFormData, createReviewSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
@@ -24,7 +23,6 @@ import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
 import { createReviewIx } from '@/lib/instructions';
 import { getReviewPda, getShopperPda } from '@/lib/pda';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { useReviews } from '@/providers/ReviewsProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -32,10 +30,10 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
+import { sendTx } from '@/lib/api';
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,13 +55,13 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
     (data: CreateReviewFormData) => {
       toast.promise(
         async () => {
-          if (!publicKey) {
+          if (!publicKey || !signTransaction) {
             throw new Error('Wallet not connected.');
           }
 
           setIsSubmitting(true);
 
-          const tx = await buildTx(
+          let tx = await buildTx(
             [
               await createReviewIx({
                 text: data.text,
@@ -76,9 +74,8 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
             publicKey
           );
 
-          const signature = await sendTransaction(tx, connection);
-
-          await confirmTransaction(connection, signature);
+          tx = await signTransaction(tx);
+          const signature = await sendTx(tx);
 
           return signature;
         },
@@ -124,14 +121,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
         }
       );
     },
-    [
-      reviewsMutate,
-      connection,
-      orderPda,
-      publicKey,
-      sendTransaction,
-      closeAndReset,
-    ]
+    [reviewsMutate, orderPda, publicKey, signTransaction, closeAndReset]
   );
 
   return (

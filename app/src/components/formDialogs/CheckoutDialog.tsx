@@ -167,8 +167,11 @@ export function CheckoutDialog({
             },
           ]);
 
-          // actual transaction starts from index 1
-          await confirmTransaction(connection, signatures[1]);
+          // actual transaction is the last one
+          await confirmTransaction(
+            connection,
+            signatures[signatures.length - 1]
+          );
 
           return {
             signature: signatures[1],

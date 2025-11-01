@@ -1,7 +1,16 @@
 import { VersionedTransaction } from '@solana/web3.js';
+import { CuPriceRange, JitoTipRange } from './server/solana';
+import { v0TxToBase64 } from './utils';
 
-export async function wrappedFetch(url: string) {
-  const res = await fetch(url);
+export async function wrappedFetch(
+  url: string,
+  method: string = 'GET',
+  body: any = null
+): Promise<any> {
+  const res = await fetch(url, {
+    method,
+    body: body ? JSON.stringify(body) : null,
+  });
   const data = await res.json();
 
   if (!res.ok) {
@@ -14,18 +23,33 @@ export async function wrappedFetch(url: string) {
 export async function sendPermissionedTx(
   tx: VersionedTransaction
 ): Promise<string> {
-  const res = await fetch('/api/permissioned', {
-    method: 'POST',
-    body: JSON.stringify({
-      transaction: Buffer.from(tx.serialize()).toString('base64'),
-    }),
+  const data = await wrappedFetch('/api/permissioned', 'POST', {
+    transaction: v0TxToBase64(tx),
   });
 
-  const data = await res.json();
+  return data.signature;
+}
 
-  if (!res.ok) {
-    throw new Error(data.error);
-  }
+export async function optimizeTx(
+  tx: VersionedTransaction,
+  cuPriceRange: CuPriceRange,
+  jitoTipRange: JitoTipRange
+): Promise<VersionedTransaction> {
+  const data = await wrappedFetch('/api/transaction/build', 'POST', {
+    transaction: v0TxToBase64(tx),
+    cuPriceRange,
+    jitoTipRange,
+  });
+
+  return VersionedTransaction.deserialize(
+    Buffer.from(data.transaction, 'base64')
+  );
+}
+
+export async function sendTx(tx: VersionedTransaction): Promise<string> {
+  const data = await wrappedFetch('/api/transaction/send', 'POST', {
+    transaction: v0TxToBase64(tx),
+  });
 
   return data.signature;
 }

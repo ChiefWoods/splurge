@@ -16,7 +16,6 @@ import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
@@ -25,7 +24,6 @@ import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { Textarea } from '../ui/textarea';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { listItemIx } from '@/lib/instructions';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { useItems } from '@/providers/ItemsProvider';
 import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
@@ -38,10 +36,10 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
+import { sendTx } from '@/lib/api';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useUnifiedWallet();
+  const { publicKey, signTransaction } = useUnifiedWallet();
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -69,7 +67,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
     (data: CreateItemFormData) => {
       toast.promise(
         async () => {
-          if (!publicKey) {
+          if (!publicKey || !signTransaction) {
             throw new Error('Wallet not connected.');
           }
 
@@ -82,16 +80,16 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               ))
           );
 
-          return { imageUri, publicKey };
+          return { imageUri, publicKey, signTransaction };
         },
         {
           loading: 'Uploading image...',
-          success: ({ imageUri, publicKey }) => {
+          success: ({ imageUri, publicKey, signTransaction }) => {
             toast.promise(
               async () => {
                 setIsSubmitting(true);
 
-                const tx = await buildTx(
+                let tx = await buildTx(
                   [
                     await listItemIx({
                       price: new BN(data.price * 10 ** MINT_DECIMALS),
@@ -105,9 +103,8 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                   publicKey
                 );
 
-                const signature = await sendTransaction(tx, connection);
-
-                await confirmTransaction(connection, signature);
+                tx = await signTransaction(tx);
+                const signature = await sendTx(tx);
 
                 return signature;
               },
@@ -169,15 +166,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
         }
       );
     },
-    [
-      upload,
-      publicKey,
-      connection,
-      sendTransaction,
-      itemsMutate,
-      storePda,
-      closeAndReset,
-    ]
+    [upload, publicKey, signTransaction, itemsMutate, storePda, closeAndReset]
   );
 
   return (
