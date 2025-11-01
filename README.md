@@ -24,39 +24,6 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 - [![TypeScript](https://img.shields.io/badge/TypeScript-ffffff?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 - [![React](https://img.shields.io/badge/React-23272f?style=for-the-badge&logo=react)](https://react.dev/)
 
-### Libraries
-
-- [@coral-xyz/anchor](https://www.anchor-lang.com/)
-- [@solana/web3.js](https://solana-labs.github.io/solana-web3.js/)
-- [@solana/spl-token](https://solana-labs.github.io/solana-program-library/token/js/)
-- [litesvm](https://github.com/LiteSVM/litesvm/tree/master/crates/node-litesvm)
-- [anchor-litesvm](https://github.com/LiteSVM/anchor-litesvm/)
-- [@dialectlabs/blockchain-sdk-solana](https://dialect.to/)
-- [@dialectlabs/react-sdk-blockchain-solana](https://dialect.to/)
-- [@dialectlabs/react-ui](https://dialect.to/)
-- [@dialectlabs/sdk](https://dialect.to/)
-- [@helium/tuktuk-idls](https://github.com/helium/tuktuk)
-- [@helium/tuktuk-sdk](https://github.com/helium/tuktuk)
-- [@solana/wallet-adapter-react](https://github.com/anza-xyz/wallet-adapter)
-- [@jup-ag/wallet-adapter](https://github.com/TeamRaccoons/Unified-Wallet-Kit)
-- [@solana-developers/helpers](https://github.com/solana-developers/helpers)
-- [@irys/web-upload](https://irys.xyz/)
-- [@pythnetwork/hermes-client](https://www.pyth.network/)
-- [next](https://nextjs.org/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [zod](https://zod.dev/)
-- [swr](https://swr.vercel.app/)
-
-### Crates
-
-- [anchor-lang](https://docs.rs/anchor-lang/latest/anchor_lang/)
-- [anchor-spl](https://docs.rs/anchor-spl/latest/anchor_spl/)
-- [num-derive](https://docs.rs/num-derive/latest/num_derive/)
-- [num-traits](https://docs.rs/num-traits/latest/num_traits/)
-- [pyth-solana-receiver-sdk](https://docs.rs/pyth-solana-receiver-sdk/latest/pyth_solana_receiver_sdk/)
-- [spl-math](https://docs.rs/spl-math/latest/spl_math/)
-- [tuktuk-program](https://docs.rs/tuktuk-program/latest/tuktuk_program/)
-
 ### Test Runner
 
 - [![Bun](https://img.shields.io/badge/Bun-000?style=for-the-badge&logo=bun)](https://bun.sh/)
