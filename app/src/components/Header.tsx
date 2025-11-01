@@ -35,7 +35,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between bg-secondary px-6 py-4">
+    <header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-secondary px-6 py-4">
       <Link href={'/'} className="flex items-center gap-2">
         <ShoppingCartIcon size={24} />
         <h1 className="text-3xl font-medium">Splurge</h1>
