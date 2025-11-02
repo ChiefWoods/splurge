@@ -31,25 +31,36 @@ export function useSettings() {
   return useContext(SettingsContext);
 }
 
+const defaultSettings = {
+  explorer: 'solana-explorer' as Explorer,
+  priorityFee: 'low' as PriorityFee,
+  rpcType: 'default' as RpcType,
+  customRpcUrl: '',
+};
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [explorer, setExplorer] = useState<Explorer>(() => {
+    if (typeof window === 'undefined') return defaultSettings.explorer;
     const saved = localStorage.getItem('explorer') as Explorer;
-    return saved || 'solana-explorer';
+    return saved || defaultSettings.explorer;
   });
 
   const [priorityFee, setPriorityFee] = useState<PriorityFee>(() => {
+    if (typeof window === 'undefined') return defaultSettings.priorityFee;
     const saved = localStorage.getItem('priority-fee') as PriorityFee;
-    return saved || 'low';
+    return saved || defaultSettings.priorityFee;
   });
 
   const [rpcType, setRpcType] = useState<RpcType>(() => {
+    if (typeof window === 'undefined') return defaultSettings.rpcType;
     const saved = localStorage.getItem('rpc-type') as RpcType;
-    return saved || 'default';
+    return saved || defaultSettings.rpcType;
   });
 
   const [customRpcUrl, setCustomRpcUrl] = useState<string>(() => {
+    if (typeof window === 'undefined') return defaultSettings.customRpcUrl;
     const saved = localStorage.getItem('custom-rpc-url');
-    return saved || '';
+    return saved || defaultSettings.customRpcUrl;
   });
 
   useEffect(() => {
