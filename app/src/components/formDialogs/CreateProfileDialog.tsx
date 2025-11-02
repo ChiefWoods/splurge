@@ -20,7 +20,7 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { useShopper } from '@/providers/ShopperProvider';
 import { ImageInputLabel } from '../ImageInputLabel';
@@ -32,10 +32,12 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function CreateProfileDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -154,6 +156,7 @@ export function CreateProfileDialog() {
       publicKey,
       closeAndReset,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 

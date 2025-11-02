@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
@@ -32,10 +32,12 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function CreateStoreDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -152,6 +154,7 @@ export function CreateStoreDialog() {
       upload,
       closeAndReset,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 

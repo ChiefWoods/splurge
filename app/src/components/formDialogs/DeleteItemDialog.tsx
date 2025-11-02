@@ -1,6 +1,6 @@
 'use client';
 
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
@@ -22,6 +22,7 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function DeleteItemDialog({
   name,
@@ -34,6 +35,7 @@ export function DeleteItemDialog({
 }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,7 +105,15 @@ export function DeleteItemDialog({
         }
       );
     },
-    [itemsMutate, itemPda, publicKey, signTransaction, storePda, splurgeClient]
+    [
+      itemsMutate,
+      itemPda,
+      publicKey,
+      signTransaction,
+      storePda,
+      splurgeClient,
+      getTransactionLink,
+    ]
   );
 
   return (

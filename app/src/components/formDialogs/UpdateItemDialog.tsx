@@ -17,7 +17,7 @@ import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { PublicKey } from '@solana/web3.js';
@@ -32,6 +32,7 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function UpdateItemDialog({
   name,
@@ -52,6 +53,7 @@ export function UpdateItemDialog({
 }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,6 +155,7 @@ export function UpdateItemDialog({
       signTransaction,
       storePda,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 

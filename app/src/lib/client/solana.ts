@@ -1,4 +1,3 @@
-import { getExplorerLink } from '@solana-developers/helpers';
 import { PublicKey } from '@solana/web3.js';
 import { VersionedTransaction } from '@solana/web3.js';
 import { TransactionMessage } from '@solana/web3.js';
@@ -66,12 +65,4 @@ export async function buildTx(
   const v0Tx = new VersionedTransaction(messageV0);
 
   return await optimizeTx(v0Tx, cuPriceRange, jitoTipRange);
-}
-
-export function getTransactionLink(signature: string): string {
-  return getExplorerLink('tx', signature, CLUSTER);
-}
-
-export function getAccountLink(address: string): string {
-  return getExplorerLink('address', address, CLUSTER);
 }

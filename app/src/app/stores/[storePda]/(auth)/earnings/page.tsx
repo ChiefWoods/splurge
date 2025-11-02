@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
@@ -26,10 +26,12 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export default function Page() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const {
     storeTokenAccountsData,
     storeTokenAccountsLoading,

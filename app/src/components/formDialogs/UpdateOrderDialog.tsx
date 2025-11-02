@@ -9,7 +9,7 @@ import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
@@ -30,6 +30,7 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function UpdateOrderDialog({
   name,
@@ -61,6 +62,7 @@ export function UpdateOrderDialog({
   const { connection } = useConnection();
   const { signMessage } = useUnifiedWallet();
   const { splurgeClient, tuktukClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
   const { personalStoreData } = usePersonalStore();
@@ -213,6 +215,7 @@ export function UpdateOrderDialog({
       paymentSubtotal,
       splurgeClient,
       tuktukClient,
+      getTransactionLink,
     ]
   );
 

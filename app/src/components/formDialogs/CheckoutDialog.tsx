@@ -6,7 +6,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
@@ -30,7 +30,6 @@ import {
 } from '../ui/select';
 import { z } from 'zod';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { confirmTransaction } from '@solana-developers/helpers';
 import { useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
@@ -49,6 +48,7 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function CheckoutDialog({
   name,
@@ -76,6 +76,7 @@ export function CheckoutDialog({
   const { connection } = useConnection();
   const { publicKey } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configLoading } = useConfig();
   const { itemsMutate } = useItems();
@@ -170,8 +171,11 @@ export function CheckoutDialog({
           ]);
 
           // checkout transaction is the last one
-          await confirmTransaction(
-            connection,
+          // await confirmTransaction(
+          //   connection,
+          //   signatures[signatures.length - 1]
+          // );
+          await connection.confirmTransaction(
             signatures[signatures.length - 1]
           );
 
@@ -259,6 +263,7 @@ export function CheckoutDialog({
       orderSubtotal,
       closeAndReset,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 

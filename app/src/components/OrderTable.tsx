@@ -26,13 +26,13 @@ import { ParsedItem, ParsedOrder } from '@/types/accounts';
 import { InfoTooltip } from './InfoTooltip';
 import { TimestampTooltip } from './TimestampTooltip';
 import Image from 'next/image';
-import { getAccountLink } from '@/lib/client/solana';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { OrderTablePagination } from './OrderTablePagination';
 import { AccountLinkButton } from './AccountLinkButton';
 import { SortButton } from './SortButton';
 import { OrderTableRow } from './OrderTableRow';
 import { MintIcon } from './MintIcon';
+import { useSettings } from '@/providers/SettingsProvider';
 
 const ORDER_TABS = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
 
@@ -54,6 +54,7 @@ export function OrderTable({
   showTotalTooltip?: boolean;
   statusRenderer: (order: ParsedOrder) => ReactNode;
 }) {
+  const { getAccountLink } = useSettings();
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'timestamp', desc: true },
   ]);
@@ -174,7 +175,7 @@ export function OrderTable({
         enableSorting: false,
       },
     ],
-    [showTotalTooltip]
+    [showTotalTooltip, getAccountLink]
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library

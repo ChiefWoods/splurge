@@ -20,7 +20,7 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { Textarea } from '../ui/textarea';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { useItems } from '@/providers/ItemsProvider';
@@ -36,10 +36,12 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -174,6 +176,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       storePda,
       closeAndReset,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 

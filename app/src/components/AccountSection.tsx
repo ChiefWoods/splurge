@@ -10,6 +10,7 @@ import {
 import { AccountLinkText } from './AccountLinkText';
 import { SectionHeader } from './SectionHeader';
 import { LargeImage } from './LargeImage';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function AccountSection({
   header,
@@ -28,6 +29,8 @@ export function AccountSection({
   content: ReactNode;
   buttons?: ReactNode;
 }) {
+  const { getAccountLink } = useSettings();
+
   return (
     <section className="flex w-full flex-col gap-6">
       {header && <SectionHeader text={header} />}
@@ -37,7 +40,11 @@ export function AccountSection({
           <CardHeader className="flex flex-1 flex-col p-0">
             <CardTitle className="truncate font-medium">{title}</CardTitle>
             <CardDescription>
-              <AccountLinkText prefix={prefix} subject={address} />
+              <AccountLinkText
+                prefix={prefix}
+                subject={address}
+                href={getAccountLink(address)}
+              />
             </CardDescription>
             <CardContent className="flex flex-1 flex-col gap-y-1 p-0">
               {content}

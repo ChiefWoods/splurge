@@ -1,5 +1,7 @@
 'use client';
 
+import { CLUSTER } from '@/lib/client/solana';
+import { getExplorerLink } from '@solana-developers/helpers';
 import {
   createContext,
   ReactNode,
@@ -21,6 +23,8 @@ interface SettingsContextType {
   setRpcType: (type: RpcType) => void;
   customRpcUrl: string;
   setCustomRpcUrl: (url: string) => void;
+  getTransactionLink: (signature: string) => string;
+  getAccountLink: (address: string) => string;
 }
 
 const SettingsContext = createContext<SettingsContextType>(
@@ -79,6 +83,74 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('custom-rpc-url', customRpcUrl);
   }, [customRpcUrl]);
 
+  function getTransactionLink(signature: string): string {
+    switch (explorer) {
+      case 'solana-explorer':
+        return getExplorerLink('tx', signature, CLUSTER);
+      case 'solscan':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://solscan.io/tx/${signature}`;
+          case 'devnet':
+            return `https://solscan.io/tx/${signature}?cluster=devnet`;
+          case 'testnet':
+            return `https://solscan.io/tx/${signature}?cluster=testnet`;
+        }
+      case 'solanaFM':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://solana.fm/tx/${signature}?cluster=mainnet-alpha`;
+          case 'devnet':
+            return `https://solana.fm/tx/${signature}?cluster=devnet-alpha`;
+          case 'testnet':
+            return `https://solana.fm/tx/${signature}?cluster=testnet-solana`;
+        }
+      case 'orb':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta`;
+          case 'devnet':
+            return `https://orb.helius.dev/tx/${signature}?cluster=devnet`;
+          case 'testnet':
+            return `https://orb.helius.dev/tx/${signature}?cluster=testnet`;
+        }
+    }
+  }
+
+  function getAccountLink(address: string): string {
+    switch (explorer) {
+      case 'solana-explorer':
+        return getExplorerLink('address', address, CLUSTER);
+      case 'solscan':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://solscan.io/account/${address}`;
+          case 'devnet':
+            return `https://solscan.io/account/${address}?cluster=devnet`;
+          case 'testnet':
+            return `https://solscan.io/account/${address}?cluster=testnet`;
+        }
+      case 'solanaFM':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://solana.fm/address/${address}?cluster=mainnet-alpha`;
+          case 'devnet':
+            return `https://solana.fm/address/${address}?cluster=devnet-alpha`;
+          case 'testnet':
+            return `https://solana.fm/address/${address}?cluster=testnet-solana`;
+        }
+      case 'orb':
+        switch (CLUSTER) {
+          case 'mainnet-beta':
+            return `https://orb.helius.dev/address/${address}?cluster=mainnet-beta`;
+          case 'devnet':
+            return `https://orb.helius.dev/address/${address}?cluster=devnet`;
+          case 'testnet':
+            return `https://orb.helius.dev/address/${address}?cluster=testnet`;
+        }
+    }
+  }
+
   return (
     <SettingsContext.Provider
       value={{
@@ -90,6 +162,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setRpcType,
         customRpcUrl,
         setCustomRpcUrl,
+        getTransactionLink,
+        getAccountLink,
       }}
     >
       {children}

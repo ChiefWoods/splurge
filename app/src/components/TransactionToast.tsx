@@ -3,16 +3,13 @@ export function TransactionToast({
   link,
 }: {
   title: string;
-  link?: string;
+  link: string;
 }) {
   return (
     <div className="flex flex-col">
-      <p>{title}</p>
-      {link && (
-        <a href={link} target="_blank" className="text-info underline">
-          {link}
-        </a>
-      )}
+      <a href={link} target="_blank" className="text-info underline">
+        {title}
+      </a>
     </div>
   );
 }

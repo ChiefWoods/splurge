@@ -18,12 +18,17 @@ const metadata = {
 export function SolanaProvider({ children }: { children: ReactNode }) {
   const { rpcType, customRpcUrl } = useSettings();
 
+  const defaultEndpoint =
+    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER);
+
   return (
     <ConnectionProvider
       endpoint={
         rpcType === 'default'
-          ? (process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER))
-          : customRpcUrl
+          ? defaultEndpoint
+          : customRpcUrl !== ''
+            ? customRpcUrl
+            : defaultEndpoint
       }
     >
       <UnifiedWalletProvider

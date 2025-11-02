@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx, getTransactionLink } from '@/lib/client/solana';
+import { buildTx } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Plus } from 'lucide-react';
@@ -30,10 +30,12 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
+  const { getTransactionLink } = useSettings();
   const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,6 +133,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
       signTransaction,
       closeAndReset,
       splurgeClient,
+      getTransactionLink,
     ]
   );
 
