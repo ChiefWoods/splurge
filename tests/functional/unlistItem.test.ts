@@ -89,6 +89,6 @@ describe('unlistItem', () => {
 
     const itemAccBal = litesvm.getBalance(itemPda);
 
-    expect(itemAccBal).toBe(0n);
+    expect(itemAccBal).toBe(null);
   });
 });

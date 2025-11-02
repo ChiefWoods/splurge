@@ -101,6 +101,9 @@ anchor build
 bun test
 ```
 
+> [!NOTE]  
+> Tests may fail with an `TypeError: Expected Buffer` error even with no code changes when bumping dependencies. Delete `node_modules`, `bun.lock`, reinstall dependencies and run tests again.
+
 5. Deploy program
 
 ```bash

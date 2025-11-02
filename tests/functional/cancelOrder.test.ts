@@ -257,7 +257,7 @@ describe('cancelOrder', () => {
 
     const postOrderAtaRent = litesvm.getBalance(orderAta);
 
-    expect(postOrderAtaRent).toBe(0n);
+    expect(postOrderAtaRent).toBe(null);
 
     const postTreasuryAta = await getAccount(provider.connection, treasuryAta);
 

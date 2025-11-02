@@ -11,7 +11,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'package.json'
-      - 'bun.lockb'
+      - 'bun.lock'
 
 env:
   SOLANA_VERSION: '2.1.0'
@@ -85,7 +85,7 @@ jobs:
           path: |
             ~/.bun/install/cache
             node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install Bun

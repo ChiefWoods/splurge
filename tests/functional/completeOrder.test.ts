@@ -231,7 +231,7 @@ describe('completeOrder', () => {
 
     const orderAtaRent = litesvm.getBalance(orderAta);
 
-    expect(orderAtaRent).toBe(0n);
+    expect(orderAtaRent).toBe(null);
   });
 
   test('throws if order status is not shipping', async () => {
