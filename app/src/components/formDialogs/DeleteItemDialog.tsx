@@ -13,7 +13,6 @@ import {
 } from '../ui/dialog';
 import { WalletGuardButton } from '../WalletGuardButton';
 import { useItems } from '@/providers/ItemsProvider';
-import { unlistItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -22,6 +21,7 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function DeleteItemDialog({
   name,
@@ -33,6 +33,7 @@ export function DeleteItemDialog({
   storePda: string;
 }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,8 +51,9 @@ export function DeleteItemDialog({
           setIsSubmitting(true);
 
           let tx = await buildTx(
+            splurgeClient.connection,
             [
-              await unlistItemIx({
+              await splurgeClient.unlistItemIx({
                 authority: publicKey,
                 itemPda: new PublicKey(itemPda),
                 storePda: new PublicKey(storePda),
@@ -101,7 +103,7 @@ export function DeleteItemDialog({
         }
       );
     },
-    [itemsMutate, itemPda, publicKey, signTransaction, storePda]
+    [itemsMutate, itemPda, publicKey, signTransaction, storePda, splurgeClient]
   );
 
   return (

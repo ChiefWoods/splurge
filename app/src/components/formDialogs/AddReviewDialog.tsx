@@ -21,8 +21,6 @@ import {
 } from '../ui/form';
 import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
-import { createReviewIx } from '@/lib/instructions';
-import { getReviewPda, getShopperPda } from '@/lib/pda';
 import { useReviews } from '@/providers/ReviewsProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -31,9 +29,11 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,12 +62,13 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           setIsSubmitting(true);
 
           let tx = await buildTx(
+            splurgeClient.connection,
             [
-              await createReviewIx({
+              await splurgeClient.createReviewIx({
                 text: data.text,
                 rating: data.rating,
                 authority: publicKey,
-                shopperPda: getShopperPda(publicKey),
+                shopperPda: splurgeClient.getShopperPda(publicKey),
                 orderPda: new PublicKey(orderPda),
               }),
             ],
@@ -83,7 +84,9 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           loading: 'Waiting for signature...',
           success: async (signature) => {
             const newReview = {
-              publicKey: getReviewPda(new PublicKey(orderPda)).toBase58(),
+              publicKey: splurgeClient
+                .getReviewPda(new PublicKey(orderPda))
+                .toBase58(),
               order: orderPda,
               rating: data.rating,
               timestamp: Date.now() / 1000,
@@ -121,7 +124,14 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
         }
       );
     },
-    [reviewsMutate, orderPda, publicKey, signTransaction, closeAndReset]
+    [
+      reviewsMutate,
+      orderPda,
+      publicKey,
+      signTransaction,
+      closeAndReset,
+      splurgeClient,
+    ]
   );
 
   return (

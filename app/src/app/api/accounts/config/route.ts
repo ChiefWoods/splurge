@@ -1,11 +1,16 @@
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { parseConfig } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchConfig } from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   try {
     return NextResponse.json(
       {
-        config: await fetchConfig(),
+        config: await SPLURGE_CLIENT.fetchProgramAccount(
+          SPLURGE_CLIENT.getConfigPda(),
+          'config',
+          parseConfig
+        ),
       },
       {
         status: 200,

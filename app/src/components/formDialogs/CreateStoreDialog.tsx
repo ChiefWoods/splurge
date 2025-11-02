@@ -21,10 +21,8 @@ import { TransactionToast } from '@/components/TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { createStoreIx } from '@/lib/instructions';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { usePersonalStore } from '@/providers/PersonalStoreProvider';
-import { getStorePda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -33,9 +31,11 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function CreateStoreDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -84,8 +84,9 @@ export function CreateStoreDialog() {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
+                  splurgeClient.connection,
                   [
-                    await createStoreIx({
+                    await splurgeClient.createStoreIx({
                       name: data.name,
                       image: imageUri,
                       about: data.about,
@@ -108,7 +109,7 @@ export function CreateStoreDialog() {
                     authority: publicKey.toBase58(),
                     image: imageUri,
                     name: data.name,
-                    publicKey: getStorePda(publicKey).toBase58(),
+                    publicKey: splurgeClient.getStorePda(publicKey).toBase58(),
                   };
 
                   await personalStoreMutate(newStore, {
@@ -144,7 +145,14 @@ export function CreateStoreDialog() {
         }
       );
     },
-    [personalStoreMutate, publicKey, signTransaction, upload, closeAndReset]
+    [
+      personalStoreMutate,
+      publicKey,
+      signTransaction,
+      upload,
+      closeAndReset,
+      splurgeClient,
+    ]
   );
 
   return (

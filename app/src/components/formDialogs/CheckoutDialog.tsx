@@ -30,7 +30,6 @@ import {
 } from '../ui/select';
 import { z } from 'zod';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { createOrderIx } from '@/lib/instructions';
 import { confirmTransaction } from '@solana-developers/helpers';
 import { useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
@@ -49,6 +48,7 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function CheckoutDialog({
   name,
@@ -75,6 +75,7 @@ export function CheckoutDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configLoading } = useConfig();
   const { itemsMutate } = useItems();
@@ -150,8 +151,9 @@ export function CheckoutDialog({
             ...(await getUpdatePriceFeedTx(token.id)),
             {
               tx: await buildTx(
+                splurgeClient.connection,
                 [
-                  await createOrderIx({
+                  await splurgeClient.createOrderIx({
                     amount: data.amount,
                     authority: publicKey,
                     storePda: new PublicKey(storePda),
@@ -256,6 +258,7 @@ export function CheckoutDialog({
       storeAuthority,
       orderSubtotal,
       closeAndReset,
+      splurgeClient,
     ]
   );
 

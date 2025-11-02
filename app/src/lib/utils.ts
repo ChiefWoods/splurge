@@ -1,9 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { DISCRIMINATOR_SIZE } from '@/lib/constants';
-import { TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import { MINT_DECIMALS } from './constants';
-import { SPLURGE_PROGRAM } from './client/solana';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,32 +25,6 @@ export function atomicToUsd(
 
 export function removeTrailingZeroes(price: string): string {
   return price.replace(/\.?0+$/, '');
-}
-
-export async function validateProgramIx(
-  tx: VersionedTransaction,
-  allowedIxs: string[]
-): Promise<boolean> {
-  const { instructions } = TransactionMessage.decompile(tx.message);
-
-  const ix = instructions.find((ix) =>
-    ix.programId.equals(SPLURGE_PROGRAM.programId)
-  );
-
-  if (!ix) {
-    return false;
-  }
-
-  return allowedIxs.some(async (ixName) => {
-    const discriminator = ix.data.subarray(0, DISCRIMINATOR_SIZE);
-    const hash = await crypto.subtle.digest(
-      'SHA-256',
-      Buffer.from(`global:${ixName}`)
-    );
-    const expected = Buffer.from(hash).subarray(0, DISCRIMINATOR_SIZE);
-
-    return discriminator.equals(expected);
-  });
 }
 
 export function getRelativeTime(timestamp: number): string {

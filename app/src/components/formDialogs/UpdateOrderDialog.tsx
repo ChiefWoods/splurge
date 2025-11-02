@@ -10,7 +10,6 @@ import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
-import { cancelOrderIx, shipOrderIx } from '@/lib/instructions';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
@@ -22,7 +21,6 @@ import {
 import { useOrders } from '@/providers/OrdersProvider';
 import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { TransactionToast } from '../TransactionToast';
-import { getShopperPda } from '@/lib/pda';
 import { alertOrderUpdate } from '@/lib/server/dialect';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
@@ -31,6 +29,7 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function UpdateOrderDialog({
   name,
@@ -61,6 +60,7 @@ export function UpdateOrderDialog({
 }) {
   const { connection } = useConnection();
   const { signMessage } = useUnifiedWallet();
+  const { splurgeClient, tuktukClient } = useProgram();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
   const { personalStoreData } = usePersonalStore();
@@ -89,7 +89,7 @@ export function UpdateOrderDialog({
           const admin = new PublicKey(configData.admin);
           const authorityPubkey = new PublicKey(authority);
           const orderPdaPubkey = new PublicKey(orderPda);
-          const shopperPda = getShopperPda(authorityPubkey);
+          const shopperPda = splurgeClient.getShopperPda(authorityPubkey);
 
           const paymentMintPubkey = new PublicKey(paymentMint);
           const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
@@ -101,9 +101,10 @@ export function UpdateOrderDialog({
           const tokenProgram = mintAcc.owner;
 
           const tx = await buildTx(
+            splurgeClient.connection,
             [
               status === 'shipping'
-                ? await shipOrderIx({
+                ? await splurgeClient.shipOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
                     authority: authorityPubkey,
@@ -112,8 +113,9 @@ export function UpdateOrderDialog({
                     shopperPda,
                     storePda: new PublicKey(storePda),
                     tokenProgram,
+                    tuktukProgram: tuktukClient.program,
                   })
-                : await cancelOrderIx({
+                : await splurgeClient.cancelOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
                     paymentMint: paymentMintPubkey,
@@ -209,6 +211,8 @@ export function UpdateOrderDialog({
       name,
       orderTimestamp,
       paymentSubtotal,
+      splurgeClient,
+      tuktukClient,
     ]
   );
 

@@ -1,14 +1,15 @@
 'use client';
 
-import { CONNECTION } from '@/lib/client/solana';
 import { WebUploader } from '@irys/web-upload';
 import { WebSolana } from '@irys/web-upload-solana';
 import BaseWebIrys from '@irys/web-upload/esm/base';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useIrysUploader() {
   const wallet = useUnifiedWallet();
+  const { connection } = useConnection();
   const [irysUploader, setIrysUploader] = useState<BaseWebIrys | null>(null);
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export function useIrysUploader() {
         try {
           const irysUploader = await WebUploader(WebSolana)
             .withProvider(wallet)
-            .withRpc(CONNECTION.rpcEndpoint)
+            .withRpc(connection.rpcEndpoint)
             .devnet();
 
           setIrysUploader(irysUploader);
@@ -26,7 +27,7 @@ export function useIrysUploader() {
         }
       })();
     }
-  }, [wallet]);
+  }, [wallet, connection.rpcEndpoint]);
 
   const upload = useCallback(
     async (file: File) => {

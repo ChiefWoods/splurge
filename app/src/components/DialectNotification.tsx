@@ -3,15 +3,16 @@
 import '@dialectlabs/react-ui/index.css';
 import { DialectSolanaSdk } from '@dialectlabs/react-sdk-blockchain-solana';
 import { NotificationsButton, ThemeType } from '@dialectlabs/react-ui';
-import { SPLURGE_PROGRAM } from '@/lib/client/solana';
 import { useEffect, useMemo, useState } from 'react';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
 import { Bell } from 'lucide-react';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function DialectNotification() {
   const { publicKey, signTransaction, signMessage } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const [dialectTheme, setDialectTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -44,7 +45,7 @@ export function DialectNotification() {
 
   return (
     <DialectSolanaSdk
-      dappAddress={SPLURGE_PROGRAM.programId.toBase58()}
+      dappAddress={splurgeClient.getProgramId().toBase58()}
       config={{
         environment: 'production',
       }}

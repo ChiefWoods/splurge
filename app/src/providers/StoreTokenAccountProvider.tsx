@@ -6,8 +6,8 @@ import { useConfig } from './ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { CONNECTION } from '@/lib/client/solana';
 import { usePersonalStore } from './PersonalStoreProvider';
+import { useConnection } from '@solana/wallet-adapter-react';
 
 interface StoreTokenAccount {
   mint: string;
@@ -35,6 +35,7 @@ export function StoreTokenAccountProvider({
   children: ReactNode;
 }) {
   const { publicKey } = useUnifiedWallet();
+  const { connection } = useConnection();
   const { configData } = useConfig();
   const { personalStoreData } = usePersonalStore();
 
@@ -53,7 +54,7 @@ export function StoreTokenAccountProvider({
       return await Promise.all(
         acceptedMints.map(async ({ mint }) => {
           const mintPubkey = new PublicKey(mint);
-          const mintAcc = await CONNECTION.getAccountInfo(mintPubkey);
+          const mintAcc = await connection.getAccountInfo(mintPubkey);
 
           if (!mintAcc) {
             throw new Error('Mint account not found.');
@@ -70,9 +71,9 @@ export function StoreTokenAccountProvider({
 
           try {
             const ataAcc = await getAccount(
-              CONNECTION,
+              connection,
               ata,
-              CONNECTION.commitment,
+              connection.commitment,
               mintAcc.owner
             );
 

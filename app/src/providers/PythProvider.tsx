@@ -113,7 +113,7 @@ export function PythProvider({ children }: { children: ReactNode }) {
     await txBuilder.addUpdatePriceFeed(data, 0);
 
     return await txBuilder.buildVersionedTransactions({
-      computeUnitPriceMicroLamports: await getPriorityFee(),
+      computeUnitPriceMicroLamports: await getPriorityFee(connection),
       tightComputeBudget: true,
     });
   }

@@ -15,8 +15,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { withdrawEarningsIx } from '@/lib/instructions';
-import { getStorePda } from '@/lib/pda';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
@@ -27,9 +25,11 @@ import { HandCoins } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export default function Page() {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const {
     storeTokenAccountsData,
     storeTokenAccountsLoading,
@@ -85,6 +85,7 @@ export default function Page() {
         setIsWithdrawing(true);
 
         let tx = await buildTx(
+          splurgeClient.connection,
           await Promise.all(
             storeTokenAccountsData
               .filter(({ amount }) => amount > 0)
@@ -95,10 +96,10 @@ export default function Page() {
                   throw new Error(`Metadata not found for mint: ${mint}`);
                 }
 
-                return await withdrawEarningsIx({
+                return await splurgeClient.withdrawEarningsIx({
                   authority: publicKey,
                   paymentMint: new PublicKey(mint),
-                  storePda: getStorePda(publicKey),
+                  storePda: splurgeClient.getStorePda(publicKey),
                   tokenProgram: metadata.owner,
                 });
               })

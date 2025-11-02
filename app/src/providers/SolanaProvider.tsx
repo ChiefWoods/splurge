@@ -3,8 +3,10 @@
 import { ConnectionProvider } from '@solana/wallet-adapter-react';
 import { UnifiedWalletProvider } from '@jup-ag/wallet-adapter';
 import { ReactNode } from 'react';
-import { CLUSTER, CONNECTION } from '@/lib/client/solana';
+import { CLUSTER } from '@/lib/client/solana';
 import { toast } from 'sonner';
+import { useSettings } from './SettingsProvider';
+import { clusterApiUrl } from '@solana/web3.js';
 
 const metadata = {
   name: 'Splurge',
@@ -14,8 +16,16 @@ const metadata = {
 };
 
 export function SolanaProvider({ children }: { children: ReactNode }) {
+  const { rpcType, customRpcUrl } = useSettings();
+
   return (
-    <ConnectionProvider endpoint={CONNECTION.rpcEndpoint}>
+    <ConnectionProvider
+      endpoint={
+        rpcType === 'default'
+          ? (process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER))
+          : customRpcUrl
+      }
+    >
       <UnifiedWalletProvider
         wallets={[]}
         config={{

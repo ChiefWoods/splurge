@@ -21,10 +21,8 @@ import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
-import { createShopperIx } from '@/lib/instructions';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { useShopper } from '@/providers/ShopperProvider';
-import { getShopperPda } from '@/lib/pda';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -33,9 +31,11 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function CreateProfileDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -84,8 +84,9 @@ export function CreateProfileDialog() {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
+                  splurgeClient.connection,
                   [
-                    await createShopperIx({
+                    await splurgeClient.createShopperIx({
                       name: data.name,
                       image: imageUri,
                       address: data.address,
@@ -108,7 +109,9 @@ export function CreateProfileDialog() {
                     authority: publicKey.toBase58(),
                     image: imageUri,
                     name: data.name,
-                    publicKey: getShopperPda(publicKey).toBase58(),
+                    publicKey: splurgeClient
+                      .getShopperPda(publicKey)
+                      .toBase58(),
                   };
 
                   await shopperMutate(newShopper, {
@@ -144,7 +147,14 @@ export function CreateProfileDialog() {
         }
       );
     },
-    [signTransaction, shopperMutate, upload, publicKey, closeAndReset]
+    [
+      signTransaction,
+      shopperMutate,
+      upload,
+      publicKey,
+      closeAndReset,
+      splurgeClient,
+    ]
   );
 
   return (

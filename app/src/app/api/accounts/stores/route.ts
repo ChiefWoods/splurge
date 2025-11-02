@@ -1,8 +1,5 @@
-import {
-  fetchAllStores,
-  fetchMultipleStores,
-  fetchStore,
-} from '@/lib/accounts';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { parseStore } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -14,7 +11,10 @@ export async function GET(req: NextRequest) {
     if (!pdas.length) {
       return NextResponse.json(
         {
-          stores: await fetchAllStores(),
+          stores: await SPLURGE_CLIENT.fetchAllProgramAccounts(
+            'store',
+            parseStore
+          ),
         },
         {
           status: 200,
@@ -23,7 +23,11 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          stores: await fetchMultipleStores(pdas),
+          stores: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
+            pdas,
+            'store',
+            parseStore
+          ),
         },
         {
           status: 200,
@@ -32,7 +36,11 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          store: await fetchStore(pdas[0]),
+          store: await SPLURGE_CLIENT.fetchProgramAccount(
+            pdas[0],
+            'store',
+            parseStore
+          ),
         },
         {
           status: 200,

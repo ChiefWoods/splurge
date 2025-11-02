@@ -1,11 +1,7 @@
 import { DISCRIMINATOR_SIZE } from '@/lib/constants';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { parseOrder, parseReview } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  fetchAllOrders,
-  fetchAllReviews,
-  fetchMultipleReviews,
-  fetchReview,
-} from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -15,18 +11,25 @@ export async function GET(req: NextRequest) {
 
   try {
     if (!pdas.length) {
-      let reviews = await fetchAllReviews();
+      let reviews = await SPLURGE_CLIENT.fetchAllProgramAccounts(
+        'review',
+        parseReview
+      );
 
       // filter for reviews with a matching order PDA
       if (itemPda) {
-        const orderAccs = await fetchAllOrders([
-          {
-            memcmp: {
-              offset: DISCRIMINATOR_SIZE + 32,
-              bytes: itemPda,
+        const orderAccs = await SPLURGE_CLIENT.fetchAllProgramAccounts(
+          'order',
+          parseOrder,
+          [
+            {
+              memcmp: {
+                offset: DISCRIMINATOR_SIZE + 32,
+                bytes: itemPda,
+              },
             },
-          },
-        ]);
+          ]
+        );
 
         const orderPdas = orderAccs.map(({ publicKey }) => publicKey);
 
@@ -44,7 +47,11 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          reviews: await fetchMultipleReviews(pdas),
+          reviews: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
+            pdas,
+            'review',
+            parseReview
+          ),
         },
         {
           status: 200,
@@ -53,7 +60,11 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          review: await fetchReview(pdas[0]),
+          review: await SPLURGE_CLIENT.fetchProgramAccount(
+            pdas[0],
+            'review',
+            parseReview
+          ),
         },
         {
           status: 200,

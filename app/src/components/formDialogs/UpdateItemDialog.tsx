@@ -20,7 +20,6 @@ import { TransactionToast } from '../TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import Image from 'next/image';
-import { updateItemIx } from '@/lib/instructions';
 import { PublicKey } from '@solana/web3.js';
 import { useItems } from '@/providers/ItemsProvider';
 import { BN } from '@coral-xyz/anchor';
@@ -32,6 +31,7 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function UpdateItemDialog({
   name,
@@ -51,6 +51,7 @@ export function UpdateItemDialog({
   storePda: string;
 }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,8 +75,9 @@ export function UpdateItemDialog({
           setIsSubmitting(true);
 
           let tx = await buildTx(
+            splurgeClient.connection,
             [
-              await updateItemIx({
+              await splurgeClient.updateItemIx({
                 price: new BN(Number(data.price.toFixed(2))),
                 inventoryCount: data.inventoryCount,
                 authority: publicKey,
@@ -143,7 +145,15 @@ export function UpdateItemDialog({
         }
       );
     },
-    [itemsMutate, form, itemPda, publicKey, signTransaction, storePda]
+    [
+      itemsMutate,
+      form,
+      itemPda,
+      publicKey,
+      signTransaction,
+      storePda,
+      splurgeClient,
+    ]
   );
 
   return (

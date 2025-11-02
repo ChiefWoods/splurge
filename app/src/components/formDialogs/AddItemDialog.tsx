@@ -23,9 +23,7 @@ import { TransactionToast } from '@/components/TransactionToast';
 import { buildTx, getTransactionLink } from '@/lib/client/solana';
 import { Textarea } from '../ui/textarea';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
-import { listItemIx } from '@/lib/instructions';
 import { useItems } from '@/providers/ItemsProvider';
-import { getItemPda } from '@/lib/pda';
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { ImageInputLabel } from '../ImageInputLabel';
@@ -37,9 +35,11 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -90,8 +90,9 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
+                  splurgeClient.connection,
                   [
-                    await listItemIx({
+                    await splurgeClient.listItemIx({
                       price: new BN(data.price * 10 ** MINT_DECIMALS),
                       inventoryCount: data.inventoryCount,
                       name: data.name,
@@ -112,10 +113,9 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
                   const newItem = {
-                    publicKey: getItemPda(
-                      new PublicKey(storePda),
-                      data.name
-                    ).toBase58(),
+                    publicKey: splurgeClient
+                      .getItemPda(new PublicKey(storePda), data.name)
+                      .toBase58(),
                     store: storePda,
                     price: data.price * 10 ** MINT_DECIMALS,
                     inventoryCount: data.inventoryCount,
@@ -166,7 +166,15 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
         }
       );
     },
-    [upload, publicKey, signTransaction, itemsMutate, storePda, closeAndReset]
+    [
+      upload,
+      publicKey,
+      signTransaction,
+      itemsMutate,
+      storePda,
+      closeAndReset,
+      splurgeClient,
+    ]
   );
 
   return (

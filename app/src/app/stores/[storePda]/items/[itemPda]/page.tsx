@@ -11,10 +11,10 @@ import { ReviewRow } from '@/components/ReviewRow';
 import { ReviewRowSkeleton } from '@/components/ReviewRowSkeleton';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Separator } from '@/components/ui/separator';
-import { getShopperPda, getStorePda } from '@/lib/pda';
 import { atomicToUsd } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrders } from '@/providers/OrdersProvider';
+import { useProgram } from '@/providers/ProgramProvider';
 import { useReviews } from '@/providers/ReviewsProvider';
 import { useShoppers } from '@/providers/ShoppersProvider';
 import { useStore } from '@/providers/StoreProvider';
@@ -29,6 +29,7 @@ export default function Page() {
     itemPda: string;
   }>();
   const { publicKey } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { itemData, itemLoading } = useItem();
   const { storeData, storeLoading } = useStore();
   const { ordersData, ordersLoading } = useOrders();
@@ -49,7 +50,7 @@ export default function Page() {
     const completedShopperOrders = ordersData.filter(
       (order) =>
         order.item === itemPda &&
-        order.shopper === getShopperPda(publicKey).toBase58() &&
+        order.shopper === splurgeClient.getShopperPda(publicKey).toBase58() &&
         order.status === 'completed'
     );
 
@@ -60,7 +61,7 @@ export default function Page() {
     }
 
     return '';
-  }, [publicKey, itemPda, ordersData, reviewsData]);
+  }, [publicKey, itemPda, ordersData, reviewsData, splurgeClient]);
 
   return (
     <MainSection className="flex-1">
@@ -86,7 +87,7 @@ export default function Page() {
             }
             buttons={
               publicKey &&
-              getStorePda(publicKey).toBase58() !== storePda &&
+              splurgeClient.getStorePda(publicKey).toBase58() !== storePda &&
               itemData.inventoryCount > 0 && (
                 <AccountSectionButtonTab>
                   <CheckoutDialog

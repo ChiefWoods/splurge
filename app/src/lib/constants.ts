@@ -1,10 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
-export const MAX_SHOPPER_NAME_LENGTH = 64;
-export const MAX_STORE_NAME_LENGTH = 64;
-export const MAX_ITEM_NAME_LENGTH = 32;
-
 export const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',

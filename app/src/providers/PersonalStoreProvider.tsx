@@ -5,7 +5,7 @@ import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { getStorePda } from '@/lib/pda';
+import { useProgram } from './ProgramProvider';
 
 interface PersonalStoreContextType {
   personalStoreData: ParsedStore | undefined;
@@ -25,13 +25,16 @@ export function usePersonalStore() {
 
 export function PersonalStoreProvider({ children }: { children: ReactNode }) {
   const { publicKey } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
 
   const {
     data: personalStoreData,
     isLoading: personalStoreLoading,
     mutate: personalStoreMutate,
   } = useSWR(
-    publicKey ? { apiEndpoint, pda: getStorePda(publicKey).toBase58() } : null,
+    publicKey
+      ? { apiEndpoint, pda: splurgeClient.getStorePda(publicKey).toBase58() }
+      : null,
     async ({ apiEndpoint, pda }) => {
       return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
         .store as ParsedStore;

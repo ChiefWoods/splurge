@@ -12,7 +12,6 @@ import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { getStorePda } from '@/lib/pda';
 import { useStore } from '@/providers/StoreProvider';
 import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
@@ -22,10 +21,12 @@ import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useItems } from '@/providers/ItemsProvider';
 import { SectionHeader } from '@/components/SectionHeader';
 import { MainSection } from '@/components/MainSection';
+import { useProgram } from '@/providers/ProgramProvider';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useUnifiedWallet();
+  const { splurgeClient } = useProgram();
   const { storeData, storeLoading } = useStore();
   const { itemsData, itemsLoading } = useItems();
 
@@ -57,7 +58,8 @@ export default function Page() {
             content={<p>{storeData.about}</p>}
             buttons={
               publicKey &&
-              storeData.publicKey === getStorePda(publicKey).toBase58() && (
+              storeData.publicKey ===
+                splurgeClient.getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, Icon, text }) => (
@@ -109,7 +111,7 @@ export default function Page() {
                       </div>
                       {publicKey &&
                       storeData.publicKey ===
-                        getStorePda(publicKey).toBase58() ? (
+                        splurgeClient.getStorePda(publicKey).toBase58() ? (
                         <div className="flex items-end gap-x-2">
                           <UpdateItemDialog
                             name={name}

@@ -11,6 +11,7 @@ import { TooltipProvider } from './ui/tooltip';
 import { PythProvider } from '@/providers/PythProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { SettingsProvider } from '@/providers/SettingsProvider';
+import { ProgramProvider } from '@/providers/ProgramProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -30,13 +31,15 @@ export function Providers({ children }: { children: ReactNode }) {
         <TooltipProvider>
           <SettingsProvider>
             <SolanaProvider>
-              <PythProvider>
-                <ConfigProvider>
-                  <ShopperProvider>
-                    <PersonalStoreProvider>{children}</PersonalStoreProvider>
-                  </ShopperProvider>
-                </ConfigProvider>
-              </PythProvider>
+              <ProgramProvider>
+                <PythProvider>
+                  <ConfigProvider>
+                    <ShopperProvider>
+                      <PersonalStoreProvider>{children}</PersonalStoreProvider>
+                    </ShopperProvider>
+                  </ConfigProvider>
+                </PythProvider>
+              </ProgramProvider>
             </SolanaProvider>
           </SettingsProvider>
         </TooltipProvider>

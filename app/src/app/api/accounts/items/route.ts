@@ -1,7 +1,8 @@
 import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchAllItems, fetchItem, fetchMultipleItems } from '@/lib/accounts';
 import { DISCRIMINATOR_SIZE } from '@/lib/constants';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { parseItem } from '@/types/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -24,7 +25,11 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(
         {
-          items: await fetchAllItems(filters),
+          items: await SPLURGE_CLIENT.fetchAllProgramAccounts(
+            'item',
+            parseItem,
+            filters
+          ),
         },
         {
           status: 200,
@@ -33,7 +38,11 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          items: await fetchMultipleItems(pdas),
+          items: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
+            pdas,
+            'item',
+            parseItem
+          ),
         },
         {
           status: 200,
@@ -42,7 +51,11 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          item: await fetchItem(pdas[0]),
+          item: await SPLURGE_CLIENT.fetchProgramAccount(
+            pdas[0],
+            'item',
+            parseItem
+          ),
         },
         {
           status: 200,

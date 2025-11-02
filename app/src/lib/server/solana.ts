@@ -1,7 +1,10 @@
-import { clusterApiUrl, Connection } from '@solana/web3.js';
+import { clusterApiUrl, Connection, TransactionMessage } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
 import { Keypair } from '@solana/web3.js';
 import { randomUUID } from 'crypto';
+import { SplurgeClient } from '../splurge-client';
+import { VersionedTransaction } from '@solana/web3.js';
+import { DISCRIMINATOR_SIZE } from '../constants';
 
 type BuildGatewayTransactionResponse = {
   result: {
@@ -30,10 +33,37 @@ export const CONNECTION = new Connection(
   process.env.SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
   'confirmed'
 );
+export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
 
 export const ADMIN_KEYPAIR = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(process.env.ADMIN_KEYPAIR as string))
 );
+
+export async function validateProgramIx(
+  tx: VersionedTransaction,
+  allowedIxs: string[]
+): Promise<boolean> {
+  const { instructions } = TransactionMessage.decompile(tx.message);
+
+  const ix = instructions.find((ix) =>
+    ix.programId.equals(SPLURGE_CLIENT.getProgramId())
+  );
+
+  if (!ix) {
+    return false;
+  }
+
+  return allowedIxs.some(async (ixName) => {
+    const discriminator = ix.data.subarray(0, DISCRIMINATOR_SIZE);
+    const hash = await crypto.subtle.digest(
+      'SHA-256',
+      Buffer.from(`global:${ixName}`)
+    );
+    const expected = Buffer.from(hash).subarray(0, DISCRIMINATOR_SIZE);
+
+    return discriminator.equals(expected);
+  });
+}
 
 export async function buildTx(
   transaction: string,
