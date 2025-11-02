@@ -10,7 +10,7 @@ import { Keypair } from '@solana/web3.js';
 import { DialectNotification } from './DialectNotification';
 import { UnifiedWalletButton, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { DicebearStyles, getDicebearEndpoint } from '@/lib/client/dicebear';
-import { ModeToggle } from './ModeToggle';
+import { SettingsDropdown } from './SettingsDropdown';
 
 export function Header() {
   const { publicKey } = useUnifiedWallet();
@@ -68,7 +68,7 @@ export function Header() {
         </div>
         <div className="flex gap-1">
           <DialectNotification />
-          <ModeToggle />
+          <SettingsDropdown />
         </div>
       </nav>
     </header>

@@ -10,6 +10,7 @@ import { SWRConfig } from 'swr';
 import { TooltipProvider } from './ui/tooltip';
 import { PythProvider } from '@/providers/PythProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { SettingsProvider } from '@/providers/SettingsProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -27,15 +28,17 @@ export function Providers({ children }: { children: ReactNode }) {
         disableTransitionOnChange
       >
         <TooltipProvider>
-          <SolanaProvider>
-            <PythProvider>
-              <ConfigProvider>
-                <ShopperProvider>
-                  <PersonalStoreProvider>{children}</PersonalStoreProvider>
-                </ShopperProvider>
-              </ConfigProvider>
-            </PythProvider>
-          </SolanaProvider>
+          <SettingsProvider>
+            <SolanaProvider>
+              <PythProvider>
+                <ConfigProvider>
+                  <ShopperProvider>
+                    <PersonalStoreProvider>{children}</PersonalStoreProvider>
+                  </ShopperProvider>
+                </ConfigProvider>
+              </PythProvider>
+            </SolanaProvider>
+          </SettingsProvider>
         </TooltipProvider>
       </ThemeProvider>
     </SWRConfig>
