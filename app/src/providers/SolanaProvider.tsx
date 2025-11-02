@@ -2,11 +2,7 @@
 
 import { ConnectionProvider } from '@solana/wallet-adapter-react';
 import { UnifiedWalletProvider } from '@jup-ag/wallet-adapter';
-import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-} from '@solana/wallet-adapter-wallets';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { CLUSTER, CONNECTION } from '@/lib/client/solana';
 import { toast } from 'sonner';
 
@@ -18,17 +14,10 @@ const metadata = {
 };
 
 export function SolanaProvider({ children }: { children: ReactNode }) {
-  const endpoint = useMemo(() => CONNECTION.rpcEndpoint, []);
-
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    []
-  );
-
   return (
-    <ConnectionProvider endpoint={endpoint}>
+    <ConnectionProvider endpoint={CONNECTION.rpcEndpoint}>
       <UnifiedWalletProvider
-        wallets={wallets}
+        wallets={[]}
         config={{
           autoConnect: true,
           env: CLUSTER,
