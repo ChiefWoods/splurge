@@ -167,7 +167,7 @@ export function CheckoutDialog({
             },
           ]);
 
-          // actual transaction is the last one
+          // checkout transaction is the last one
           await confirmTransaction(
             connection,
             signatures[signatures.length - 1]

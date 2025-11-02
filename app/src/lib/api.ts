@@ -23,7 +23,7 @@ export async function wrappedFetch(
 export async function sendPermissionedTx(
   tx: VersionedTransaction
 ): Promise<string> {
-  const data = await wrappedFetch('/api/permissioned', 'POST', {
+  const data = await wrappedFetch('/api/transaction/permissioned', 'POST', {
     transaction: v0TxToBase64(tx),
   });
 
