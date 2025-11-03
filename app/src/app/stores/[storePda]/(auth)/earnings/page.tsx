@@ -22,7 +22,7 @@ import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
@@ -73,7 +73,7 @@ export default function Page() {
     0
   );
 
-  function onWithdraw() {
+  const onWithdraw = useCallback(() => {
     toast.promise(
       async () => {
         if (!publicKey || !signTransaction) {
@@ -146,7 +146,15 @@ export default function Page() {
         },
       }
     );
-  }
+  }, [
+    publicKey,
+    signTransaction,
+    storeTokenAccountsData,
+    priorityFee,
+    getTransactionLink,
+    storeTokenAccountsMutate,
+    splurgeClient,
+  ]);
 
   return (
     <MainSection className="flex-1">
