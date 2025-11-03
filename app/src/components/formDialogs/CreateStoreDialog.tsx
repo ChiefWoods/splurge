@@ -37,7 +37,7 @@ import { useSettings } from '@/providers/SettingsProvider';
 export function CreateStoreDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -95,7 +95,9 @@ export function CreateStoreDialog() {
                       authority: publicKey,
                     }),
                   ],
-                  publicKey
+                  publicKey,
+                  [],
+                  priorityFee
                 );
 
                 tx = await signTransaction(tx);
@@ -155,6 +157,7 @@ export function CreateStoreDialog() {
       closeAndReset,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

@@ -62,7 +62,7 @@ export function UpdateOrderDialog({
   const { connection } = useConnection();
   const { signMessage } = useUnifiedWallet();
   const { splurgeClient, tuktukClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
   const { personalStoreData } = usePersonalStore();
@@ -125,7 +125,9 @@ export function UpdateOrderDialog({
                     tokenProgram,
                   }),
             ],
-            admin
+            admin,
+            [],
+            priorityFee
           );
 
           await signMessage(
@@ -216,6 +218,7 @@ export function UpdateOrderDialog({
       splurgeClient,
       tuktukClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

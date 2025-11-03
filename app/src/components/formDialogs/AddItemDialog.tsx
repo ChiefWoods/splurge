@@ -41,7 +41,7 @@ import { useSettings } from '@/providers/SettingsProvider';
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -103,7 +103,9 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                       authority: publicKey,
                     }),
                   ],
-                  publicKey
+                  publicKey,
+                  [],
+                  priorityFee
                 );
 
                 tx = await signTransaction(tx);
@@ -177,6 +179,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       closeAndReset,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

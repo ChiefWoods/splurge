@@ -1,5 +1,5 @@
 import { VersionedTransaction } from '@solana/web3.js';
-import { CuPriceRange, JitoTipRange } from './server/solana';
+import { CuPriceRange, JitoTipRange } from '@/types/transactions';
 import { v0TxToBase64 } from './utils';
 
 export async function wrappedFetch(

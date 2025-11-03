@@ -5,27 +5,12 @@ import { randomUUID } from 'crypto';
 import { SplurgeClient } from '../splurge-client';
 import { VersionedTransaction } from '@solana/web3.js';
 import { DISCRIMINATOR_SIZE } from '../constants';
-
-type BuildGatewayTransactionResponse = {
-  result: {
-    transaction: string;
-    latestBlockhash: {
-      blockhash: string;
-      lastValidBlockHeight: string;
-    };
-  };
-};
-
-export type SendTransactionResponse = {
-  result?: string;
-  error?: {
-    code: number;
-    message: string;
-  };
-};
-
-export type CuPriceRange = 'low' | 'medium' | 'high';
-export type JitoTipRange = 'low' | 'medium' | 'high' | 'max';
+import {
+  BuildGatewayTransactionResponse,
+  CuPriceRange,
+  JitoTipRange,
+  SendTransactionResponse,
+} from '@/types/transactions';
 
 const CLUSTER: Cluster = (process.env.SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;

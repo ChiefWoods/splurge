@@ -35,7 +35,7 @@ import { useSettings } from '@/providers/SettingsProvider';
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,7 +74,9 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
                 orderPda: new PublicKey(orderPda),
               }),
             ],
-            publicKey
+            publicKey,
+            [],
+            priorityFee
           );
 
           tx = await signTransaction(tx);
@@ -134,6 +136,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
       closeAndReset,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

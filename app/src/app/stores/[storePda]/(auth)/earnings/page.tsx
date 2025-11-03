@@ -31,7 +31,7 @@ import { useSettings } from '@/providers/SettingsProvider';
 export default function Page() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const {
     storeTokenAccountsData,
     storeTokenAccountsLoading,
@@ -106,7 +106,9 @@ export default function Page() {
                 });
               })
           ),
-          publicKey
+          publicKey,
+          [],
+          priorityFee
         );
 
         tx = await signTransaction(tx);

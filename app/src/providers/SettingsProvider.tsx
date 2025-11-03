@@ -1,6 +1,7 @@
 'use client';
 
 import { CLUSTER } from '@/lib/client/solana';
+import { CuPriceRange } from '@/types/transactions';
 import { getExplorerLink } from '@solana-developers/helpers';
 import {
   createContext,
@@ -11,7 +12,7 @@ import {
 } from 'react';
 
 type Explorer = 'solana-explorer' | 'solscan' | 'solanaFM' | 'orb';
-export type PriorityFee = 'low' | 'median' | 'high';
+type PriorityFee = CuPriceRange;
 type RpcType = 'default' | 'custom';
 
 interface SettingsContextType {

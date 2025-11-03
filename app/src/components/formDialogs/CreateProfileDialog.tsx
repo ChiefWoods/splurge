@@ -37,7 +37,7 @@ import { useSettings } from '@/providers/SettingsProvider';
 export function CreateProfileDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
@@ -95,7 +95,9 @@ export function CreateProfileDialog() {
                       authority: publicKey,
                     }),
                   ],
-                  publicKey
+                  publicKey,
+                  [],
+                  priorityFee
                 );
 
                 tx = await signTransaction(tx);
@@ -157,6 +159,7 @@ export function CreateProfileDialog() {
       closeAndReset,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

@@ -5,7 +5,7 @@ import { TransactionInstruction } from '@solana/web3.js';
 import { AddressLookupTableAccount } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
-import { CuPriceRange, JitoTipRange } from '../server/solana';
+import { CuPriceRange, JitoTipRange } from '@/types/transactions';
 import { optimizeTx } from '../api';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??

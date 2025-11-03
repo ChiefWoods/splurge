@@ -76,7 +76,7 @@ export function CheckoutDialog({
   const { connection } = useConnection();
   const { publicKey } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configLoading } = useConfig();
   const { itemsMutate } = useItems();
@@ -164,7 +164,9 @@ export function CheckoutDialog({
                     tokenProgram: token.owner,
                   }),
                 ],
-                publicKey
+                publicKey,
+                [],
+                priorityFee
               ),
               signers: [],
             },
@@ -264,6 +266,7 @@ export function CheckoutDialog({
       closeAndReset,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 

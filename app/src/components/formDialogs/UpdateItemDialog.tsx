@@ -53,7 +53,7 @@ export function UpdateItemDialog({
 }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { splurgeClient } = useProgram();
-  const { getTransactionLink } = useSettings();
+  const { getTransactionLink, priorityFee } = useSettings();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,7 +87,9 @@ export function UpdateItemDialog({
                 storePda: new PublicKey(storePda),
               }),
             ],
-            publicKey
+            publicKey,
+            [],
+            priorityFee
           );
 
           tx = await signTransaction(tx);
@@ -156,6 +158,7 @@ export function UpdateItemDialog({
       storePda,
       splurgeClient,
       getTransactionLink,
+      priorityFee,
     ]
   );
 
