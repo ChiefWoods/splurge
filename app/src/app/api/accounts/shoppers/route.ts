@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
         error:
           err instanceof Error
             ? err.message
-            : 'Unable to fetch shoppper account(s).',
+            : 'Unable to fetch shopper account(s).',
       },
       {
         status: 500,
