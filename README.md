@@ -168,6 +168,9 @@ View the [open issues](https://github.com/ChiefWoods/splurge/issues) for a full 
 - [Helius](https://www.helius.dev/)
 - [Dicebear](https://www.dicebear.com/)
 - [Pyth](https://www.pyth.network/)
+- [Irys](https://irys.xyz/)
+- [Dialect](https://dialect.to/)
+- [Sanctum Gateway](https://gateway.sanctum.so/)
 
 ## Contact
 
