@@ -50,6 +50,10 @@ export function Header() {
             </li>
           ))}
         </ul>
+        <div className="flex gap-1">
+          <DialectNotification />
+          <SettingsDropdown />
+        </div>
         <div className="flex items-center gap-3">
           {shopperData && (
             <Link href={`/shoppers/${shopperData.publicKey}`}>
@@ -68,10 +72,6 @@ export function Header() {
             buttonClassName="bg-primary!"
             currentUserClassName="bg-primary!"
           />
-        </div>
-        <div className="flex gap-1">
-          <DialectNotification />
-          <SettingsDropdown />
         </div>
       </nav>
     </header>
