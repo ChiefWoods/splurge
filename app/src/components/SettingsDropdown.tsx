@@ -20,9 +20,13 @@ import {
 } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
-import { Input } from './ui/input';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from './ui/input-group';
 
 const themeOptions = ['light', 'dark', 'system'];
 const explorerOptions = ['solana-explorer', 'solscan', 'solanaFM', 'orb'];
@@ -157,16 +161,16 @@ export function SettingsDropdown() {
                 </div>
               ))}
             </RadioGroup>
-            <div className="mt-3 flex items-center gap-2">
-              <Input
+            <InputGroup className="mt-3 flex items-center">
+              <InputGroupInput
                 type="url"
                 placeholder="Enter custom RPC URL"
                 value={tempCustomRpcUrl}
                 onChange={(e) => setTempCustomRpcUrl(e.target.value)}
-                className="flex-1"
+                className="flex-1 pr-0 focus-visible:ring-offset-0"
                 disabled={rpcType !== 'custom'}
               />
-              <Button
+              <InputGroupButton
                 onClick={() => {
                   if (tempCustomRpcUrl !== '') {
                     try {
@@ -180,12 +184,13 @@ export function SettingsDropdown() {
                   setCustomRpcUrl(tempCustomRpcUrl);
                   toast.message('Custom RPC URL saved.');
                 }}
-                size="sm"
+                size="xs"
                 disabled={rpcType !== 'custom'}
+                className="mx-2"
               >
                 Save
-              </Button>
-            </div>
+              </InputGroupButton>
+            </InputGroup>
           </SettingsSection>
         </div>
       </DropdownMenuContent>
