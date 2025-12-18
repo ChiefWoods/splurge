@@ -22,7 +22,7 @@ export function ItemCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="box-content flex h-fit w-[200px] flex-col items-center gap-y-2 p-4">
+    <Card className="bg-secondary/50 box-content flex h-fit w-[200px] flex-col items-center gap-y-2 border-none p-4">
       <CardHeader className="flex w-full flex-col gap-y-2 p-0">
         <Link href={`/stores/${storePda}/items/${itemPda}`}>
           <LargeImage src={itemImage} alt={itemName} />

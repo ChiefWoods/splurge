@@ -26,12 +26,10 @@ export function ReviewRow({
             alt={shopperName}
             width={40}
             height={40}
-            className="rounded-full border"
+            className="aspect-square rounded-full border"
           />
           <h3 className="text-xl">{shopperName}</h3>
-          <p className="text-sm text-muted-foreground">
-            {truncateAddress(shopperPda)}
-          </p>
+          <p className="text-muted text-sm">{truncateAddress(shopperPda)}</p>
         </div>
         <div className="flex items-center justify-end gap-x-3">
           <div className="flex items-center gap-x-1">
@@ -39,7 +37,7 @@ export function ReviewRow({
               <Star key={i} className="text-rating" size={12} />
             ))}
           </div>
-          <p className="text-muted-foreground">{getRelativeTime(timestamp)}</p>
+          <p className="text-muted text-xs">{getRelativeTime(timestamp)}</p>
         </div>
       </div>
       <p>{text}</p>

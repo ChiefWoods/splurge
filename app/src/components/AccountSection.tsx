@@ -38,7 +38,9 @@ export function AccountSection({
         <LargeImage src={image} alt={title} />
         <Card className="flex w-full flex-1 flex-col justify-between gap-y-4 overflow-hidden border-none shadow-none">
           <CardHeader className="flex flex-1 flex-col p-0">
-            <CardTitle className="truncate font-medium">{title}</CardTitle>
+            <CardTitle className="text-primary truncate font-medium">
+              {title}
+            </CardTitle>
             <CardDescription>
               <AccountLinkText
                 prefix={prefix}

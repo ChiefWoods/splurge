@@ -12,10 +12,8 @@ export function AccountLinkText({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <p className="text-muted-foreground">
-        {prefix} {truncateAddress(subject)}
-      </p>
-      <AccountLinkButton href={href} />
+      <p className="text-muted">{prefix}</p>
+      <AccountLinkButton href={href} text={truncateAddress(subject)} />
     </div>
   );
 }

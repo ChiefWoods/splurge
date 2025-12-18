@@ -35,8 +35,8 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-secondary px-6 py-4">
-      <Link href={'/'} className="flex items-center gap-2">
+    <header className="border-b-primary bg-background sticky top-0 z-10 flex h-20 items-center justify-between border-b px-6 py-4">
+      <Link href={'/'} className="*:text-primary flex items-center gap-2">
         <ShoppingCartIcon size={24} />
         <h1 className="text-3xl font-medium">Splurge</h1>
       </Link>
@@ -64,7 +64,10 @@ export function Header() {
               </Avatar>
             </Link>
           )}
-          <UnifiedWalletButton />
+          <UnifiedWalletButton
+            buttonClassName="bg-primary!"
+            currentUserClassName="bg-primary!"
+          />
         </div>
         <div className="flex gap-1">
           <DialectNotification />

@@ -2,7 +2,7 @@ import { Skeleton } from './ui/skeleton';
 
 export function ItemCardSkeleton() {
   return (
-    <div className="box-content flex w-[200px] flex-col gap-y-2 rounded-lg p-4">
+    <div className="bg-secondary/50 box-content flex w-[200px] flex-col gap-y-2 rounded-lg p-4">
       <div className="flex flex-col gap-y-2 p-0">
         <Skeleton className="aspect-square h-full w-full rounded-lg" />
         <Skeleton className="h-8 w-full" />

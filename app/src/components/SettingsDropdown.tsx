@@ -186,7 +186,7 @@ export function SettingsDropdown() {
                 }}
                 size="xs"
                 disabled={rpcType !== 'custom'}
-                className="mx-2"
+                className="bg-secondary hover:bg-secondary/75 mx-2"
               >
                 Save
               </InputGroupButton>

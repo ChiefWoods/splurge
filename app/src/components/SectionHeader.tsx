@@ -8,7 +8,12 @@ export function SectionHeader({
   className?: string;
 }) {
   return (
-    <h2 className={cn('w-full text-start text-2xl font-medium', className)}>
+    <h2
+      className={cn(
+        'text-primary w-full text-start text-2xl font-medium',
+        className
+      )}
+    >
       {text}
     </h2>
   );

@@ -98,7 +98,7 @@ function Section() {
                               <p className="w-full truncate text-sm font-medium">
                                 {itemStore.name}
                               </p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-foreground text-sm">
                                 {truncateAddress(storePda)}
                               </p>
                             </div>
