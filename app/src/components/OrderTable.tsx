@@ -117,7 +117,7 @@ export function OrderTable({
                 alt={itemData.name}
                 width={40}
                 height={40}
-                className="flex-shrink-0 rounded-lg object-cover"
+                className="shrink-0 rounded-lg object-cover"
               />
               <span className="truncate">{itemData.name}</span>
             </div>
@@ -203,7 +203,7 @@ export function OrderTable({
     >
       <TabsList className="flex w-full">
         {ORDER_TABS.map((tab) => (
-          <TabsTrigger key={tab} value={tab} className="flex-1 text-background">
+          <TabsTrigger key={tab} value={tab} className="text-background flex-1">
             <span>{capitalizeFirstLetter(tab)}</span>
           </TabsTrigger>
         ))}

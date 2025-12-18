@@ -94,7 +94,7 @@ export function SettingsDropdown() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 *:text-foreground"
+          className="*:text-foreground size-8"
         >
           <Settings className="h-4 w-4" />
         </Button>

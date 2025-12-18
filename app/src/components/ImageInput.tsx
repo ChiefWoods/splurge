@@ -102,7 +102,7 @@ export function ImageInput({
       <Button
         type="button"
         className={cn(
-          'relative flex size-32 flex-col items-center justify-center gap-1 rounded-lg border bg-background p-0 transition-colors hover:bg-background',
+          'bg-background hover:bg-background relative flex size-32 flex-col items-center justify-center gap-1 rounded-lg border p-0 transition-colors',
           isDragOver
             ? 'border-primary bg-primary/20'
             : 'border-border bg-background hover:bg-background'
@@ -114,7 +114,7 @@ export function ImageInput({
       >
         <Input
           type="file"
-          className="pointer-events-none absolute size-full cursor-pointer select-none opacity-0"
+          className="pointer-events-none absolute size-full cursor-pointer opacity-0 select-none"
           tabIndex={-1}
           ref={(e) => {
             field.ref(e);
@@ -137,7 +137,7 @@ export function ImageInput({
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute bottom-1 right-1 size-8 rounded-full border-[1px] border-background bg-foreground p-1 hover:bg-primary"
+              className="border-background bg-foreground hover:bg-primary absolute right-1 bottom-1 size-8 rounded-full border p-1"
               onClick={removeImage}
             >
               <Trash2 className="text-background" />
@@ -146,7 +146,7 @@ export function ImageInput({
         ) : (
           <>
             <ImageIcon className="text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               Browse or Drop
             </span>
           </>
