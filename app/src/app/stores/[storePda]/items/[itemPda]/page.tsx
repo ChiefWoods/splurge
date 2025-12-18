@@ -6,7 +6,7 @@ import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { AddReviewDialog } from '@/components/formDialogs/AddReviewDialog';
 import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { MainSection } from '@/components/MainSection';
-import { NoResultText } from '@/components/NoResultText';
+import { EmptyResult } from '@/components/EmptyResult';
 import { ReviewRow } from '@/components/ReviewRow';
 import { ReviewRowSkeleton } from '@/components/ReviewRowSkeleton';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -19,7 +19,7 @@ import { useReviews } from '@/providers/ReviewsProvider';
 import { useShoppers } from '@/providers/ShoppersProvider';
 import { useStore } from '@/providers/StoreProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, UserStar } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 
@@ -158,7 +158,7 @@ export default function Page() {
               );
             })
           ) : (
-            <NoResultText text="No reviews made." />
+            <EmptyResult Icon={UserStar} text="No reviews made." />
           )}
         </ul>
       </section>

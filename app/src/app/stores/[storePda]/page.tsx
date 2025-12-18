@@ -7,13 +7,18 @@ import { AddItemDialog } from '@/components/formDialogs/AddItemDialog';
 import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { DeleteItemDialog } from '@/components/formDialogs/DeleteItemDialog';
 import { UpdateItemDialog } from '@/components/formDialogs/UpdateItemDialog';
-import { NoResultText } from '@/components/NoResultText';
+import { EmptyResult } from '@/components/EmptyResult';
 import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/providers/StoreProvider';
-import { CircleDollarSign, ClipboardList, ShoppingCart } from 'lucide-react';
+import {
+  CircleDollarSign,
+  ClipboardList,
+  ShoppingBasket,
+  ShoppingCart,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { atomicToUsd } from '@/lib/utils';
@@ -150,7 +155,7 @@ export default function Page() {
                 )
             )
           ) : (
-            <NoResultText text="No items listed." />
+            <EmptyResult Icon={ShoppingBasket} text="No items listed." />
           )}
         </div>
       </section>

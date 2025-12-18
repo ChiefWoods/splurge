@@ -1,13 +1,14 @@
 'use client';
 
 import { StatusBadge } from '@/components/StatusBadge';
-import { NoResultText } from '@/components/NoResultText';
+import { EmptyResult } from '@/components/EmptyResult';
 import { OrderTable } from '@/components/OrderTable';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useOrders } from '@/providers/OrdersProvider';
 import { useItems } from '@/providers/ItemsProvider';
 import { SectionHeader } from '@/components/SectionHeader';
 import { MainSection } from '@/components/MainSection';
+import { Wallet2 } from 'lucide-react';
 
 export default function Page() {
   const { publicKey } = useUnifiedWallet();
@@ -26,7 +27,10 @@ export default function Page() {
           showTotalTooltip={true}
         />
       ) : (
-        <NoResultText text="Connect your wallet to view your orders." />
+        <EmptyResult
+          Icon={Wallet2}
+          text="Connect your wallet to view your orders."
+        />
       )}
     </MainSection>
   );

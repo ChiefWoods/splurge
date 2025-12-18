@@ -4,7 +4,7 @@ import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
 import { ItemCard } from '@/components/ItemCard';
 import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
 import { MainSection } from '@/components/MainSection';
-import { NoResultText } from '@/components/NoResultText';
+import { EmptyResult } from '@/components/EmptyResult';
 import { SectionHeader } from '@/components/SectionHeader';
 import { atomicToUsd, truncateAddress } from '@/lib/utils';
 import { ItemsProvider, useItems } from '@/providers/ItemsProvider';
@@ -12,7 +12,7 @@ import { useProgram } from '@/providers/ProgramProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { StoresProvider, useStores } from '@/providers/StoresProvider';
 import { useWallet } from '@jup-ag/wallet-adapter';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingBasket, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -125,7 +125,10 @@ function Section() {
             )}
           </>
         ) : (
-          <NoResultText text="No items listed. Check back later!" />
+          <EmptyResult
+            Icon={ShoppingBasket}
+            text="No items listed. Check back later!"
+          />
         )}
       </div>
     </MainSection>
