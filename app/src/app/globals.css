@@ -157,6 +157,12 @@
   .dialect .dt-modal {
     top: 100% !important;
   }
+
+  /* patches Jupiter Unified Wallet modal overlay not spanning full viewport */
+  [class$='ModalDialog'] {
+    min-height: 100%;
+    min-width: 100%;
+  }
 }
 
 @layer components {
