@@ -68,10 +68,10 @@ export function DialectNotification() {
               onClick={() => setOpen((open) => !open)}
               variant={'ghost'}
               size={'icon'}
-              className="group size-8"
+              className="group hover:bg-accent! hover:text-accent-foreground! size-8"
             >
               {unreadCount > 0 && (
-                <div className="absolute right-[15%] top-[15%] size-2 rounded-full bg-red-400"></div>
+                <div className="absolute top-[15%] right-[15%] size-2 rounded-full bg-red-400"></div>
               )}
               <Bell size={20} className="text-foreground" />
             </Button>
