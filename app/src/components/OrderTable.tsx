@@ -101,7 +101,7 @@ export function OrderTable({
       {
         accessorKey: 'status',
         // header: 'Status',
-        header: ({ column }) => <span className="text-foreground">Status</span>,
+        header: () => <span className="text-foreground">Status</span>,
         cell: ({ row }) => row.original.statusElement,
         enableSorting: false,
       },
