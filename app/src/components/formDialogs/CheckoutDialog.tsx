@@ -173,10 +173,6 @@ export function CheckoutDialog({
           ]);
 
           // checkout transaction is the last one
-          // await confirmTransaction(
-          //   connection,
-          //   signatures[signatures.length - 1]
-          // );
           await connection.confirmTransaction(
             signatures[signatures.length - 1]
           );
