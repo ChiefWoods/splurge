@@ -153,6 +153,10 @@
   [role='button']:not([disabled]) {
     cursor: pointer;
   }
+
+  .dialect .dt-modal {
+    top: 100% !important;
+  }
 }
 
 @layer components {
