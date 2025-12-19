@@ -14,7 +14,7 @@ export function AccountLinkButton({
       asChild
       size={'icon'}
       variant={'ghost'}
-      className="group size-fit bg-transparent p-1 hover:bg-transparent"
+      className="group size-fit bg-transparent p-0 hover:bg-transparent md:p-1"
     >
       <Link href={href} target="_blank">
         {text && <p className="text-muted font-medium">{text}</p>}

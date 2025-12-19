@@ -16,6 +16,8 @@ import { ShoppingBasket, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { useMobile } from '@/hooks/useMobile';
+import { ItemCardInfoText } from '@/components/ItemCardInfoText';
 
 function Section() {
   const { publicKey } = useWallet();
@@ -23,6 +25,7 @@ function Section() {
   const { shopperData } = useShopper();
   const { storesData, storesLoading } = useStores();
   const { itemsData, itemsLoading } = useItems();
+  const { isMobile } = useMobile();
 
   const filteredItems = useMemo(() => {
     if (!itemsData) return [];
@@ -81,8 +84,11 @@ function Section() {
                   >
                     <>
                       <div className="flex w-full justify-between gap-y-1 overflow-hidden">
-                        <p>{atomicToUsd(price)} USD</p>
-                        <p>{inventoryCount} left</p>
+                        <ItemCardInfoText text={`${atomicToUsd(price)} USD`} />
+                        <ItemCardInfoText
+                          text={`${inventoryCount} left`}
+                          className="hidden md:block"
+                        />
                       </div>
                       <div className="flex h-fit items-center justify-between gap-1">
                         <Link href={`/stores/${storePda}`}>
@@ -90,15 +96,15 @@ function Section() {
                             <Image
                               src={itemStore.image}
                               alt={itemStore.name}
-                              width={28}
-                              height={28}
+                              width={isMobile ? 20 : 28}
+                              height={isMobile ? 20 : 28}
                               className="rounded-full"
                             />
-                            <div className="flex min-w-0 flex-1 flex-col">
-                              <p className="w-full truncate text-sm font-medium">
+                            <div className="hidden min-w-0 flex-1 flex-col md:flex">
+                              <p className="w-full truncate text-xs font-medium md:text-sm">
                                 {itemStore.name}
                               </p>
-                              <p className="text-foreground text-sm">
+                              <p className="text-foreground text-xs md:text-sm">
                                 {truncateAddress(storePda)}
                               </p>
                             </div>

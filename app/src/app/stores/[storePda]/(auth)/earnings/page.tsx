@@ -158,7 +158,7 @@ export default function Page() {
 
   return (
     <MainSection className="flex-1">
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
         <SectionHeader text="Your Earnings" />
         <Button
           size={'sm'}

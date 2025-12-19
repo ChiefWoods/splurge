@@ -34,11 +34,11 @@ export function AccountSection({
   return (
     <section className="flex w-full flex-col gap-6">
       {header && <SectionHeader text={header} />}
-      <div className="flex h-fit w-full gap-x-6">
+      <div className="flex h-fit w-full flex-col gap-x-6 gap-y-2 sm:flex-row">
         <LargeImage src={image} alt={title} />
         <Card className="flex w-full flex-1 flex-col justify-between gap-y-4 overflow-hidden border-none shadow-none">
           <CardHeader className="flex flex-1 flex-col p-0">
-            <CardTitle className="text-primary truncate font-medium">
+            <CardTitle className="text-primary font-medium md:truncate">
               {title}
             </CardTitle>
             <CardDescription>

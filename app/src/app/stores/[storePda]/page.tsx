@@ -27,6 +27,8 @@ import { useItems } from '@/providers/ItemsProvider';
 import { SectionHeader } from '@/components/SectionHeader';
 import { MainSection } from '@/components/MainSection';
 import { useProgram } from '@/providers/ProgramProvider';
+import { ItemCardInfoText } from '@/components/ItemCardInfoText';
+import { useMobile } from '@/hooks/useMobile';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
@@ -34,6 +36,7 @@ export default function Page() {
   const { splurgeClient } = useProgram();
   const { storeData, storeLoading } = useStore();
   const { itemsData, itemsLoading } = useItems();
+  const { isMobile } = useMobile();
 
   const buttons = [
     {
@@ -68,10 +71,15 @@ export default function Page() {
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, Icon, text }) => (
-                    <Button key={href} asChild size={'sm'}>
+                    <Button
+                      key={href}
+                      asChild
+                      size={isMobile ? 'icon' : 'sm'}
+                      className="aspect-square size-8 md:aspect-auto md:size-auto"
+                    >
                       <Link href={href}>
                         <Icon />
-                        {text}
+                        <span className="hidden md:block">{text}</span>
                       </Link>
                     </Button>
                   ))}
@@ -81,8 +89,8 @@ export default function Page() {
           />
         )
       )}
-      {storeLoading && storeData && <Separator />}
-      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-6">
+      {!storeLoading && storeData && <Separator />}
+      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-3 md:gap-6">
         <SectionHeader text="Store Items" />
         <div className="flex w-full flex-1 flex-wrap gap-6">
           {itemsLoading || storeLoading ? (
@@ -111,8 +119,8 @@ export default function Page() {
                   >
                     <>
                       <div className="flex w-full flex-col justify-between overflow-hidden">
-                        <p>{atomicToUsd(price)} USD</p>
-                        <p>{inventoryCount} left</p>
+                        <ItemCardInfoText text={`${atomicToUsd(price)} USD`} />
+                        <ItemCardInfoText text={`${inventoryCount} left`} />
                       </div>
                       {publicKey &&
                       storeData.publicKey ===

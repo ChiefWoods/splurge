@@ -199,9 +199,9 @@ export function OrderTable({
       defaultValue="all"
       value={tabValue}
       onValueChange={(value) => setTabValue(value)}
-      className="flex w-full flex-1 flex-col gap-y-6"
+      className="flex w-full flex-1 flex-col gap-y-3 md:gap-y-6"
     >
-      <TabsList className="flex w-full">
+      <TabsList className="flex w-full max-w-full overflow-x-auto">
         {ORDER_TABS.map((tab) => (
           <TabsTrigger key={tab} value={tab} className="text-background flex-1">
             <span>{capitalizeFirstLetter(tab)}</span>

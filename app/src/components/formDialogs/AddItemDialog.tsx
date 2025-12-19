@@ -37,6 +37,7 @@ import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
+import { useMobile } from '@/hooks/useMobile';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
@@ -48,6 +49,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isMobile } = useMobile();
 
   const form = useForm<CreateItemFormData>({
     resolver: zodResolver(createItemSchema),
@@ -186,9 +188,9 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton size={isMobile ? 'icon' : 'sm'} setOpen={setIsOpen}>
           <Plus />
-          Add Item
+          <span className="hidden md:block">Add Item</span>
         </WalletGuardButton>
       </DialogTrigger>
       <FormDialogContent>

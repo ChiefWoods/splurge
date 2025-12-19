@@ -30,7 +30,7 @@ export function WalletGuardButton({
     <Button
       variant={variant}
       size={size}
-      className={cn(size === 'icon' ? 'aspect-square' : '', className)}
+      className={cn(size === 'icon' ? 'aspect-square size-8' : '', className)}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

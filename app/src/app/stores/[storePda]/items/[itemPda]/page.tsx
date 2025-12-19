@@ -22,6 +22,7 @@ import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ShoppingCart, UserStar } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
+import { ItemCardInfoText } from '@/components/ItemCardInfoText';
 
 export default function Page() {
   const { storePda, itemPda } = useParams<{
@@ -78,11 +79,11 @@ export default function Page() {
             address={storePda}
             content={
               <>
-                <p>{itemData.description}</p>
-                <p className="font-semibold">
-                  {atomicToUsd(itemData.price)} USD
-                </p>
-                <p>{itemData.inventoryCount} in inventory</p>
+                <ItemCardInfoText text={itemData.description} />
+                <ItemCardInfoText text={`${atomicToUsd(itemData.price)} USD`} />
+                <ItemCardInfoText
+                  text={`${itemData.inventoryCount} in inventory`}
+                />
               </>
             }
             buttons={
@@ -109,7 +110,7 @@ export default function Page() {
         )
       )}
       <Separator />
-      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-6">
+      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-3 md:gap-6">
         <div className="flex w-full items-center justify-between">
           <SectionHeader text="Reviews" />
           {itemData && reviewOrderPda && (
