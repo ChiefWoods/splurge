@@ -26,14 +26,13 @@ import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useItems } from '@/providers/ItemsProvider';
 import { SectionHeader } from '@/components/SectionHeader';
 import { MainSection } from '@/components/MainSection';
-import { useProgram } from '@/providers/ProgramProvider';
 import { ItemCardInfoText } from '@/components/ItemCardInfoText';
 import { useMobile } from '@/hooks/useMobile';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export default function Page() {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { storeData, storeLoading } = useStore();
   const { itemsData, itemsLoading } = useItems();
   const { isMobile } = useMobile();
@@ -67,7 +66,7 @@ export default function Page() {
             buttons={
               publicKey &&
               storeData.publicKey ===
-                splurgeClient.getStorePda(publicKey).toBase58() && (
+                SplurgeClient.getStorePda(publicKey).toBase58() && (
                 <AccountSectionButtonTab>
                   <AddItemDialog storePda={storePda} />
                   {buttons.map(({ href, Icon, text }) => (
@@ -124,7 +123,7 @@ export default function Page() {
                       </div>
                       {publicKey &&
                       storeData.publicKey ===
-                        splurgeClient.getStorePda(publicKey).toBase58() ? (
+                        SplurgeClient.getStorePda(publicKey).toBase58() ? (
                         <div className="flex items-end gap-x-2">
                           <UpdateItemDialog
                             name={name}

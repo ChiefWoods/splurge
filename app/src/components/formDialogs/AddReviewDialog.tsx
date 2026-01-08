@@ -31,6 +31,7 @@ import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
@@ -70,7 +71,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
                 text: data.text,
                 rating: data.rating,
                 authority: publicKey,
-                shopperPda: splurgeClient.getShopperPda(publicKey),
+                shopperPda: SplurgeClient.getShopperPda(publicKey),
                 orderPda: new PublicKey(orderPda),
               }),
             ],
@@ -88,9 +89,9 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           loading: 'Waiting for signature...',
           success: async (signature) => {
             const newReview = {
-              publicKey: splurgeClient
-                .getReviewPda(new PublicKey(orderPda))
-                .toBase58(),
+              publicKey: SplurgeClient.getReviewPda(
+                new PublicKey(orderPda)
+              ).toBase58(),
               order: orderPda,
               rating: data.rating,
               timestamp: Date.now() / 1000,

@@ -16,6 +16,7 @@ import { PublicKey } from '@solana/web3.js';
 import { truncateAddress } from '../utils';
 import { ParsedOrderStatus } from '@/types/accounts';
 import { SPLURGE_CLIENT } from './solana';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 const environment: DialectCloudEnvironment = 'production';
 
@@ -74,7 +75,7 @@ View and manage your orders in your dashboard.`,
       links: [
         {
           label: 'View Order',
-          url: `${process.env.FRONTEND_BASE_URL}/stores/${SPLURGE_CLIENT.getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
+          url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
         },
       ],
     },
@@ -101,7 +102,7 @@ Update your inventory to continue receiving orders.`,
       links: [
         {
           label: 'Update Inventory',
-          url: `${process.env.FRONTEND_BASE_URL}/stores/${SPLURGE_CLIENT.getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
+          url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
         },
       ],
     },

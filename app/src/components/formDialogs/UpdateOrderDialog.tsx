@@ -31,6 +31,7 @@ import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function UpdateOrderDialog({
   name,
@@ -91,7 +92,7 @@ export function UpdateOrderDialog({
           const admin = new PublicKey(configData.admin);
           const authorityPubkey = new PublicKey(authority);
           const orderPdaPubkey = new PublicKey(orderPda);
-          const shopperPda = splurgeClient.getShopperPda(authorityPubkey);
+          const shopperPda = SplurgeClient.getShopperPda(authorityPubkey);
 
           const paymentMintPubkey = new PublicKey(paymentMint);
           const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
@@ -250,7 +251,7 @@ export function UpdateOrderDialog({
               size={'sm'}
               onClick={() => onSubmit('shipping')}
               disabled={isSubmitting}
-              className="bg-completed transition-colors hover:bg-completed/90"
+              className="bg-completed hover:bg-completed/90 transition-colors"
             >
               <Truck className="size-4" />
               Shipped
@@ -259,7 +260,7 @@ export function UpdateOrderDialog({
               size={'sm'}
               onClick={() => onSubmit('cancelled')}
               disabled={isSubmitting}
-              className="bg-cancelled transition-colors hover:bg-cancelled/90"
+              className="bg-cancelled hover:bg-cancelled/90 transition-colors"
             >
               <X className="size-4" />
               Reject

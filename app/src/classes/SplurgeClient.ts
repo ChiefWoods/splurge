@@ -22,6 +22,7 @@ import { TASK_QUEUE } from '../lib/client/solana';
 import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
 
 export class SplurgeClient extends ProgramClient<Splurge> {
+  static PROGRAM_ID = new PublicKey(splurgeIdl.address);
   static MAX_SHOPPER_NAME_LENGTH = 64;
   static MAX_STORE_NAME_LENGTH = 64;
   static MAX_ITEM_NAME_LENGTH = 32;
@@ -30,39 +31,41 @@ export class SplurgeClient extends ProgramClient<Splurge> {
     super(connection, splurgeIdl);
   }
 
-  getConfigPda(): PublicKey {
+  static configPda = this.getConfigPda();
+
+  static getConfigPda(): PublicKey {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('config')],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 
-  getShopperPda(authority: PublicKey): PublicKey {
+  static getShopperPda(authority: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('shopper'), authority.toBuffer()],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 
-  getStorePda(authority: PublicKey): PublicKey {
+  static getStorePda(authority: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('store'), authority.toBuffer()],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 
-  getItemPda(storePda: PublicKey, name: string): PublicKey {
+  static getItemPda(storePda: PublicKey, name: string): PublicKey {
     if (name.length > SplurgeClient.MAX_ITEM_NAME_LENGTH) {
       throw new Error('Store item name exceeds maximum seed length');
     }
 
     return PublicKey.findProgramAddressSync(
       [Buffer.from('item'), storePda.toBuffer(), Buffer.from(name)],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 
-  getOrderPda(
+  static getOrderPda(
     shopperPda: PublicKey,
     itemPda: PublicKey,
     timestamp: BN
@@ -74,14 +77,14 @@ export class SplurgeClient extends ProgramClient<Splurge> {
         itemPda.toBuffer(),
         timestamp.toArrayLike(Buffer, 'le', 8),
       ],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 
-  getReviewPda(orderPda: PublicKey): PublicKey {
+  static getReviewPda(orderPda: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('review'), orderPda.toBuffer()],
-      this.program.programId
+      this.PROGRAM_ID
     )[0];
   }
 

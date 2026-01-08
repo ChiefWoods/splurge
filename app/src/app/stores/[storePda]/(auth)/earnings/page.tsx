@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export default function Page() {
   const { publicKey, signTransaction } = useUnifiedWallet();
@@ -101,7 +102,7 @@ export default function Page() {
                 return await splurgeClient.withdrawEarningsIx({
                   authority: publicKey,
                   paymentMint: new PublicKey(mint),
-                  storePda: splurgeClient.getStorePda(publicKey),
+                  storePda: SplurgeClient.getStorePda(publicKey),
                   tokenProgram: metadata.owner,
                 });
               })

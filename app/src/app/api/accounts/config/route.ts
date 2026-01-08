@@ -1,3 +1,4 @@
+import { SplurgeClient } from '@/classes/SplurgeClient';
 import { SPLURGE_CLIENT } from '@/lib/server/solana';
 import { parseConfig } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         config: await SPLURGE_CLIENT.fetchProgramAccount(
-          SPLURGE_CLIENT.getConfigPda(),
+          SplurgeClient.getConfigPda(),
           'config',
           parseConfig
         ),

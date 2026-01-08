@@ -1,10 +1,10 @@
 'use client';
 
+import { SplurgeClient } from '@/classes/SplurgeClient';
 import { AccountSection } from '@/components/AccountSection';
 import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
 import { MainSection } from '@/components/MainSection';
 import { Button } from '@/components/ui/button';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { ClipboardList } from 'lucide-react';
@@ -16,28 +16,20 @@ export default function Page() {
   const { shopperPda } = useParams<{ shopperPda: string }>();
   const router = useRouter();
   const { publicKey } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { shopperData, shopperLoading } = useShopper();
 
   useEffect(() => {
     if (!publicKey) {
       router.replace('/shoppers/create');
     } else if (
-      shopperPda !== splurgeClient.getShopperPda(publicKey).toBase58() &&
+      shopperPda !== SplurgeClient.getShopperPda(publicKey).toBase58() &&
       !shopperLoading
     ) {
       router.replace(
         shopperData ? `/shoppers/${shopperData.publicKey}` : '/shoppers/create'
       );
     }
-  }, [
-    publicKey,
-    router,
-    shopperPda,
-    shopperData,
-    shopperLoading,
-    splurgeClient,
-  ]);
+  }, [publicKey, router, shopperPda, shopperData, shopperLoading]);
 
   return (
     <MainSection className="flex-1">

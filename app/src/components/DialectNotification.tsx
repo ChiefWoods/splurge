@@ -8,11 +8,10 @@ import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
 import { Bell } from 'lucide-react';
-import { useProgram } from '@/providers/ProgramProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function DialectNotification() {
   const { publicKey, signTransaction, signMessage } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const [dialectTheme, setDialectTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -45,7 +44,7 @@ export function DialectNotification() {
 
   return (
     <DialectSolanaSdk
-      dappAddress={splurgeClient.getProgramId().toBase58()}
+      dappAddress={SplurgeClient.PROGRAM_ID.toBase58()}
       config={{
         environment: 'production',
       }}

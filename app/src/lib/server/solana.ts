@@ -31,7 +31,7 @@ export async function validateProgramIx(
   const { instructions } = TransactionMessage.decompile(tx.message);
 
   const ix = instructions.find((ix) =>
-    ix.programId.equals(SPLURGE_CLIENT.getProgramId())
+    ix.programId.equals(SplurgeClient.PROGRAM_ID)
   );
 
   if (!ix) {

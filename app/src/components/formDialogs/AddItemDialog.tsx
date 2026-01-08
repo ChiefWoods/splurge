@@ -38,6 +38,7 @@ import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { useMobile } from '@/hooks/useMobile';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { publicKey, signTransaction } = useUnifiedWallet();
@@ -119,9 +120,10 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 loading: 'Waiting for signature...',
                 success: async (signature) => {
                   const newItem = {
-                    publicKey: splurgeClient
-                      .getItemPda(new PublicKey(storePda), data.name)
-                      .toBase58(),
+                    publicKey: SplurgeClient.getItemPda(
+                      new PublicKey(storePda),
+                      data.name
+                    ).toBase58(),
                     store: storePda,
                     price: data.price * 10 ** MINT_DECIMALS,
                     inventoryCount: data.inventoryCount,

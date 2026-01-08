@@ -14,7 +14,6 @@ import { Separator } from '@/components/ui/separator';
 import { atomicToUsd } from '@/lib/utils';
 import { useItem } from '@/providers/ItemProvider';
 import { useOrders } from '@/providers/OrdersProvider';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useReviews } from '@/providers/ReviewsProvider';
 import { useShoppers } from '@/providers/ShoppersProvider';
 import { useStore } from '@/providers/StoreProvider';
@@ -23,6 +22,7 @@ import { ShoppingCart, UserStar } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { ItemCardInfoText } from '@/components/ItemCardInfoText';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export default function Page() {
   const { storePda, itemPda } = useParams<{
@@ -30,7 +30,6 @@ export default function Page() {
     itemPda: string;
   }>();
   const { publicKey } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { itemData, itemLoading } = useItem();
   const { storeData, storeLoading } = useStore();
   const { ordersData, ordersLoading } = useOrders();
@@ -51,7 +50,7 @@ export default function Page() {
     const completedShopperOrders = ordersData.filter(
       (order) =>
         order.item === itemPda &&
-        order.shopper === splurgeClient.getShopperPda(publicKey).toBase58() &&
+        order.shopper === SplurgeClient.getShopperPda(publicKey).toBase58() &&
         order.status === 'completed'
     );
 
@@ -62,7 +61,7 @@ export default function Page() {
     }
 
     return '';
-  }, [publicKey, itemPda, ordersData, reviewsData, splurgeClient]);
+  }, [publicKey, itemPda, ordersData, reviewsData]);
 
   return (
     <MainSection className="flex-1">
@@ -88,7 +87,7 @@ export default function Page() {
             }
             buttons={
               publicKey &&
-              splurgeClient.getStorePda(publicKey).toBase58() !== storePda &&
+              SplurgeClient.getStorePda(publicKey).toBase58() !== storePda &&
               itemData.inventoryCount > 0 && (
                 <AccountSectionButtonTab>
                   <CheckoutDialog

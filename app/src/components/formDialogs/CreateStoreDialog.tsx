@@ -33,6 +33,7 @@ import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function CreateStoreDialog() {
   const { publicKey, signTransaction } = useUnifiedWallet();
@@ -113,7 +114,7 @@ export function CreateStoreDialog() {
                     authority: publicKey.toBase58(),
                     image: imageUri,
                     name: data.name,
-                    publicKey: splurgeClient.getStorePda(publicKey).toBase58(),
+                    publicKey: SplurgeClient.getStorePda(publicKey).toBase58(),
                   };
 
                   await personalStoreMutate(newStore, {

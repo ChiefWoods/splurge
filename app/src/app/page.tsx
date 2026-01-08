@@ -8,7 +8,6 @@ import { EmptyResult } from '@/components/EmptyResult';
 import { SectionHeader } from '@/components/SectionHeader';
 import { atomicToUsd, truncateAddress } from '@/lib/utils';
 import { ItemsProvider, useItems } from '@/providers/ItemsProvider';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { StoresProvider, useStores } from '@/providers/StoresProvider';
 import { useWallet } from '@jup-ag/wallet-adapter';
@@ -18,10 +17,10 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useMobile } from '@/hooks/useMobile';
 import { ItemCardInfoText } from '@/components/ItemCardInfoText';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 function Section() {
   const { publicKey } = useWallet();
-  const { splurgeClient } = useProgram();
   const { shopperData } = useShopper();
   const { storesData, storesLoading } = useStores();
   const { itemsData, itemsLoading } = useItems();
@@ -33,12 +32,12 @@ function Section() {
     let filtered = itemsData.filter(({ inventoryCount }) => inventoryCount > 0);
 
     if (publicKey) {
-      const storePda = splurgeClient.getStorePda(publicKey);
+      const storePda = SplurgeClient.getStorePda(publicKey);
       filtered = filtered.filter(({ store }) => store !== storePda.toBase58());
     }
 
     return filtered;
-  }, [itemsData, publicKey, splurgeClient]);
+  }, [itemsData, publicKey]);
 
   return (
     <MainSection className="flex-1">

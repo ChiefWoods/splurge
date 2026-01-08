@@ -5,7 +5,7 @@ import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { useProgram } from './ProgramProvider';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 interface ShopperContextType {
   shopperData: ParsedShopper | undefined;
@@ -25,7 +25,6 @@ export function useShopper() {
 
 export function ShopperProvider({ children }: { children: ReactNode }) {
   const { publicKey } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
 
   const {
     data: shopperData,
@@ -33,7 +32,7 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
     mutate: shopperMutate,
   } = useSWR(
     publicKey
-      ? { apiEndpoint, pda: splurgeClient.getShopperPda(publicKey).toBase58() }
+      ? { apiEndpoint, pda: SplurgeClient.getShopperPda(publicKey).toBase58() }
       : null,
     async ({ apiEndpoint, pda }) => {
       return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
