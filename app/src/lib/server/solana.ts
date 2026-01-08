@@ -2,7 +2,7 @@ import { clusterApiUrl, Connection, TransactionMessage } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
 import { Keypair } from '@solana/web3.js';
 import { randomUUID } from 'crypto';
-import { SplurgeClient } from '../splurge-client';
+import { SplurgeClient } from '../../classes/SplurgeClient';
 import { VersionedTransaction } from '@solana/web3.js';
 import { DISCRIMINATOR_SIZE } from '../constants';
 import {

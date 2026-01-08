@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ACCEPTED_IMAGE_TYPES } from './constants';
 import { capitalizeFirstLetter } from './utils';
-import { SplurgeClient } from './splurge-client';
+import { SplurgeClient } from '../classes/SplurgeClient';
 
 const zCommonString = (field: string) => {
   return z

@@ -1,5 +1,5 @@
-import { SplurgeClient } from '@/lib/splurge-client';
-import { TuktukClient } from '@/lib/tuktuk-client';
+import { SplurgeClient } from '@/classes/SplurgeClient';
+import { TuktukClient } from '@/classes/TuktukClient';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 
