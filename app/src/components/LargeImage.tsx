@@ -1,3 +1,5 @@
+'use client';
+
 import { useMobile } from '@/hooks/useMobile';
 import Image from 'next/image';
 
