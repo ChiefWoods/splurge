@@ -19,19 +19,19 @@ import { buildTx } from '@/lib/client/solana';
 import { atomicToUsd } from '@/lib/utils';
 import { usePyth } from '@/providers/PythProvider';
 import { useStoreTokenAccount } from '@/providers/StoreTokenAccountProvider';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { HandCoins } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
 
 export default function Page() {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const {
     storeTokenAccountsData,
@@ -88,7 +88,7 @@ export default function Page() {
         setIsWithdrawing(true);
 
         let tx = await buildTx(
-          splurgeClient.connection,
+          connection,
           await Promise.all(
             storeTokenAccountsData
               .filter(({ amount }) => amount > 0)
@@ -99,7 +99,7 @@ export default function Page() {
                   throw new Error(`Metadata not found for mint: ${mint}`);
                 }
 
-                return await splurgeClient.withdrawEarningsIx({
+                return await SPLURGE_CLIENT.withdrawEarningsIx({
                   authority: publicKey,
                   paymentMint: new PublicKey(mint),
                   storePda: SplurgeClient.getStorePda(publicKey),
@@ -154,7 +154,7 @@ export default function Page() {
     priorityFee,
     getTransactionLink,
     storeTokenAccountsMutate,
-    splurgeClient,
+    connection,
   ]);
 
   return (

@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, PublicKey } from '@solana/web3.js';
 import { VersionedTransaction } from '@solana/web3.js';
 import { TransactionMessage } from '@solana/web3.js';
 import { TransactionInstruction } from '@solana/web3.js';
@@ -7,9 +7,17 @@ import { Connection } from '@solana/web3.js';
 import { Cluster } from '@solana/web3.js';
 import { CuPriceRange, JitoTipRange } from '@/types/transactions';
 import { optimizeTx } from '../api';
+import { SplurgeClient } from '@/classes/SplurgeClient';
+import { TuktukClient } from '@/classes/TuktukClient';
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
   'devnet') as Cluster;
+const CONNECTION = new Connection(
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
+  'confirmed'
+);
+export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
+export const TUKTUK_CLIENT = new TuktukClient(CONNECTION);
 
 export const TASK_QUEUE = new PublicKey(
   process.env.NEXT_PUBLIC_SPLURGE_TASK_QUEUE as string

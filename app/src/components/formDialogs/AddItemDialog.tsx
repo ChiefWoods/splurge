@@ -20,7 +20,7 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { Textarea } from '../ui/textarea';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { useItems } from '@/providers/ItemsProvider';
@@ -28,21 +28,20 @@ import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { MINT_DECIMALS } from '@/lib/constants';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { useMobile } from '@/hooks/useMobile';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
@@ -95,9 +94,9 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
-                  splurgeClient.connection,
+                  connection,
                   [
-                    await splurgeClient.listItemIx({
+                    await SPLURGE_CLIENT.listItemIx({
                       price: new BN(data.price * 10 ** MINT_DECIMALS),
                       inventoryCount: data.inventoryCount,
                       name: data.name,
@@ -181,7 +180,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       itemsMutate,
       storePda,
       closeAndReset,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]

@@ -20,24 +20,23 @@ import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { toast } from 'sonner';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { useShopper } from '@/providers/ShopperProvider';
 import { ImageInputLabel } from '../ImageInputLabel';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function CreateProfileDialog() {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
@@ -87,9 +86,9 @@ export function CreateProfileDialog() {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
-                  splurgeClient.connection,
+                  connection,
                   [
-                    await splurgeClient.createShopperIx({
+                    await SPLURGE_CLIENT.createShopperIx({
                       name: data.name,
                       image: imageUri,
                       address: data.address,
@@ -157,7 +156,7 @@ export function CreateProfileDialog() {
       upload,
       publicKey,
       closeAndReset,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]

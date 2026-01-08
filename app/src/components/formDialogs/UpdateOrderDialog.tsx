@@ -9,7 +9,7 @@ import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT, TUKTUK_CLIENT } from '@/lib/client/solana';
 import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
@@ -29,7 +29,6 @@ import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
@@ -62,7 +61,6 @@ export function UpdateOrderDialog({
 }) {
   const { connection } = useConnection();
   const { signMessage } = useUnifiedWallet();
-  const { splurgeClient, tuktukClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { checkAuth } = useWalletAuth();
   const { configData } = useConfig();
@@ -104,10 +102,10 @@ export function UpdateOrderDialog({
           const tokenProgram = mintAcc.owner;
 
           const tx = await buildTx(
-            splurgeClient.connection,
+            connection,
             [
               status === 'shipping'
-                ? await splurgeClient.shipOrderIx({
+                ? await SPLURGE_CLIENT.shipOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
                     authority: authorityPubkey,
@@ -116,9 +114,9 @@ export function UpdateOrderDialog({
                     shopperPda,
                     storePda: new PublicKey(storePda),
                     tokenProgram,
-                    tuktukProgram: tuktukClient.program,
+                    tuktukProgram: TUKTUK_CLIENT.program,
                   })
-                : await splurgeClient.cancelOrderIx({
+                : await SPLURGE_CLIENT.cancelOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
                     paymentMint: paymentMintPubkey,
@@ -216,8 +214,6 @@ export function UpdateOrderDialog({
       name,
       orderTimestamp,
       paymentSubtotal,
-      splurgeClient,
-      tuktukClient,
       getTransactionLink,
       priorityFee,
     ]

@@ -6,7 +6,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
@@ -47,7 +47,6 @@ import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 
 export function CheckoutDialog({
@@ -75,7 +74,6 @@ export function CheckoutDialog({
 }) {
   const { connection } = useConnection();
   const { publicKey } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
   const { configData, configLoading } = useConfig();
@@ -152,9 +150,9 @@ export function CheckoutDialog({
             ...(await getUpdatePriceFeedTx(token.id)),
             {
               tx: await buildTx(
-                splurgeClient.connection,
+                connection,
                 [
-                  await splurgeClient.createOrderIx({
+                  await SPLURGE_CLIENT.createOrderIx({
                     amount: data.amount,
                     authority: publicKey,
                     storePda: new PublicKey(storePda),
@@ -260,7 +258,6 @@ export function CheckoutDialog({
       storeAuthority,
       orderSubtotal,
       closeAndReset,
-      splurgeClient,
       getTransactionLink,
       priorityFee,
     ]

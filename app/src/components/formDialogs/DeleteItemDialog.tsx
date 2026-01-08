@@ -1,6 +1,6 @@
 'use client';
 
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { FormEvent, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { TransactionToast } from '../TransactionToast';
@@ -14,14 +14,13 @@ import {
 import { WalletGuardButton } from '../WalletGuardButton';
 import { useItems } from '@/providers/ItemsProvider';
 import { PublicKey } from '@solana/web3.js';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 
 export function DeleteItemDialog({
@@ -33,8 +32,8 @@ export function DeleteItemDialog({
   itemPda: string;
   storePda: string;
 }) {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -53,9 +52,9 @@ export function DeleteItemDialog({
           setIsSubmitting(true);
 
           let tx = await buildTx(
-            splurgeClient.connection,
+            connection,
             [
-              await splurgeClient.unlistItemIx({
+              await SPLURGE_CLIENT.unlistItemIx({
                 authority: publicKey,
                 itemPda: new PublicKey(itemPda),
                 storePda: new PublicKey(storePda),
@@ -113,7 +112,7 @@ export function DeleteItemDialog({
       publicKey,
       signTransaction,
       storePda,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]

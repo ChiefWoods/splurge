@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { PublicKey } from '@solana/web3.js';
 import { Plus } from 'lucide-react';
@@ -22,20 +22,19 @@ import {
 import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
 import { useReviews } from '@/providers/ReviewsProvider';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { reviewsMutate } = useReviews();
   const [isOpen, setIsOpen] = useState(false);
@@ -65,9 +64,9 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           setIsSubmitting(true);
 
           let tx = await buildTx(
-            splurgeClient.connection,
+            connection,
             [
-              await splurgeClient.createReviewIx({
+              await SPLURGE_CLIENT.createReviewIx({
                 text: data.text,
                 rating: data.rating,
                 authority: publicKey,
@@ -135,7 +134,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
       publicKey,
       signTransaction,
       closeAndReset,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]

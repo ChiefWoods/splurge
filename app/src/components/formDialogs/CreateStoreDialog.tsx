@@ -18,26 +18,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageInput } from '@/components/ImageInput';
 import { useIrysUploader } from '@/hooks/useIrysUploader';
 import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
 import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { ImageInputLabel } from '../ImageInputLabel';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
 export function CreateStoreDialog() {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { personalStoreMutate } = usePersonalStore();
   const { upload } = useIrysUploader();
@@ -87,9 +86,9 @@ export function CreateStoreDialog() {
                 setIsSubmitting(true);
 
                 let tx = await buildTx(
-                  splurgeClient.connection,
+                  connection,
                   [
-                    await splurgeClient.createStoreIx({
+                    await SPLURGE_CLIENT.createStoreIx({
                       name: data.name,
                       image: imageUri,
                       about: data.about,
@@ -156,7 +155,7 @@ export function CreateStoreDialog() {
       signTransaction,
       upload,
       closeAndReset,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]

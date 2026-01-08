@@ -17,21 +17,20 @@ import { useForm } from 'react-hook-form';
 import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TransactionToast } from '../TransactionToast';
-import { buildTx } from '@/lib/client/solana';
+import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { PublicKey } from '@solana/web3.js';
 import { useItems } from '@/providers/ItemsProvider';
 import { BN } from '@coral-xyz/anchor';
 import { MINT_DECIMALS } from '@/lib/constants';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '../FormDialogTitle';
 import { FormDialogContent } from '../FormDialogContent';
 import { FormDialogFooter } from '../FormDialogFooter';
 import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
-import { useProgram } from '@/providers/ProgramProvider';
 import { useSettings } from '@/providers/SettingsProvider';
 
 export function UpdateItemDialog({
@@ -51,8 +50,8 @@ export function UpdateItemDialog({
   itemPda: string;
   storePda: string;
 }) {
+  const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
-  const { splurgeClient } = useProgram();
   const { getTransactionLink, priorityFee } = useSettings();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
@@ -77,9 +76,9 @@ export function UpdateItemDialog({
           setIsSubmitting(true);
 
           let tx = await buildTx(
-            splurgeClient.connection,
+            connection,
             [
-              await splurgeClient.updateItemIx({
+              await SPLURGE_CLIENT.updateItemIx({
                 price: new BN(Number(data.price.toFixed(2))),
                 inventoryCount: data.inventoryCount,
                 authority: publicKey,
@@ -156,7 +155,7 @@ export function UpdateItemDialog({
       publicKey,
       signTransaction,
       storePda,
-      splurgeClient,
+      connection,
       getTransactionLink,
       priorityFee,
     ]
@@ -184,7 +183,7 @@ export function UpdateItemDialog({
           />
           <div className="flex flex-1 flex-col gap-y-1">
             <p className="truncate text-lg font-semibold">{name}</p>
-            <p className="text-wrap text-sm">{description}</p>
+            <p className="text-sm text-wrap">{description}</p>
           </div>
         </section>
         <Form {...form}>
