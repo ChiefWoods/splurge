@@ -18,7 +18,7 @@ import {
   taskQueueAuthorityKey,
 } from '@helium/tuktuk-sdk';
 import { ProgramClient } from './ProgramClient';
-import { TASK_QUEUE } from '../lib/client/solana';
+import { TASK_QUEUE } from '../lib/client/tuktuk';
 import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
 
 export class SplurgeClient extends ProgramClient<Splurge> {

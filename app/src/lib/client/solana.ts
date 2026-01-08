@@ -19,10 +19,6 @@ const CONNECTION = new Connection(
 export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
 export const TUKTUK_CLIENT = new TuktukClient(CONNECTION);
 
-export const TASK_QUEUE = new PublicKey(
-  process.env.NEXT_PUBLIC_SPLURGE_TASK_QUEUE as string
-);
-
 export async function getPriorityFee(connection: Connection): Promise<number> {
   const recentFees = await connection.getRecentPrioritizationFees();
   return Math.floor(
