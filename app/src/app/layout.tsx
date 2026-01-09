@@ -12,7 +12,10 @@ const moderustic = Moderustic({
 });
 
 export const metadata: Metadata = {
-  title: 'Splurge',
+  title: {
+    default: 'Splurge',
+    template: '%s | Splurge',
+  },
   description: 'On-chain e-commerce platform on Solana.',
 };
 
