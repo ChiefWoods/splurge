@@ -1,6 +1,5 @@
 'use client';
 
-import { useMobile } from '@/hooks/useMobile';
 import { getRelativeTime, truncateAddress } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
@@ -20,8 +19,6 @@ export function ReviewRow({
   rating: number;
   text: string;
 }) {
-  const { isMobile } = useMobile();
-
   return (
     <li className="flex flex-col gap-y-4">
       <div className="flex w-full justify-between gap-2">
@@ -29,9 +26,9 @@ export function ReviewRow({
           <Image
             src={shopperImage}
             alt={shopperName}
-            width={isMobile ? 24 : 40}
-            height={isMobile ? 24 : 40}
-            className="aspect-square rounded-full border"
+            width={0}
+            height={0}
+            className="aspect-square size-6 rounded-full border md:size-10"
           />
           <div className="flex flex-wrap items-center gap-x-2">
             <h3 className="text-base md:text-xl">{shopperName}</h3>

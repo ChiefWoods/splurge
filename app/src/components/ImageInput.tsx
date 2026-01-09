@@ -131,7 +131,8 @@ export function ImageInput({
               src={imagePreview}
               alt="Preview"
               className="pointer-events-none rounded-lg object-cover"
-              fill
+              width={0}
+              height={0}
             />
             <Button
               type="button"

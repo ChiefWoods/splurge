@@ -15,7 +15,6 @@ import { ShoppingBasket, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { useMobile } from '@/hooks/useMobile';
 import { ItemCardInfoText } from '@/components/ItemCardInfoText';
 import { SplurgeClient } from '@/classes/SplurgeClient';
 
@@ -24,7 +23,6 @@ function Section() {
   const { shopperData } = useShopper();
   const { storesData, storesLoading } = useStores();
   const { itemsData, itemsLoading } = useItems();
-  const { isMobile } = useMobile();
 
   const filteredItems = useMemo(() => {
     if (!itemsData) return [];
@@ -95,9 +93,8 @@ function Section() {
                             <Image
                               src={itemStore.image}
                               alt={itemStore.name}
-                              width={isMobile ? 20 : 28}
-                              height={isMobile ? 20 : 28}
-                              className="rounded-full"
+                              fill
+                              className="size-5 rounded-full md:size-7"
                             />
                             <div className="hidden min-w-0 flex-1 flex-col md:flex">
                               <p className="w-full truncate text-xs font-medium md:text-sm">
