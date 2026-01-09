@@ -16,7 +16,6 @@ export function Providers({ children }: { children: ReactNode }) {
       value={{
         suspense: false,
         revalidateOnFocus: false,
-        fetcher: wrappedFetch,
       }}
     >
       <ThemeProvider
