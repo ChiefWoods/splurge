@@ -1,44 +1,24 @@
-import { DISCRIMINATOR_SIZE } from '@/lib/constants';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { parseOrder, parseReview } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import {
+  fetchAllReviews,
+  fetchReview,
+  fetchMultipleReviews,
+} from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
-  const itemPda = searchParams.get('item');
+  const item = searchParams.get('item');
 
   try {
-    if (!pdas.length) {
-      let reviews = await SPLURGE_CLIENT.fetchAllProgramAccounts(
-        'review',
-        parseReview
-      );
-
-      // filter for reviews with a matching order PDA
-      if (itemPda) {
-        const orderAccs = await SPLURGE_CLIENT.fetchAllProgramAccounts(
-          'order',
-          parseOrder,
-          [
-            {
-              memcmp: {
-                offset: DISCRIMINATOR_SIZE + 32,
-                bytes: itemPda,
-              },
-            },
-          ]
-        );
-
-        const orderPdas = orderAccs.map(({ publicKey }) => publicKey);
-
-        reviews = reviews.filter(({ order }) => orderPdas.includes(order));
-      }
-
+    if (pdas.length === 0) {
       return NextResponse.json(
         {
-          reviews,
+          reviews: await fetchAllReviews(SPLURGE_CLIENT, {
+            item: item ?? undefined,
+          }),
         },
         {
           status: 200,
@@ -47,11 +27,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          reviews: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
-            pdas,
-            'review',
-            parseReview
-          ),
+          reviews: await fetchMultipleReviews(SPLURGE_CLIENT, pdas),
         },
         {
           status: 200,
@@ -60,11 +36,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          review: await SPLURGE_CLIENT.fetchProgramAccount(
-            pdas[0],
-            'review',
-            parseReview
-          ),
+          review: await fetchReview(SPLURGE_CLIENT, pdas[0]),
         },
         {
           status: 200,

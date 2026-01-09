@@ -1,35 +1,20 @@
-import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
-import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { parseItem } from '@/types/accounts';
+import { fetchAllItems, fetchItem, fetchMultipleItems } from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
-  const storePda = searchParams.get('store');
+  const store = searchParams.get('store');
 
   try {
-    if (!pdas.length) {
-      const filters: GetProgramAccountsFilter[] = storePda
-        ? [
-            {
-              memcmp: {
-                offset: DISCRIMINATOR_SIZE,
-                bytes: storePda,
-              },
-            },
-          ]
-        : [];
-
+    if (pdas.length === 0) {
       return NextResponse.json(
         {
-          items: await SPLURGE_CLIENT.fetchAllProgramAccounts(
-            'item',
-            parseItem,
-            filters
-          ),
+          items: await fetchAllItems(SPLURGE_CLIENT, {
+            store: store ?? undefined,
+          }),
         },
         {
           status: 200,
@@ -38,11 +23,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          items: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
-            pdas,
-            'item',
-            parseItem
-          ),
+          items: await fetchMultipleItems(SPLURGE_CLIENT, pdas),
         },
         {
           status: 200,
@@ -51,11 +32,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          item: await SPLURGE_CLIENT.fetchProgramAccount(
-            pdas[0],
-            'item',
-            parseItem
-          ),
+          item: await fetchItem(SPLURGE_CLIENT, pdas[0]),
         },
         {
           status: 200,

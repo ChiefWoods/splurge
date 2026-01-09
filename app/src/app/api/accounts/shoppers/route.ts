@@ -1,6 +1,10 @@
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { parseShopper } from '@/types/accounts';
 import { NextRequest, NextResponse } from 'next/server';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import {
+  fetchAllShoppers,
+  fetchShopper,
+  fetchMultipleShoppers,
+} from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -8,13 +12,10 @@ export async function GET(req: NextRequest) {
   const pdas = searchParams.getAll('pda');
 
   try {
-    if (!pdas.length) {
+    if (pdas.length === 0) {
       return NextResponse.json(
         {
-          shoppers: await SPLURGE_CLIENT.fetchAllProgramAccounts(
-            'shopper',
-            parseShopper
-          ),
+          shoppers: await fetchAllShoppers(SPLURGE_CLIENT),
         },
         {
           status: 200,
@@ -23,11 +24,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          shoppers: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
-            pdas,
-            'shopper',
-            parseShopper
-          ),
+          shoppers: await fetchMultipleShoppers(SPLURGE_CLIENT, pdas),
         },
         {
           status: 200,
@@ -36,11 +33,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          shopper: await SPLURGE_CLIENT.fetchProgramAccount(
-            pdas[0],
-            'shopper',
-            parseShopper
-          ),
+          shopper: await fetchShopper(SPLURGE_CLIENT, pdas[0]),
         },
         {
           status: 200,

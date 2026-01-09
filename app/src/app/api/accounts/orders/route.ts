@@ -1,58 +1,26 @@
-import { GetProgramAccountsFilter } from '@solana/web3.js';
 import { NextRequest, NextResponse } from 'next/server';
-import { DISCRIMINATOR_SIZE } from '@/lib/constants';
 import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { parseItem, parseOrder } from '@/types/accounts';
+import {
+  fetchAllOrders,
+  fetchOrder,
+  fetchMultipleOrders,
+} from '@/lib/accounts';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
-  const shopperPda = searchParams.get('shopper');
-  const storePda = searchParams.get('store');
+  const shopper = searchParams.get('shopper');
+  const store = searchParams.get('store');
 
   try {
-    if (!pdas.length) {
-      const filters: GetProgramAccountsFilter[] = [];
-
-      if (shopperPda) {
-        filters.push({
-          memcmp: {
-            offset: DISCRIMINATOR_SIZE,
-            bytes: shopperPda,
-          },
-        });
-      }
-
-      let orders = await SPLURGE_CLIENT.fetchAllProgramAccounts(
-        'order',
-        parseOrder,
-        filters
-      );
-
-      // filter for orders with a matching item PDA
-      if (storePda) {
-        const itemAccs = await SPLURGE_CLIENT.fetchAllProgramAccounts(
-          'item',
-          parseItem,
-          [
-            {
-              memcmp: {
-                offset: DISCRIMINATOR_SIZE,
-                bytes: storePda,
-              },
-            },
-          ]
-        );
-
-        const itemPdas = itemAccs.map((item) => item.publicKey);
-
-        orders = orders.filter(({ item }) => itemPdas.includes(item));
-      }
-
+    if (pdas.length === 0) {
       return NextResponse.json(
         {
-          orders,
+          orders: await fetchAllOrders(SPLURGE_CLIENT, {
+            shopper: shopper ?? undefined,
+            store: store ?? undefined,
+          }),
         },
         {
           status: 200,
@@ -61,11 +29,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          orders: await SPLURGE_CLIENT.fetchMultipleProgramAccounts(
-            pdas,
-            'order',
-            parseOrder
-          ),
+          orders: await fetchMultipleOrders(SPLURGE_CLIENT, pdas),
         },
         {
           status: 200,
@@ -74,11 +38,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          order: await SPLURGE_CLIENT.fetchProgramAccount(
-            pdas[0],
-            'order',
-            parseOrder
-          ),
+          order: await fetchOrder(SPLURGE_CLIENT, pdas[0]),
         },
         {
           status: 200,
