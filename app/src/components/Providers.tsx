@@ -1,5 +1,3 @@
-'use client';
-
 import { wrappedFetch } from '@/lib/api';
 import { ConfigProvider } from '@/providers/ConfigProvider';
 import { ShopperProvider } from '@/providers/ShopperProvider';
