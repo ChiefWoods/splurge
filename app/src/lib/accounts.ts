@@ -151,8 +151,24 @@ export async function fetchReview(client: SplurgeClient, pda: string) {
 }
 
 // Shoppers
-export async function fetchAllShoppers(client: SplurgeClient) {
-  return client.fetchAllProgramAccounts('shopper', parseShopper);
+export async function fetchAllShoppers(
+  client: SplurgeClient,
+  queries: { authority?: string } = {}
+) {
+  const { authority } = queries;
+  const filters: GetProgramAccountsFilter[] = [];
+
+  if (authority) {
+    filters.push({
+      memcmp: {
+        offset: DISCRIMINATOR_SIZE,
+        bytes: authority,
+        encoding: 'base58',
+      },
+    });
+  }
+
+  return client.fetchAllProgramAccounts('shopper', parseShopper, filters);
 }
 
 export async function fetchMultipleShoppers(
@@ -167,8 +183,24 @@ export async function fetchShopper(client: SplurgeClient, pda: string) {
 }
 
 // Stores
-export async function fetchAllStores(client: SplurgeClient) {
-  return client.fetchAllProgramAccounts('store', parseStore);
+export async function fetchAllStores(
+  client: SplurgeClient,
+  queries: { authority?: string } = {}
+) {
+  const { authority } = queries;
+  const filters: GetProgramAccountsFilter[] = [];
+
+  if (authority) {
+    filters.push({
+      memcmp: {
+        offset: DISCRIMINATOR_SIZE,
+        bytes: authority,
+        encoding: 'base58',
+      },
+    });
+  }
+
+  return client.fetchAllProgramAccounts('store', parseStore, filters);
 }
 
 export async function fetchMultipleStores(

@@ -10,12 +10,15 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const pdas = searchParams.getAll('pda');
+  const authority = searchParams.get('authority');
 
   try {
     if (pdas.length === 0) {
       return NextResponse.json(
         {
-          stores: await fetchAllStores(SPLURGE_CLIENT),
+          stores: await fetchAllStores(SPLURGE_CLIENT, {
+            authority: authority ?? undefined,
+          }),
         },
         {
           status: 200,
