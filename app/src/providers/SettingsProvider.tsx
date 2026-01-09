@@ -2,7 +2,7 @@
 
 import { CLUSTER } from '@/lib/client/solana';
 import { CuPriceRange } from '@/types/transactions';
-import { getExplorerLink } from '@solana-developers/helpers';
+import { getExplorerLink } from '@/lib/solana-developers-helpers';
 import {
   createContext,
   ReactNode,
