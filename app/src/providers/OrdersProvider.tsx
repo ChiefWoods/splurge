@@ -21,33 +21,27 @@ export function useOrders() {
 
 export function OrdersProvider({
   children,
-  shopperPda,
-  storePda,
+  shopper,
+  store,
 }: {
   children: ReactNode;
-  shopperPda?: string;
-  storePda?: string;
+  shopper?: string;
+  store?: string;
 }) {
   const {
     data: ordersData,
     isLoading: ordersLoading,
     mutate: ordersMutate,
-  } = useSWR(
-    { apiEndpoint, shopperPda, storePda },
-    async ({ apiEndpoint, shopperPda, storePda }) => {
-      const newUrl = new URL(apiEndpoint);
+  } = useSWR('orders', async () => {
+    const url = new URL(apiEndpoint);
 
-      if (shopperPda) {
-        newUrl.searchParams.append('shopper', shopperPda);
-      }
+    if (shopper) url.searchParams.append('shopper', shopper);
+    if (store) url.searchParams.append('store', store);
 
-      if (storePda) {
-        newUrl.searchParams.append('store', storePda);
-      }
+    const orders = (await wrappedFetch(url.href)).orders as ParsedOrder[];
 
-      return (await wrappedFetch(newUrl.href)).orders as ParsedOrder[];
-    }
-  );
+    return orders;
+  });
 
   return (
     <OrdersContext.Provider

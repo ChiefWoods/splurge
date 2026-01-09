@@ -13,8 +13,8 @@ export default async function Layout({
   const { storePda } = await params;
 
   return (
-    <OrdersProvider storePda={storePda}>
-      <ItemsProvider storePda={storePda}>
+    <OrdersProvider store={storePda}>
+      <ItemsProvider store={storePda}>
         <ShoppersProvider>{children}</ShoppersProvider>
       </ItemsProvider>
     </OrdersProvider>

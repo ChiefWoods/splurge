@@ -24,8 +24,12 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     data: configData,
     isLoading: configLoading,
     mutate: configMutate,
-  } = useSWR(apiEndpoint, async (url) => {
-    return (await wrappedFetch(url)).config as ParsedConfig;
+  } = useSWR('config', async () => {
+    const url = new URL(apiEndpoint);
+
+    const config = (await wrappedFetch(url.href)).config as ParsedConfig;
+
+    return config;
   });
 
   return (

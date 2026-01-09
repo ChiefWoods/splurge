@@ -26,8 +26,12 @@ export function ShoppersProvider({ children }: { children: ReactNode }) {
     data: shoppersData,
     isLoading: shoppersLoading,
     mutate: shoppersMutate,
-  } = useSWR(apiEndpoint, async (apiEndpoint) => {
-    return (await wrappedFetch(apiEndpoint)).shoppers as ParsedShopper[];
+  } = useSWR('shoppers', async () => {
+    const url = new URL(apiEndpoint);
+
+    const shoppers = (await wrappedFetch(url.href)).shoppers as ParsedShopper[];
+
+    return shoppers;
   });
 
   return (

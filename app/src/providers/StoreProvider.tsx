@@ -30,9 +30,14 @@ export function StoreProvider({
     data: storeData,
     isLoading: storeLoading,
     mutate: storeMutate,
-  } = useSWR({ apiEndpoint, pda }, async ({ apiEndpoint, pda }) => {
-    return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
-      .store as ParsedStore;
+  } = useSWR('store', async () => {
+    const url = new URL(apiEndpoint);
+
+    if (pda) url.searchParams.append('pda', pda);
+
+    const store = (await wrappedFetch(url.href)).store as ParsedStore;
+
+    return store;
   });
 
   return (

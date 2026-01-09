@@ -23,21 +23,23 @@ export function useReviews() {
 
 export function ReviewsProvider({
   children,
-  itemPda,
+  item,
 }: {
   children: ReactNode;
-  itemPda: string;
+  item: string;
 }) {
   const {
     data: reviewsData,
     isLoading: reviewsLoading,
     mutate: reviewsMutate,
-  } = useSWR({ apiEndpoint, itemPda }, async ({ apiEndpoint, itemPda }) => {
-    const newUrl = new URL(apiEndpoint);
+  } = useSWR('reviews', async () => {
+    const url = new URL(apiEndpoint);
 
-    newUrl.searchParams.append('item', itemPda);
+    if (item) url.searchParams.append('item', item);
 
-    return (await wrappedFetch(newUrl.href)).reviews as ParsedReview[];
+    const reviews = (await wrappedFetch(url.href)).reviews as ParsedReview[];
+
+    return reviews;
   });
 
   return (

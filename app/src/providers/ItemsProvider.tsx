@@ -21,23 +21,25 @@ export function useItems() {
 
 export function ItemsProvider({
   children,
-  storePda,
+  store,
 }: {
   children: ReactNode;
-  storePda?: string;
+  store?: string;
 }) {
   const {
     data: itemsData,
     isLoading: itemsLoading,
     mutate: itemsMutate,
-  } = useSWR({ apiEndpoint, storePda }, async ({ apiEndpoint, storePda }) => {
-    const newUrl = new URL(apiEndpoint);
+  } = useSWR('items', async () => {
+    const url = new URL(apiEndpoint);
 
-    if (storePda) {
-      newUrl.searchParams.append('store', storePda);
+    if (store) {
+      url.searchParams.append('store', store);
     }
 
-    return (await wrappedFetch(newUrl.href)).items as ParsedItem[];
+    const items = (await wrappedFetch(url.href)).items as ParsedItem[];
+
+    return items;
   });
 
   return (

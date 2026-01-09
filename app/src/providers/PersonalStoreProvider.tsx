@@ -31,12 +31,15 @@ export function PersonalStoreProvider({ children }: { children: ReactNode }) {
     isLoading: personalStoreLoading,
     mutate: personalStoreMutate,
   } = useSWR(
-    publicKey
-      ? { apiEndpoint, pda: SplurgeClient.getStorePda(publicKey).toBase58() }
-      : null,
-    async ({ apiEndpoint, pda }) => {
-      return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
-        .store as ParsedStore;
+    publicKey ? { pda: SplurgeClient.getStorePda(publicKey).toBase58() } : null,
+    async ({ pda }) => {
+      const url = new URL(apiEndpoint);
+
+      if (pda) url.searchParams.append('pda', pda);
+
+      const store = (await wrappedFetch(url.href)).store as ParsedStore;
+
+      return store;
     }
   );
 

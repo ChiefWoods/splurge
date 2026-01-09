@@ -23,8 +23,8 @@ export default async function Layout({
 
   return (
     <ItemProvider pda={itemPda}>
-      <OrdersProvider storePda={storePda}>
-        <ReviewsProvider itemPda={itemPda}>
+      <OrdersProvider store={storePda}>
+        <ReviewsProvider item={itemPda}>
           <ShoppersProvider>{children}</ShoppersProvider>
         </ReviewsProvider>
       </OrdersProvider>

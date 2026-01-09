@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const shopperPda = SplurgeClient.getShopperPda(publicKey).toBase58();
 
   return (
-    <OrdersProvider shopperPda={shopperPda}>
+    <OrdersProvider shopper={shopperPda}>
       <ItemsProvider>{children}</ItemsProvider>
     </OrdersProvider>
   );

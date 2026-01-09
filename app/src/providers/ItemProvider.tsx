@@ -30,8 +30,14 @@ export function ItemProvider({
     data: itemData,
     isLoading: itemLoading,
     mutate: itemMutate,
-  } = useSWR({ apiEndpoint, pda }, async ({ apiEndpoint, pda }) => {
-    return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`)).item as ParsedItem;
+  } = useSWR('item', async () => {
+    const url = new URL(apiEndpoint);
+
+    if (pda) url.searchParams.append('pda', pda);
+
+    const item = (await wrappedFetch(url.href)).item as ParsedItem;
+
+    return item;
   });
 
   return (

@@ -21,7 +21,7 @@ export default async function Layout({
 
   return (
     <StoreProvider pda={storePda}>
-      <ItemsProvider storePda={storePda}>{children}</ItemsProvider>
+      <ItemsProvider store={storePda}>{children}</ItemsProvider>
     </StoreProvider>
   );
 }

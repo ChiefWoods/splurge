@@ -24,8 +24,12 @@ export function StoresProvider({ children }: { children: ReactNode }) {
     data: storesData,
     isLoading: storesLoading,
     mutate: storesMutate,
-  } = useSWR(apiEndpoint, async (apiEndpoint) => {
-    return (await wrappedFetch(apiEndpoint)).stores as ParsedStore[];
+  } = useSWR('stores', async () => {
+    const url = new URL(apiEndpoint);
+
+    const stores = (await wrappedFetch(url.href)).stores as ParsedStore[];
+
+    return stores;
   });
 
   return (

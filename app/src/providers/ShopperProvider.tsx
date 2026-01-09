@@ -32,11 +32,16 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
     mutate: shopperMutate,
   } = useSWR(
     publicKey
-      ? { apiEndpoint, pda: SplurgeClient.getShopperPda(publicKey).toBase58() }
+      ? { pda: SplurgeClient.getShopperPda(publicKey).toBase58() }
       : null,
-    async ({ apiEndpoint, pda }) => {
-      return (await wrappedFetch(`${apiEndpoint}?pda=${pda}`))
-        .shopper as ParsedShopper;
+    async ({ pda }) => {
+      const url = new URL(apiEndpoint);
+
+      if (pda) url.searchParams.append('pda', pda);
+
+      const shopper = (await wrappedFetch(url.href)).shopper as ParsedShopper;
+
+      return shopper;
     }
   );
 
