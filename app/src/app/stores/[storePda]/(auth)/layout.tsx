@@ -13,6 +13,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useUnifiedWallet();
 
+  // fetch store to check if authority matches wallet
   const { data: storeData, isLoading: storeLoading } = useSWR(
     storePda,
     async (storePda) => {
