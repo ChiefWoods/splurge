@@ -16,7 +16,10 @@ const nextConfig: NextConfig = {
       },
     ],
     dangerouslyAllowSVG: true,
-  }
+  },
+  experimental: {
+    authInterrupts: true,
+  },
 };
 
 export default nextConfig;
