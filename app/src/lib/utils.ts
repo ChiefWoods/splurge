@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { VersionedTransaction } from '@solana/web3.js';
 import { MINT_DECIMALS } from './constants';
+import { Connection } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -71,4 +73,20 @@ export function getRelativeTime(timestamp: number): string {
 
 export function v0TxToBase64(tx: VersionedTransaction): string {
   return Buffer.from(tx.serialize()).toString('base64');
+}
+
+export async function tryGetTokenAccountBalance(
+  connection: Connection,
+  address: PublicKey
+): Promise<number> {
+  let balance: number = 0;
+
+  try {
+    const accountInfo = await connection.getTokenAccountBalance(address);
+    balance = Number(accountInfo.value.amount);
+  } catch {
+    // noop
+  }
+
+  return balance;
 }
