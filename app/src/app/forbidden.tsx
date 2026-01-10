@@ -4,7 +4,7 @@ import { ErrorSection } from '@/components/ErrorSection';
 import { RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function Unauthorized() {
+export default function Forbidden() {
   const router = useRouter();
 
   return (
@@ -13,7 +13,7 @@ export default function Unauthorized() {
       btnText="Go To Home"
       description="You do not have permission to access this page."
       onClick={() => router.replace('/')}
-      title="Unauthorized"
+      title="403 - Forbidden"
     />
   );
 }

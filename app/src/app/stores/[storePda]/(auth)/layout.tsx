@@ -5,7 +5,7 @@ import { WrappedSpinner } from '@/components/WrappedSpinner';
 import { wrappedFetch } from '@/lib/api';
 import { ParsedStore } from '@/types/accounts';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { unauthorized, useParams } from 'next/navigation';
+import { forbidden, useParams } from 'next/navigation';
 import { ReactNode } from 'react';
 import useSWR from 'swr';
 
@@ -37,7 +37,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   }
 
   if (storeData && storeData.authority !== publicKey.toBase58()) {
-    unauthorized();
+    forbidden();
   }
 
   return children;
