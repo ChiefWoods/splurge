@@ -32,7 +32,7 @@ export async function fetchAllItems(
       memcmp: {
         offset: DISCRIMINATOR_SIZE,
         bytes: store,
-        encoding: 'base58',
+        // encoding: 'base58',
       },
     });
   }
@@ -64,7 +64,7 @@ export async function fetchAllOrders(
       memcmp: {
         offset: DISCRIMINATOR_SIZE,
         bytes: shopper,
-        encoding: 'base58',
+        // encoding: 'base58',
       },
     });
   }
@@ -82,7 +82,7 @@ export async function fetchAllOrders(
         memcmp: {
           offset: DISCRIMINATOR_SIZE,
           bytes: store,
-          encoding: 'base58',
+          // encoding: 'base58',
         },
       },
     ]);
@@ -125,7 +125,7 @@ export async function fetchAllReviews(
           memcmp: {
             offset: DISCRIMINATOR_SIZE + 32,
             bytes: item,
-            encoding: 'base58',
+            // encoding: 'base58',
           },
         },
       ]
@@ -163,7 +163,7 @@ export async function fetchAllShoppers(
       memcmp: {
         offset: DISCRIMINATOR_SIZE,
         bytes: authority,
-        encoding: 'base58',
+        // encoding: 'base58',
       },
     });
   }
@@ -195,7 +195,7 @@ export async function fetchAllStores(
       memcmp: {
         offset: DISCRIMINATOR_SIZE,
         bytes: authority,
-        encoding: 'base58',
+        // encoding: 'base58',
       },
     });
   }
