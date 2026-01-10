@@ -1,3 +1,4 @@
+import { SectionHeaderSkeleton } from './SectionHeaderSkeleton';
 import { Skeleton } from './ui/skeleton';
 
 export function AccountSectionSkeleton({
@@ -7,7 +8,7 @@ export function AccountSectionSkeleton({
 }) {
   return (
     <section className="flex w-full flex-col gap-6">
-      {header && <Skeleton className="h-6 w-1/2 md:h-8" />}
+      {header && <SectionHeaderSkeleton />}
       <div className="flex h-fit w-full flex-col gap-x-6 gap-y-2 sm:flex-row">
         <Skeleton className="aspect-square size-[100px] rounded-lg md:size-[200px]" />
         <div className="flex w-full flex-1 flex-col justify-between overflow-hidden border-none shadow-none">
