@@ -13,7 +13,7 @@ import { DISCRIMINATOR_SIZE } from './constants';
 // Config
 export async function fetchConfig(client: SplurgeClient) {
   return client.fetchProgramAccount(
-    SplurgeClient.configPda,
+    SplurgeClient.configPda.toBase58(),
     'config',
     parseConfig
   );
