@@ -17,6 +17,22 @@ export const metadata: Metadata = {
     template: '%s | Splurge',
   },
   description: 'On-chain e-commerce platform on Solana.',
+  icons: {
+    icon: [
+      {
+        url: '/favicon-dark.svg',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/favicon-light.svg',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/favicon-light.svg',
+        media: '(prefers-color-scheme: no-preference)',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -25,24 +41,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          rel="icon"
-          href="/favicon-dark.svg"
-          media="(prefers-color-scheme: light)"
-        />
-        <link
-          rel="icon"
-          href="/favicon-light.svg"
-          media="(prefers-color-scheme: dark)"
-        />
-        <link
-          rel="icon"
-          href="/favicon-light.svg"
-          media="(prefers-color-scheme: no-preference)"
-        />
-      </head>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${moderustic.variable} flex min-h-screen flex-col antialiased`}
       >
