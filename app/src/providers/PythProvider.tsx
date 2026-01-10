@@ -17,11 +17,6 @@ import { VersionedTransaction, Signer } from '@solana/web3.js';
 import { useAnchorWallet } from '@jup-ag/wallet-adapter';
 import { HERMES_CLIENT } from '@/lib/client/pyth';
 
-interface Price {
-  mint: string;
-  price: number;
-}
-
 interface PythContextType {
   pricesData: Price[] | undefined;
   pricesIsLoading: boolean;
