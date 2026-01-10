@@ -3,10 +3,12 @@
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
 import { PublicKey } from '@solana/web3.js';
-import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import {
+  getAssociatedTokenAddressSync,
+  unpackAccount,
+} from '@solana/spl-token';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useStore } from './StoreProvider';
-import { tryGetTokenAccountBalance } from '@/lib/utils';
 import { ParsedConfig } from '@/types/accounts';
 
 interface Earning {
@@ -51,31 +53,43 @@ export function EarningsProvider({
         }
       : null,
     async ({ acceptedMints, storePda }) => {
-      return await Promise.all(
-        acceptedMints.map(async ({ mint }) => {
-          const mintPubkey = new PublicKey(mint);
-          const mintAcc = await connection.getAccountInfo(mintPubkey);
-
-          if (!mintAcc) {
-            throw new Error('Mint account not found.');
-          }
-
-          const ata = getAssociatedTokenAddressSync(
-            mintPubkey,
-            new PublicKey(storePda),
-            !PublicKey.isOnCurve(storePda),
-            mintAcc.owner
-          );
-
-          const amount = await tryGetTokenAccountBalance(connection, ata);
-
-          return {
-            mint,
-            ata: ata.toBase58(),
-            amount,
-          };
-        })
+      const mintAccs = await connection.getMultipleAccountsInfo(
+        acceptedMints.map((mint) => new PublicKey(mint.mint))
       );
+
+      const atas = mintAccs.map((mintAcc, i) => {
+        const mint = acceptedMints[i].mint;
+
+        if (!mintAcc) {
+          throw new Error(`Mint account not found: ${mint}`);
+        }
+
+        const ata = getAssociatedTokenAddressSync(
+          new PublicKey(mint),
+          new PublicKey(storePda),
+          !PublicKey.isOnCurve(storePda),
+          mintAcc.owner
+        );
+
+        return {
+          mint,
+          ata,
+          programId: mintAcc.owner,
+        };
+      });
+
+      const ataInfos = await connection.getMultipleAccountsInfo(
+        atas.map(({ ata }) => ata)
+      );
+
+      return atas.map(({ ata, mint, programId }, i) => ({
+        mint,
+        ata: ata.toBase58(),
+        amount:
+          ataInfos[i] === null
+            ? 0
+            : Number(unpackAccount(ata, ataInfos[i], programId).amount),
+      }));
     }
   );
 
