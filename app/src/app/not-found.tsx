@@ -1,7 +1,6 @@
 'use client';
 
-import { MainSection } from '@/components/MainSection';
-import { Button } from '@/components/ui/button';
+import { ErrorSection } from '@/components/ErrorSection';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -9,13 +8,12 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <MainSection className="flex-1 justify-center">
-      <h2>404</h2>
-      <p>Page not found.</p>
-      <Button onClick={router.back}>
-        <ArrowLeft />
-        Go Back
-      </Button>
-    </MainSection>
+    <ErrorSection
+      Icon={ArrowLeft}
+      btnText="Go Back"
+      description="Page not found."
+      onClick={router.back}
+      title="404"
+    />
   );
 }
