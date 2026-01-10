@@ -43,11 +43,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${moderustic.variable} flex min-h-screen flex-col antialiased`}
+        className={`${moderustic.variable} flex min-h-screen flex-col items-center antialiased`}
       >
         <Providers>
           <Header />
-          <main className="flex flex-1 flex-col items-center">{children}</main>
+          {children}
         </Providers>
         <Toaster richColors closeButton />
       </body>

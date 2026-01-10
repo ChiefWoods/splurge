@@ -22,7 +22,6 @@ import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
 import { toast } from 'sonner';
 import { WalletGuardButton } from '@/components/WalletGuardButton';
 import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
-import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { ImageInputLabel } from '../ImageInputLabel';
 import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
 import { FormDialogTitle } from '@/components/FormDialogTitle';
@@ -33,12 +32,13 @@ import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
+import { useStore } from '@/providers/StoreProvider';
 
 export function CreateStoreDialog() {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { getTransactionLink, priorityFee } = useSettings();
-  const { personalStoreMutate } = usePersonalStore();
+  const { storeMutate } = useStore();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -116,7 +116,7 @@ export function CreateStoreDialog() {
                     publicKey: SplurgeClient.getStorePda(publicKey).toBase58(),
                   };
 
-                  await personalStoreMutate(newStore, {
+                  await storeMutate(newStore, {
                     revalidate: false,
                   });
 
@@ -150,7 +150,7 @@ export function CreateStoreDialog() {
       );
     },
     [
-      personalStoreMutate,
+      storeMutate,
       publicKey,
       signTransaction,
       upload,

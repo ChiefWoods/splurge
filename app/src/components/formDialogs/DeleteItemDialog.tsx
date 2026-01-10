@@ -22,14 +22,13 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useSettings } from '@/providers/SettingsProvider';
+import { ParsedItem } from '@/types/accounts';
 
 export function DeleteItemDialog({
-  name,
-  itemPda,
+  item,
   storePda,
 }: {
-  name: string;
-  itemPda: string;
+  item: ParsedItem;
   storePda: string;
 }) {
   const { connection } = useConnection();
@@ -56,7 +55,7 @@ export function DeleteItemDialog({
             [
               await SPLURGE_CLIENT.unlistItemIx({
                 authority: publicKey,
-                itemPda: new PublicKey(itemPda),
+                itemPda: new PublicKey(item.publicKey),
                 storePda: new PublicKey(storePda),
               }),
             ],
@@ -79,12 +78,12 @@ export function DeleteItemDialog({
                   throw new Error('Items should not be null.');
                 }
 
-                return prev.filter((item) => {
-                  return item.publicKey !== itemPda;
+                return prev.filter((prevItem) => {
+                  return prevItem.publicKey !== item.publicKey;
                 });
               },
               {
-                revalidate: false,
+                revalidate: true,
               }
             );
 
@@ -108,7 +107,7 @@ export function DeleteItemDialog({
     },
     [
       itemsMutate,
-      itemPda,
+      item,
       publicKey,
       signTransaction,
       storePda,
@@ -129,8 +128,8 @@ export function DeleteItemDialog({
         <DialogHeader>
           <FormDialogTitle title="Delete Item" />
           <DialogDescription className="text-foreground">
-            Are you sure you want to delete {name}? Warning: reviews will be
-            lost forever!
+            Are you sure you want to delete {item.name}? Warning: reviews will
+            be lost forever!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit}>

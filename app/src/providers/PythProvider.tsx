@@ -1,6 +1,5 @@
 'use client';
 
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
 import { useConnection } from '@solana/wallet-adapter-react';
 import {
   createContext,
@@ -9,7 +8,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { Wallet } from '@coral-xyz/anchor';
 import { getPriorityFee } from '@/lib/client/solana';
@@ -18,9 +16,6 @@ import { useAnchorWallet } from '@jup-ag/wallet-adapter';
 import { HERMES_CLIENT } from '@/lib/client/pyth';
 
 interface PythContextType {
-  pricesData: Price[] | undefined;
-  pricesIsLoading: boolean;
-  pricesMutate: KeyedMutator<Price[]>;
   pythSolanaReceiver: PythSolanaReceiver | null;
   getUpdatePriceFeedTx: (
     id: string
@@ -57,30 +52,6 @@ export function PythProvider({ children }: { children: ReactNode }) {
     })();
   }, [connection, wallet]);
 
-  const {
-    data: pricesData,
-    isLoading: pricesIsLoading,
-    mutate: pricesMutate,
-  } = useSWR('pyth', async () => {
-    // TODO: id should be stored and fetched from config account
-    const ids = Array.from(ACCEPTED_MINTS_METADATA.values()).map(
-      (metadata) => metadata.id
-    );
-
-    const priceUpdates = await HERMES_CLIENT.getLatestPriceUpdates(ids);
-
-    if (!priceUpdates.parsed) {
-      throw new Error('Unable to get parsed price updates.');
-    }
-
-    return priceUpdates.parsed.map((update, i) => {
-      return {
-        mint: Array.from(ACCEPTED_MINTS_METADATA.keys())[i],
-        price: Number(update.price.price) * 10 ** update.price.expo,
-      };
-    });
-  });
-
   async function getPriceUpdateData(id: string): Promise<string[]> {
     const { data } = (
       await HERMES_CLIENT.getLatestPriceUpdates([id], { encoding: 'base64' })
@@ -97,7 +68,7 @@ export function PythProvider({ children }: { children: ReactNode }) {
     id: string
   ): Promise<VersionedTransactionWithEphemeralSigners[]> {
     if (!pythSolanaReceiver) {
-      throw new Error('Pyth Solana Receiver not initialized');
+      throw new Error('Pyth Solana Receiver not initialized.');
     }
 
     const data = await getPriceUpdateData(id);
@@ -116,9 +87,6 @@ export function PythProvider({ children }: { children: ReactNode }) {
   return (
     <PythContext.Provider
       value={{
-        pricesData,
-        pricesIsLoading,
-        pricesMutate,
         pythSolanaReceiver,
         getUpdatePriceFeedTx,
       }}

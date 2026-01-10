@@ -21,24 +21,31 @@ export function useItem() {
 
 export function ItemProvider({
   children,
-  pda,
+  fallbackData,
 }: {
   children: ReactNode;
-  pda: string;
+  fallbackData: ParsedItem;
 }) {
   const {
     data: itemData,
     isLoading: itemLoading,
     mutate: itemMutate,
-  } = useSWR('item', async () => {
-    const url = new URL(apiEndpoint);
+  } = useSWR(
+    'item',
+    async () => {
+      const url = new URL(apiEndpoint);
 
-    if (pda) url.searchParams.append('pda', pda);
+      url.searchParams.append('pda', fallbackData.publicKey);
 
-    const item = (await wrappedFetch(url.href)).item as ParsedItem;
+      const itemAcc = (await wrappedFetch(url.href)).item as ParsedItem;
 
-    return item;
-  });
+      return itemAcc;
+    },
+    {
+      fallbackData,
+      revalidateOnMount: false,
+    }
+  );
 
   return (
     <ItemContext.Provider

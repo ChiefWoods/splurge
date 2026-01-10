@@ -4,7 +4,7 @@ import { Menu, ShoppingCartIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { useShopper } from '@/providers/ShopperProvider';
-import { usePersonalStore } from '@/providers/PersonalStoreProvider';
+import { useStore } from '@/providers/StoreProvider';
 import { useMemo, useState } from 'react';
 import { Keypair } from '@solana/web3.js';
 import { DialectNotification } from './DialectNotification';
@@ -23,7 +23,7 @@ import { Button } from './ui/button';
 export function Header() {
   const { publicKey } = useUnifiedWallet();
   const { shopperData } = useShopper();
-  const { personalStoreData } = usePersonalStore();
+  const { storeData } = useStore();
   const [isOpen, setIsOpen] = useState(false);
 
   const avatarSeed = useMemo(() => {
@@ -33,9 +33,7 @@ export function Header() {
   const navLinks = [
     {
       name: 'My Store',
-      href: personalStoreData
-        ? `/stores/${personalStoreData.publicKey}`
-        : '/stores/create',
+      href: storeData ? `/stores/${storeData.publicKey}` : '/stores/create',
     },
     {
       name: 'My Orders',
@@ -44,7 +42,7 @@ export function Header() {
   ];
 
   return (
-    <header className="border-b-primary bg-background sticky top-0 z-10 flex h-20 items-center justify-between gap-4 border-b px-6 py-4">
+    <header className="border-b-primary bg-background sticky top-0 z-10 flex h-20 w-full items-center justify-between gap-4 border-b px-6 py-4">
       <Link href={'/'} className="*:text-primary flex items-center gap-2">
         <ShoppingCartIcon size={24} />
         <h1 className="hidden text-2xl font-medium sm:block md:text-3xl">
@@ -75,7 +73,7 @@ export function Header() {
           <SettingsDropdown />
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger>
+          <SheetTrigger asChild>
             <Button
               variant="ghost"
               size={'icon'}

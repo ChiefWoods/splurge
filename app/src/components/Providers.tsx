@@ -1,14 +1,12 @@
-import { wrappedFetch } from '@/lib/api';
-import { ConfigProvider } from '@/providers/ConfigProvider';
-import { ShopperProvider } from '@/providers/ShopperProvider';
 import { SolanaProvider } from '@/providers/SolanaProvider';
-import { PersonalStoreProvider } from '@/providers/PersonalStoreProvider';
 import { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import { TooltipProvider } from './ui/tooltip';
 import { PythProvider } from '@/providers/PythProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { SettingsProvider } from '@/providers/SettingsProvider';
+import { ShopperProvider } from '@/providers/ShopperProvider';
+import { StoreProvider } from '@/providers/StoreProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -28,11 +26,9 @@ export function Providers({ children }: { children: ReactNode }) {
           <SettingsProvider>
             <SolanaProvider>
               <PythProvider>
-                <ConfigProvider>
-                  <ShopperProvider>
-                    <PersonalStoreProvider>{children}</PersonalStoreProvider>
-                  </ShopperProvider>
-                </ConfigProvider>
+                <ShopperProvider>
+                  <StoreProvider>{children}</StoreProvider>
+                </ShopperProvider>
               </PythProvider>
             </SolanaProvider>
           </SettingsProvider>

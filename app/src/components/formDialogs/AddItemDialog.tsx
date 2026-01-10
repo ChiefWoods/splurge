@@ -140,7 +140,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                       return [...prev, newItem];
                     },
                     {
-                      revalidate: false,
+                      revalidate: true,
                     }
                   );
 

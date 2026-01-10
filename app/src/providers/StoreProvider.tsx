@@ -4,6 +4,8 @@ import { ParsedStore } from '@/types/accounts';
 import { wrappedFetch } from '@/lib/api';
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { SplurgeClient } from '@/classes/SplurgeClient';
 
 interface StoreContextType {
   storeData: ParsedStore | undefined;
@@ -19,26 +21,25 @@ export function useStore() {
   return useContext(StoreContext);
 }
 
-export function StoreProvider({
-  children,
-  pda,
-}: {
-  children: ReactNode;
-  pda: string;
-}) {
+export function StoreProvider({ children }: { children: ReactNode }) {
+  const { publicKey } = useUnifiedWallet();
+
   const {
     data: storeData,
     isLoading: storeLoading,
     mutate: storeMutate,
-  } = useSWR('store', async () => {
-    const url = new URL(apiEndpoint);
+  } = useSWR(
+    publicKey ? { pda: SplurgeClient.getStorePda(publicKey).toBase58() } : null,
+    async ({ pda }) => {
+      const url = new URL(apiEndpoint);
 
-    if (pda) url.searchParams.append('pda', pda);
+      if (pda) url.searchParams.append('pda', pda);
 
-    const store = (await wrappedFetch(url.href)).store as ParsedStore;
+      const store = (await wrappedFetch(url.href)).store as ParsedStore;
 
-    return store;
-  });
+      return store;
+    }
+  );
 
   return (
     <StoreContext.Provider

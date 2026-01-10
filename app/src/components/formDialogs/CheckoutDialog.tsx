@@ -3,7 +3,7 @@
 import { zAmount, zPaymentMint } from '@/lib/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { ReactNode, useCallback, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { TransactionToast } from '../TransactionToast';
 import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
@@ -30,12 +30,9 @@ import {
 } from '../ui/select';
 import { z } from 'zod';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { useItems } from '@/providers/ItemsProvider';
 import { useShopper } from '@/providers/ShopperProvider';
 import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
-import { useConfig } from '@/providers/ConfigProvider';
 import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
-import { Skeleton } from '../ui/skeleton';
 import { MintIcon } from '../MintIcon';
 import { usePyth } from '@/providers/PythProvider';
 import { alertNewOrders, alertOutOfStock } from '@/lib/server/dialect';
@@ -48,26 +45,20 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
 import { useSettings } from '@/providers/SettingsProvider';
+import { ParsedConfig, ParsedItem, ParsedStore } from '@/types/accounts';
+import { useItems } from '@/providers/ItemsProvider';
 
 export function CheckoutDialog({
-  name,
-  image,
-  price,
-  maxAmount,
-  storePda,
-  storeAuthority,
-  itemPda,
+  item,
+  store,
+  config,
   btnVariant = 'default',
   btnSize = 'sm',
   children,
 }: {
-  name: string;
-  image: string;
-  price: number;
-  maxAmount: number;
-  storePda: string;
-  storeAuthority: string;
-  itemPda: string;
+  item: ParsedItem;
+  store: ParsedStore;
+  config: ParsedConfig;
   btnVariant?: 'default' | 'secondary';
   btnSize?: 'sm' | 'icon';
   children: ReactNode;
@@ -76,14 +67,13 @@ export function CheckoutDialog({
   const { publicKey } = useUnifiedWallet();
   const { getTransactionLink, priorityFee } = useSettings();
   const { pythSolanaReceiver, getUpdatePriceFeedTx } = usePyth();
-  const { configData, configLoading } = useConfig();
   const { itemsMutate } = useItems();
   const { shopperData } = useShopper();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const createOrderSchema = z.object({
-    amount: zAmount.max(maxAmount, 'Amount exceeds inventory count.'),
+    amount: zAmount.max(item.inventoryCount, 'Amount exceeds inventory count.'),
     paymentMint: zPaymentMint,
   });
 
@@ -101,15 +91,12 @@ export function CheckoutDialog({
     control: form.control,
     name: 'amount',
   });
-  const orderSubtotal = useMemo(() => price * (amount || 0), [price, amount]);
 
-  const platformFee = useMemo(() => {
-    return configData
-      ? Math.floor(
-          (orderSubtotal * configData.orderFeeBps) / MAX_FEE_BASIS_POINTS
-        )
-      : 0;
-  }, [configData, orderSubtotal]);
+  const orderSubtotal = item.price * (amount || 0);
+
+  const platformFee = Math.floor(
+    (orderSubtotal * config.orderFeeBps) / MAX_FEE_BASIS_POINTS
+  );
 
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
@@ -132,7 +119,7 @@ export function CheckoutDialog({
             throw new Error('Shopper account not created.');
           }
 
-          if (configData?.isPaused) {
+          if (config.isPaused) {
             throw new Error(
               'Platform is currently paused. No new orders can be created.'
             );
@@ -155,8 +142,8 @@ export function CheckoutDialog({
                   await SPLURGE_CLIENT.createOrderIx({
                     amount: data.amount,
                     authority: publicKey,
-                    storePda: new PublicKey(storePda),
-                    itemPda: new PublicKey(itemPda),
+                    storePda: new PublicKey(store.publicKey),
+                    itemPda: new PublicKey(item.publicKey),
                     priceUpdateV2: token.priceUpdateV2,
                     paymentMint: new PublicKey(data.paymentMint),
                     tokenProgram: token.owner,
@@ -184,7 +171,7 @@ export function CheckoutDialog({
         {
           loading: 'Waiting for signature...',
           success: async ({ signature, shopperData, paymentMintSymbol }) => {
-            const newInventoryCount = maxAmount - data.amount;
+            const newInventoryCount = item.inventoryCount - data.amount;
 
             await itemsMutate(
               (prev) => {
@@ -192,19 +179,19 @@ export function CheckoutDialog({
                   throw new Error('Items should not be null.');
                 }
 
-                return prev.map((item) => {
-                  if (item.publicKey === itemPda) {
+                return prev.map((prevItem) => {
+                  if (prevItem.publicKey === item.publicKey) {
                     return {
-                      ...item,
+                      ...prevItem,
                       inventoryCount: newInventoryCount,
                     };
                   } else {
-                    return item;
+                    return prevItem;
                   }
                 });
               },
               {
-                revalidate: false,
+                revalidate: true,
               }
             );
 
@@ -212,9 +199,9 @@ export function CheckoutDialog({
             setIsSubmitting(false);
 
             await alertNewOrders({
-              storeAuthority,
+              storeAuthority: store.authority,
               shopperName: shopperData.name,
-              itemName: name,
+              itemName: item.name,
               itemAmount: data.amount,
               shopperAddress: shopperData.address,
               paymentSubtotal: atomicToUsd(orderSubtotal),
@@ -223,8 +210,8 @@ export function CheckoutDialog({
 
             if (newInventoryCount === 0) {
               await alertOutOfStock({
-                itemName: name,
-                storeAuthority,
+                itemName: item.name,
+                storeAuthority: store.authority,
               });
             }
 
@@ -245,21 +232,18 @@ export function CheckoutDialog({
     },
     [
       publicKey,
-      configData,
       shopperData,
-      storePda,
-      itemPda,
       connection,
-      itemsMutate,
       pythSolanaReceiver,
       getUpdatePriceFeedTx,
-      maxAmount,
-      name,
-      storeAuthority,
       orderSubtotal,
       closeAndReset,
       getTransactionLink,
       priorityFee,
+      item,
+      store,
+      config,
+      itemsMutate,
     ]
   );
 
@@ -280,12 +264,12 @@ export function CheckoutDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <LargeImage src={image} alt={name} />
-            <h3 className="truncate text-base font-medium">{name}</h3>
+            <LargeImage src={item.image} alt={item.name} />
+            <h3 className="truncate text-base font-medium">{item.name}</h3>
             <div className="flex w-full flex-col gap-y-2">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Price</p>
-                <p className="text-sm">{atomicToUsd(price)} USD</p>
+                <p className="text-sm">{atomicToUsd(item.price)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <FormField
@@ -299,7 +283,7 @@ export function CheckoutDialog({
                           type="number"
                           {...field}
                           min={1}
-                          max={maxAmount}
+                          max={item.inventoryCount}
                           step={1}
                           onChange={(e) => {
                             const value = parseInt(e.target.value);
@@ -353,43 +337,25 @@ export function CheckoutDialog({
             <div className="flex flex-col gap-1">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Platform Fee</p>
-                {configLoading ? (
-                  <Skeleton className="w-[80px]" />
-                ) : (
-                  configData && (
-                    <p className="text-sm">
-                      {removeTrailingZeroes(
-                        atomicToUsd(platformFee, MINT_DECIMALS)
-                      )}{' '}
-                      USD
-                    </p>
-                  )
-                )}
+                <p className="text-sm">
+                  {removeTrailingZeroes(
+                    atomicToUsd(platformFee, MINT_DECIMALS)
+                  )}{' '}
+                  USD
+                </p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Subtotal</p>
-                {configLoading ? (
-                  <Skeleton className="w-[80px]" />
-                ) : (
-                  configData && (
-                    <p className="text-sm">{atomicToUsd(orderSubtotal)} USD</p>
-                  )
-                )}
+                <p className="text-sm">{atomicToUsd(orderSubtotal)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm font-semibold">Total</p>
-                {configLoading ? (
-                  <Skeleton className="w-[80px]" />
-                ) : (
-                  configData && (
-                    <p className="text-sm font-semibold">
-                      {removeTrailingZeroes(
-                        atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)
-                      )}{' '}
-                      USD
-                    </p>
-                  )
-                )}
+                <p className="text-sm font-semibold">
+                  {removeTrailingZeroes(
+                    atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)
+                  )}{' '}
+                  USD
+                </p>
               </div>
             </div>
             <FormDialogFooter>

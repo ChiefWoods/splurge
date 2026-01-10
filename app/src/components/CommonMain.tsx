@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
-export function MainSection({
+export function CommonMain({
   children,
   className,
 }: {
@@ -11,7 +11,7 @@ export function MainSection({
   return (
     <main
       className={cn(
-        'flex w-full max-w-[762px] flex-col items-center gap-y-2 p-4 md:gap-y-6 md:p-6',
+        'flex w-full max-w-[762px] flex-1 flex-col items-start justify-start gap-y-2 p-4 md:gap-y-6 md:p-6',
         className
       )}
     >

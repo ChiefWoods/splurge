@@ -9,10 +9,7 @@ export function SectionHeader({
 }) {
   return (
     <h2
-      className={cn(
-        'text-primary w-full text-start text-2xl font-medium',
-        className
-      )}
+      className={cn('text-primary text-start text-2xl font-medium', className)}
     >
       {text}
     </h2>

@@ -1,29 +1,37 @@
 'use client';
 
+import { AlreadyCreatedEmpty } from '@/components/AlreadyCreatedEmpty';
+import { ConnectWalletEmpty } from '@/components/ConnectWalletEmpty';
 import { CreateSection } from '@/components/CreateSection';
-import { Spinner } from '@/components/Spinner';
-import { CreateProfileDialog } from '@/components/formDialogs/CreateProfileDialog';
+import { CreateStoreDialog } from '@/components/formDialogs/CreateStoreDialog';
+import { WrappedSpinner } from '@/components/WrappedSpinner';
 import { useShopper } from '@/providers/ShopperProvider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { User } from 'lucide-react';
 
 export default function Page() {
-  const router = useRouter();
+  const { publicKey } = useUnifiedWallet();
   const { shopperData, shopperLoading } = useShopper();
 
-  useEffect(() => {
-    if (shopperData) {
-      router.replace(`/shoppers/${shopperData.publicKey}`);
-    }
-  }, [shopperData, router]);
-
-  if (shopperLoading) {
-    return <Spinner />;
+  if (!publicKey) {
+    return <ConnectWalletEmpty />;
   }
 
-  return (
+  if (shopperLoading) {
+    return <WrappedSpinner />;
+  }
+
+  return shopperData ? (
+    <AlreadyCreatedEmpty
+      Icon={User}
+      title="Shopper Already Created"
+      btnText="Go To Profile"
+      description="Only one shopper profile is allowed per wallet."
+      redirectHref={`/shoppers/${shopperData.publicKey}`}
+    />
+  ) : (
     <CreateSection header="Create your Shopper profile to start splurging!">
-      <CreateProfileDialog />
+      <CreateStoreDialog />
     </CreateSection>
   );
 }

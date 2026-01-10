@@ -1,26 +1,44 @@
 'use client';
 
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { useStore } from '@/providers/StoreProvider';
+import { ConnectWalletEmpty } from '@/components/ConnectWalletEmpty';
+import { WrappedSpinner } from '@/components/WrappedSpinner';
+import { wrappedFetch } from '@/lib/api';
+import { ParsedStore } from '@/types/accounts';
 import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { useParams, useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { unauthorized, useParams } from 'next/navigation';
+import { ReactNode } from 'react';
+import useSWR from 'swr';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { storePda } = useParams<{ storePda: string }>();
-  const router = useRouter();
   const { publicKey } = useUnifiedWallet();
-  const { storeData, storeLoading } = useStore();
 
-  useEffect(() => {
-    if (!publicKey) {
-      router.replace('/');
-    } else if (SplurgeClient.getStorePda(publicKey).toBase58() !== storePda) {
-      router.replace('/');
-    } else if (!storeLoading && !storeData) {
-      router.replace('/stores/create');
+  const { data: storeData, isLoading: storeLoading } = useSWR(
+    storePda,
+    async (storePda) => {
+      const url = new URL(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`
+      );
+
+      url.searchParams.append('pda', storePda);
+
+      const store = (await wrappedFetch(url.href)).store as ParsedStore;
+
+      return store;
     }
-  }, [router, publicKey, storePda, storeData, storeLoading]);
+  );
 
-  return <>{children}</>;
+  if (!publicKey) {
+    return <ConnectWalletEmpty />;
+  }
+
+  if (storeLoading) {
+    return <WrappedSpinner />;
+  }
+
+  if (storeData && storeData.authority !== publicKey.toBase58()) {
+    unauthorized();
+  }
+
+  return children;
 }

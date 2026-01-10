@@ -42,15 +42,15 @@ type OrderWithItem = ParsedOrder & {
 };
 
 export function OrderTable({
-  ordersData,
-  itemsData,
-  isFetching,
+  orders,
+  items,
+  isFetching = false,
   showTotalTooltip = false,
   statusRenderer,
 }: {
-  ordersData: ParsedOrder[] | undefined;
-  itemsData: ParsedItem[] | undefined;
-  isFetching: boolean;
+  orders: ParsedOrder[] | undefined;
+  items: ParsedItem[] | undefined;
+  isFetching?: boolean;
   showTotalTooltip?: boolean;
   statusRenderer: (order: ParsedOrder) => ReactNode;
 }) {
@@ -63,11 +63,11 @@ export function OrderTable({
   const [searchValue, setSearchValue] = useState<string>('');
 
   const data = useMemo<OrderWithItem[]>(() => {
-    if (!ordersData || !itemsData) return [];
+    if (!orders || !items) return [];
 
-    return ordersData
+    return orders
       .map((order) => {
-        const itemData = itemsData.find(
+        const itemData = items.find(
           ({ publicKey }) => publicKey === order.item
         );
 
@@ -94,7 +94,7 @@ export function OrderTable({
 
         return true;
       });
-  }, [ordersData, itemsData, tabValue, searchValue, statusRenderer]);
+  }, [orders, items, tabValue, searchValue, statusRenderer]);
 
   const columns = useMemo<ColumnDef<OrderWithItem>[]>(
     () => [

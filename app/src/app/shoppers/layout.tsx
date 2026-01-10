@@ -1,11 +1,6 @@
 import { CommonMain } from '@/components/CommonMain';
-import { Metadata } from 'next';
 import { ReactNode } from 'react';
 
-export const metadata: Metadata = {
-  title: 'My Orders',
-};
-
 export default function Layout({ children }: { children: ReactNode }) {
-  return <CommonMain>{children}</CommonMain>;
+  return <CommonMain className="items-center">{children}</CommonMain>;
 }

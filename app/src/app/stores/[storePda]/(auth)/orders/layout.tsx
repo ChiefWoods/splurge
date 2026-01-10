@@ -1,7 +1,12 @@
-import { ItemsProvider } from '@/providers/ItemsProvider';
+import { fetchAllOrders } from '@/lib/accounts';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
 import { OrdersProvider } from '@/providers/OrdersProvider';
-import { ShoppersProvider } from '@/providers/ShoppersProvider';
+import { Metadata } from 'next';
 import { ReactNode } from 'react';
+
+export const metadata: Metadata = {
+  title: 'Store Orders',
+};
 
 export default async function Layout({
   children,
@@ -12,11 +17,11 @@ export default async function Layout({
 }) {
   const { storePda } = await params;
 
+  const orders = await fetchAllOrders(SPLURGE_CLIENT, { store: storePda });
+
   return (
-    <OrdersProvider store={storePda}>
-      <ItemsProvider store={storePda}>
-        <ShoppersProvider>{children}</ShoppersProvider>
-      </ItemsProvider>
+    <OrdersProvider fallbackData={orders} store={storePda}>
+      {children}
     </OrdersProvider>
   );
 }

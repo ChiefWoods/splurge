@@ -32,22 +32,13 @@ import { FormSubmitButton } from '../FormSubmitButton';
 import { FormCancelButton } from '../FormCancelButton';
 import { sendTx } from '@/lib/api';
 import { useSettings } from '@/providers/SettingsProvider';
+import { ParsedItem } from '@/types/accounts';
 
 export function UpdateItemDialog({
-  name,
-  image,
-  description,
-  price,
-  inventoryCount,
-  itemPda,
+  item,
   storePda,
 }: {
-  name: string;
-  image: string;
-  description: string;
-  price: number;
-  inventoryCount: number;
-  itemPda: string;
+  item: ParsedItem;
   storePda: string;
 }) {
   const { connection } = useConnection();
@@ -60,8 +51,8 @@ export function UpdateItemDialog({
   const form = useForm<UpdateItemFormData>({
     resolver: zodResolver(updateItemSchema),
     defaultValues: {
-      inventoryCount,
-      price,
+      inventoryCount: item.inventoryCount,
+      price: item.price,
     },
   });
 
@@ -82,7 +73,7 @@ export function UpdateItemDialog({
                 price: new BN(Number(data.price.toFixed(2))),
                 inventoryCount: data.inventoryCount,
                 authority: publicKey,
-                itemPda: new PublicKey(itemPda),
+                itemPda: new PublicKey(item.publicKey),
                 storePda: new PublicKey(storePda),
               }),
             ],
@@ -109,20 +100,20 @@ export function UpdateItemDialog({
                   throw new Error('Items should not be null.');
                 }
 
-                return prev.map((item) => {
-                  if (item.publicKey === itemPda) {
+                return prev.map((prevItem) => {
+                  if (prevItem.publicKey === item.publicKey) {
                     return {
-                      ...item,
+                      ...prevItem,
                       price: Number(price.toFixed(2)),
                       inventoryCount,
                     };
                   } else {
-                    return item;
+                    return prevItem;
                   }
                 });
               },
               {
-                revalidate: false,
+                revalidate: true,
               }
             );
 
@@ -151,7 +142,7 @@ export function UpdateItemDialog({
     [
       itemsMutate,
       form,
-      itemPda,
+      item,
       publicKey,
       signTransaction,
       storePda,
@@ -174,16 +165,16 @@ export function UpdateItemDialog({
         </DialogHeader>
         <section className="flex items-start gap-x-4">
           <Image
-            src={image}
-            alt={name}
+            src={item.image}
+            alt={item.name}
             width={100}
             height={100}
             className="aspect-square rounded-lg border"
             priority
           />
           <div className="flex flex-1 flex-col gap-y-1">
-            <p className="truncate text-lg font-semibold">{name}</p>
-            <p className="text-sm text-wrap">{description}</p>
+            <p className="truncate text-lg font-semibold">{item.name}</p>
+            <p className="text-sm text-wrap">{item.description}</p>
           </div>
         </section>
         <Form {...form}>

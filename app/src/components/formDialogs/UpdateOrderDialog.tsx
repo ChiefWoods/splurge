@@ -3,14 +3,19 @@
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useCallback, useState } from 'react';
 import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
-import { ParsedOrderStatus } from '@/types/accounts';
+import {
+  ParsedConfig,
+  ParsedItem,
+  ParsedOrder,
+  ParsedOrderStatus,
+  ParsedShopper,
+} from '@/types/accounts';
 import { Button } from '../ui/button';
 import { Pencil, Truck, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'sonner';
 import { buildTx, SPLURGE_CLIENT, TUKTUK_CLIENT } from '@/lib/client/solana';
-import { useConfig } from '@/providers/ConfigProvider';
 import { PublicKey } from '@solana/web3.js';
 import { sendPermissionedTx } from '@/lib/api';
 import {
@@ -19,7 +24,6 @@ import {
   truncateAddress,
 } from '@/lib/utils';
 import { useOrders } from '@/providers/OrdersProvider';
-import { usePersonalStore } from '@/providers/PersonalStoreProvider';
 import { TransactionToast } from '../TransactionToast';
 import { alertOrderUpdate } from '@/lib/server/dialect';
 import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
@@ -31,40 +35,26 @@ import { FormCancelButton } from '../FormCancelButton';
 import { LargeImage } from '../LargeImage';
 import { useSettings } from '@/providers/SettingsProvider';
 import { SplurgeClient } from '@/classes/SplurgeClient';
+import { useStore } from '@/providers/StoreProvider';
 
 export function UpdateOrderDialog({
-  name,
-  image,
-  amount,
-  address,
-  status,
-  orderPda,
-  orderTimestamp,
-  paymentSubtotal,
-  itemPda,
-  paymentMint,
+  config,
+  order,
+  item,
+  shopper,
   storePda,
-  authority,
 }: {
-  name: string;
-  image: string;
-  amount: number;
-  address: string;
-  status: ParsedOrderStatus;
-  orderPda: string;
-  orderTimestamp: number;
-  paymentSubtotal: number;
-  itemPda: string;
-  paymentMint: string;
+  config: ParsedConfig;
+  order: ParsedOrder;
+  item: ParsedItem;
+  shopper: ParsedShopper;
   storePda: string;
-  authority: string;
 }) {
   const { connection } = useConnection();
   const { signMessage } = useUnifiedWallet();
   const { getTransactionLink, priorityFee } = useSettings();
   const { checkAuth } = useWalletAuth();
-  const { configData } = useConfig();
-  const { personalStoreData } = usePersonalStore();
+  const { storeData } = useStore();
   const { ordersMutate } = useOrders();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -77,22 +67,18 @@ export function UpdateOrderDialog({
             throw new Error('Wallet not connected.');
           }
 
-          if (!configData) {
-            throw new Error('Config account not created.');
-          }
-
-          if (!personalStoreData) {
+          if (!storeData) {
             throw new Error('Store account not created.');
           }
 
           setIsSubmitting(true);
 
-          const admin = new PublicKey(configData.admin);
-          const authorityPubkey = new PublicKey(authority);
-          const orderPdaPubkey = new PublicKey(orderPda);
+          const admin = new PublicKey(config.admin);
+          const authorityPubkey = new PublicKey(shopper.authority);
+          const orderPdaPubkey = new PublicKey(order.publicKey);
           const shopperPda = SplurgeClient.getShopperPda(authorityPubkey);
 
-          const paymentMintPubkey = new PublicKey(paymentMint);
+          const paymentMintPubkey = new PublicKey(order.paymentMint);
           const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
 
           if (!mintAcc) {
@@ -109,7 +95,7 @@ export function UpdateOrderDialog({
                     admin,
                     orderPda: orderPdaPubkey,
                     authority: authorityPubkey,
-                    itemPda: new PublicKey(itemPda),
+                    itemPda: new PublicKey(item.publicKey),
                     paymentMint: paymentMintPubkey,
                     shopperPda,
                     storePda: new PublicKey(storePda),
@@ -131,7 +117,7 @@ export function UpdateOrderDialog({
 
           await signMessage(
             new TextEncoder().encode(
-              `Update order ${truncateAddress(orderPda)} to '${capitalizeFirstLetter(status)}' status.`
+              `Update order ${truncateAddress(order.publicKey)} to '${capitalizeFirstLetter(status)}' status.`
             )
           );
 
@@ -139,48 +125,54 @@ export function UpdateOrderDialog({
 
           return {
             signature,
-            storeName: personalStoreData.name,
+            storeName: storeData.name,
           };
         },
         {
           loading: 'Waiting for signature...',
           success: async ({ signature, storeName }) => {
-            await ordersMutate((prev) => {
-              if (!prev) {
-                throw new Error('Orders should not be null.');
-              }
-
-              return prev.map((order) => {
-                if (order.publicKey === orderPda) {
-                  return {
-                    ...order,
-                    status,
-                  };
-                } else {
-                  return order;
+            await ordersMutate(
+              (prev) => {
+                if (!prev) {
+                  throw new Error('Orders should not be null.');
                 }
-              });
-            });
+
+                return prev.map((prevOrder) => {
+                  if (prevOrder.publicKey === order.publicKey) {
+                    return {
+                      ...prevOrder,
+                      status,
+                    };
+                  } else {
+                    return prevOrder;
+                  }
+                });
+              },
+              {
+                revalidate: true,
+              }
+            );
 
             setIsOpen(false);
             setIsSubmitting(false);
 
-            const paymentMintSymbol =
-              ACCEPTED_MINTS_METADATA.get(paymentMint)?.symbol;
+            const paymentMintSymbol = ACCEPTED_MINTS_METADATA.get(
+              order.paymentMint
+            )?.symbol;
 
             if (!paymentMintSymbol) {
               throw new Error('Payment mint not found.');
             }
 
             await alertOrderUpdate({
-              itemAmount: amount,
-              itemName: name,
-              orderPda,
-              orderTimestamp,
+              itemAmount: order.amount,
+              itemName: item.name,
+              orderPda: order.publicKey,
+              orderTimestamp: order.timestamp,
               paymentMintSymbol,
-              paymentSubtotal: atomicToUsd(paymentSubtotal),
+              paymentSubtotal: atomicToUsd(order.paymentSubtotal),
               storeName,
-              shopperAuthority: authority,
+              shopperAuthority: shopper.authority,
               status,
             });
 
@@ -202,20 +194,15 @@ export function UpdateOrderDialog({
     [
       ordersMutate,
       connection,
-      configData,
-      orderPda,
-      personalStoreData,
+      config,
+      storeData,
       signMessage,
-      itemPda,
-      paymentMint,
       storePda,
-      authority,
-      amount,
-      name,
-      orderTimestamp,
-      paymentSubtotal,
       getTransactionLink,
       priorityFee,
+      shopper,
+      order,
+      item,
     ]
   );
 
@@ -223,7 +210,7 @@ export function UpdateOrderDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <StatusBadge
-          status={status}
+          status={order.status}
           className="cursor-pointer"
           onClick={() => checkAuth(() => setIsOpen(true))}
         >
@@ -235,11 +222,11 @@ export function UpdateOrderDialog({
           <FormDialogTitle title="Update Order" />
         </DialogHeader>
         <section className="flex flex-col items-stretch gap-y-4">
-          <LargeImage src={image} alt={name} />
+          <LargeImage src={item.image} alt={item.name} />
           <div className="flex flex-col gap-2">
-            <h3 className="truncate font-medium">{name}</h3>
-            <p className="text-sm">Amount - {amount}</p>
-            <p className="text-sm">{address}</p>
+            <h3 className="truncate font-medium">{shopper.name}</h3>
+            <p className="text-sm">Amount - {order.amount}</p>
+            <p className="text-sm">{shopper.address}</p>
           </div>
           <FormDialogFooter>
             <FormCancelButton onClick={() => setIsOpen(false)} />

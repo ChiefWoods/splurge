@@ -1,27 +1,35 @@
 'use client';
 
+import { AlreadyCreatedEmpty } from '@/components/AlreadyCreatedEmpty';
+import { ConnectWalletEmpty } from '@/components/ConnectWalletEmpty';
 import { CreateSection } from '@/components/CreateSection';
-import { useRouter } from 'next/navigation';
-import { Spinner } from '@/components/Spinner';
 import { CreateStoreDialog } from '@/components/formDialogs/CreateStoreDialog';
-import { useEffect } from 'react';
-import { usePersonalStore } from '@/providers/PersonalStoreProvider';
+import { WrappedSpinner } from '@/components/WrappedSpinner';
+import { useStore } from '@/providers/StoreProvider';
+import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
+import { Store } from 'lucide-react';
 
 export default function Page() {
-  const router = useRouter();
-  const { personalStoreData, personalStoreLoading } = usePersonalStore();
+  const { publicKey } = useUnifiedWallet();
+  const { storeData, storeLoading } = useStore();
 
-  useEffect(() => {
-    if (personalStoreData) {
-      router.replace(`/stores/${personalStoreData.publicKey}`);
-    }
-  }, [personalStoreData, router]);
-
-  if (personalStoreLoading) {
-    return <Spinner />;
+  if (!publicKey) {
+    return <ConnectWalletEmpty />;
   }
 
-  return (
+  if (storeLoading) {
+    return <WrappedSpinner />;
+  }
+
+  return storeData ? (
+    <AlreadyCreatedEmpty
+      Icon={Store}
+      title="Store Already Created"
+      btnText="Go To Store"
+      description="Only one store is allowed per wallet."
+      redirectHref={`/stores/${storeData.publicKey}`}
+    />
+  ) : (
     <CreateSection header="Create your Store to start offering splurges!">
       <CreateStoreDialog />
     </CreateSection>

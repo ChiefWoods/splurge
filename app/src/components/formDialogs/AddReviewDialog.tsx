@@ -106,7 +106,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
                 return [...prev, newReview];
               },
               {
-                revalidate: false,
+                revalidate: true,
               }
             );
 

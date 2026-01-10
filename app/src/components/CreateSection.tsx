@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { MainSection } from './MainSection';
+import { CommonSection } from './CommonSection';
 
 export function CreateSection({
   header,
@@ -9,9 +9,9 @@ export function CreateSection({
   children: ReactNode;
 }) {
   return (
-    <MainSection className="only:my-auto">
+    <CommonSection>
       <h2 className="text-center text-2xl font-medium">{header}</h2>
       {children}
-    </MainSection>
+    </CommonSection>
   );
 }

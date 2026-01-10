@@ -1,167 +1,60 @@
-'use client';
-
-import { AccountSection } from '@/components/AccountSection';
-import { AccountSectionButtonTab } from '@/components/AccountSectionButtonTab';
-import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
-import { AddReviewDialog } from '@/components/formDialogs/AddReviewDialog';
-import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
-import { MainSection } from '@/components/MainSection';
-import { EmptyResult } from '@/components/EmptyResult';
-import { ReviewRow } from '@/components/ReviewRow';
-import { ReviewRowSkeleton } from '@/components/ReviewRowSkeleton';
-import { SectionHeader } from '@/components/SectionHeader';
 import { Separator } from '@/components/ui/separator';
-import { atomicToUsd } from '@/lib/utils';
-import { useItem } from '@/providers/ItemProvider';
-import { useOrders } from '@/providers/OrdersProvider';
-import { useReviews } from '@/providers/ReviewsProvider';
-import { useShoppers } from '@/providers/ShoppersProvider';
-import { useStore } from '@/providers/StoreProvider';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { ShoppingCart, UserStar } from 'lucide-react';
-import { notFound, useParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
-import { ItemCardInfoText } from '@/components/ItemCardInfoText';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+import { notFound } from 'next/navigation';
+import {
+  fetchAllOrders,
+  fetchAllReviews,
+  fetchAllShoppers,
+  fetchConfig,
+  fetchItem,
+  fetchStore,
+} from '@/lib/accounts';
+import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { ItemAccountSection } from '@/components/ItemAccountSection';
+import { ItemReviewSection } from '@/components/ItemReviewSection';
+import { ReviewsProvider } from '@/providers/ReviewsProvider';
 
-export default function Page() {
-  const { storePda, itemPda } = useParams<{
-    storePda: string;
-    itemPda: string;
-  }>();
-  const { publicKey } = useUnifiedWallet();
-  const { itemData, itemLoading } = useItem();
-  const { storeData, storeLoading } = useStore();
-  const { ordersData, ordersLoading } = useOrders();
-  const { reviewsData, reviewsLoading } = useReviews();
-  const { shoppersData, shoppersLoading } = useShoppers();
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ storePda: string; itemPda: string }>;
+}) {
+  const { storePda, itemPda } = await params;
 
-  useEffect(() => {
-    (async () => {
-      if ((!itemLoading && !itemData) || (!storeLoading && !storeData)) {
-        notFound();
-      }
-    })();
-  }, [itemLoading, itemData, storeLoading, storeData]);
+  const [orders, reviews, shoppers, store, item, config] = await Promise.all([
+    fetchAllOrders(SPLURGE_CLIENT, { store: storePda }),
+    fetchAllReviews(SPLURGE_CLIENT, { item: itemPda }),
+    fetchAllShoppers(SPLURGE_CLIENT),
+    fetchStore(SPLURGE_CLIENT, storePda),
+    fetchItem(SPLURGE_CLIENT, itemPda),
+    fetchConfig(SPLURGE_CLIENT),
+  ]);
 
-  const reviewOrderPda = useMemo(() => {
-    if (!publicKey || !ordersData || !reviewsData) return '';
+  // 404 if store doesn't exist
+  if (!store) {
+    notFound();
+  }
 
-    const completedShopperOrders = ordersData.filter(
-      (order) =>
-        order.item === itemPda &&
-        order.shopper === SplurgeClient.getShopperPda(publicKey).toBase58() &&
-        order.status === 'completed'
-    );
+  // 404 if item doesn't exist
+  if (!item) {
+    notFound();
+  }
 
-    for (const order of completedShopperOrders) {
-      if (!reviewsData.find((review) => review.order === order.publicKey)) {
-        return order.publicKey;
-      }
-    }
-
-    return '';
-  }, [publicKey, itemPda, ordersData, reviewsData]);
+  if (!config) {
+    throw new Error('Config not initialized.');
+  }
 
   return (
-    <MainSection className="flex-1">
-      {itemLoading ? (
-        <AccountSectionSkeleton />
-      ) : (
-        itemData &&
-        storeData && (
-          <AccountSection
-            key={itemData.publicKey}
-            title={itemData.name}
-            image={itemData.image}
-            prefix="Item ID:"
-            address={storePda}
-            content={
-              <>
-                <ItemCardInfoText text={itemData.description} />
-                <ItemCardInfoText text={`${atomicToUsd(itemData.price)} USD`} />
-                <ItemCardInfoText
-                  text={`${itemData.inventoryCount} in inventory`}
-                />
-              </>
-            }
-            buttons={
-              publicKey &&
-              SplurgeClient.getStorePda(publicKey).toBase58() !== storePda &&
-              itemData.inventoryCount > 0 && (
-                <AccountSectionButtonTab>
-                  <CheckoutDialog
-                    name={itemData.name}
-                    image={itemData.image}
-                    price={itemData.price}
-                    maxAmount={itemData.inventoryCount}
-                    storePda={storePda}
-                    storeAuthority={storeData.authority}
-                    itemPda={itemPda}
-                  >
-                    <ShoppingCart />
-                    Buy
-                  </CheckoutDialog>
-                </AccountSectionButtonTab>
-              )
-            }
-          />
-        )
-      )}
+    <>
+      <ItemAccountSection store={store} item={item} config={config} />
       <Separator />
-      <section className="flex w-full flex-1 flex-col flex-wrap items-start gap-3 md:gap-6">
-        <div className="flex w-full items-center justify-between">
-          <SectionHeader text="Reviews" />
-          {itemData && reviewOrderPda && (
-            <AddReviewDialog orderPda={reviewOrderPda} />
-          )}
-        </div>
-        <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
-          {ordersLoading ||
-          shoppersLoading ||
-          reviewsLoading ||
-          storeLoading ||
-          itemLoading ? (
-            <>
-              {[...Array(3)].map((_, i) => (
-                <ReviewRowSkeleton key={i} />
-              ))}
-            </>
-          ) : ordersData && shoppersData && reviewsData?.length ? (
-            reviewsData.map(({ publicKey, order, rating, timestamp, text }) => {
-              const reviewOrder = ordersData?.find(
-                ({ publicKey }) => publicKey === order
-              );
-
-              if (!reviewOrder) {
-                throw new Error('Matching order not found for review.');
-              }
-
-              const shopper = shoppersData?.find(
-                (shopper) => shopper.publicKey === reviewOrder.shopper
-              );
-
-              if (!shopper) {
-                throw new Error('Matching shopper not found for order.');
-              }
-
-              return (
-                <ReviewRow
-                  key={publicKey}
-                  shopperPda={shopper.publicKey}
-                  shopperName={shopper.name}
-                  shopperImage={shopper.image}
-                  timestamp={timestamp}
-                  rating={rating}
-                  text={text}
-                />
-              );
-            })
-          ) : (
-            <EmptyResult Icon={UserStar} text="No reviews made." />
-          )}
-        </ul>
-      </section>
-    </MainSection>
+      <ReviewsProvider fallbackData={reviews} item={itemPda}>
+        <ItemReviewSection
+          itemPda={itemPda}
+          orders={orders}
+          shoppers={shoppers}
+          reviews={reviews}
+        />
+      </ReviewsProvider>
+    </>
   );
 }

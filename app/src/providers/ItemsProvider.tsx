@@ -21,26 +21,35 @@ export function useItems() {
 
 export function ItemsProvider({
   children,
+  fallbackData,
   store,
 }: {
   children: ReactNode;
+  fallbackData: ParsedItem[];
   store?: string;
 }) {
   const {
     data: itemsData,
     isLoading: itemsLoading,
     mutate: itemsMutate,
-  } = useSWR('items', async () => {
-    const url = new URL(apiEndpoint);
+  } = useSWR(
+    'items',
+    async () => {
+      const url = new URL(apiEndpoint);
 
-    if (store) {
-      url.searchParams.append('store', store);
+      if (store) {
+        url.searchParams.append('store', store);
+      }
+
+      const items = (await wrappedFetch(url.href)).items as ParsedItem[];
+
+      return items;
+    },
+    {
+      fallbackData,
+      revalidateOnMount: false,
     }
-
-    const items = (await wrappedFetch(url.href)).items as ParsedItem[];
-
-    return items;
-  });
+  );
 
   return (
     <ItemsContext.Provider

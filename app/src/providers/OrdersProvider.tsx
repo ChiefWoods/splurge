@@ -21,10 +21,12 @@ export function useOrders() {
 
 export function OrdersProvider({
   children,
+  fallbackData,
   shopper,
   store,
 }: {
   children: ReactNode;
+  fallbackData: ParsedOrder[];
   shopper?: string;
   store?: string;
 }) {
@@ -32,16 +34,23 @@ export function OrdersProvider({
     data: ordersData,
     isLoading: ordersLoading,
     mutate: ordersMutate,
-  } = useSWR('orders', async () => {
-    const url = new URL(apiEndpoint);
+  } = useSWR(
+    'orders',
+    async () => {
+      const url = new URL(apiEndpoint);
 
-    if (shopper) url.searchParams.append('shopper', shopper);
-    if (store) url.searchParams.append('store', store);
+      if (shopper) url.searchParams.append('shopper', shopper);
+      if (store) url.searchParams.append('store', store);
 
-    const orders = (await wrappedFetch(url.href)).orders as ParsedOrder[];
+      const orders = (await wrappedFetch(url.href)).orders as ParsedOrder[];
 
-    return orders;
-  });
+      return orders;
+    },
+    {
+      fallbackData,
+      revalidateOnMount: false,
+    }
+  );
 
   return (
     <OrdersContext.Provider
