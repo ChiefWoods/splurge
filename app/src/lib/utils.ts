@@ -4,6 +4,12 @@ import { VersionedTransaction } from '@solana/web3.js';
 import { MINT_DECIMALS } from './constants';
 import { Connection } from '@solana/web3.js';
 import { PublicKey } from '@solana/web3.js';
+import { SplurgeClient } from '@/classes/SplurgeClient';
+import { fetchConfig } from './accounts';
+import {
+  getAssociatedTokenAddressSync,
+  unpackAccount,
+} from '@solana/spl-token';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -89,4 +95,57 @@ export async function tryGetTokenAccountBalance(
   }
 
   return balance;
+}
+
+export async function getStoreEarnings(
+  client: SplurgeClient,
+  storePda: string
+) {
+  const config = await fetchConfig(client);
+
+  if (!config) {
+    throw new Error('Config not initialized.');
+  }
+
+  const acceptedMints = config.acceptedMints;
+
+  const mintAccs = await client.connection.getMultipleAccountsInfo(
+    acceptedMints.map((mint) => new PublicKey(mint.mint))
+  );
+
+  const atas = mintAccs.map((mintAcc, i) => {
+    const mint = acceptedMints[i].mint;
+
+    if (!mintAcc) {
+      throw new Error(`Mint account not found: ${mint}`);
+    }
+
+    const ata = getAssociatedTokenAddressSync(
+      new PublicKey(mint),
+      new PublicKey(storePda),
+      !PublicKey.isOnCurve(storePda),
+      mintAcc.owner
+    );
+
+    return {
+      mint,
+      ata,
+      programId: mintAcc.owner,
+    };
+  });
+
+  const ataInfos = await client.connection.getMultipleAccountsInfo(
+    atas.map(({ ata }) => ata)
+  );
+
+  const earnings = atas.map(({ ata, mint, programId }, i) => ({
+    mint,
+    ata: ata.toBase58(),
+    amount:
+      ataInfos[i] === null
+        ? 0
+        : Number(unpackAccount(ata, ataInfos[i], programId).amount),
+  }));
+
+  return earnings;
 }
