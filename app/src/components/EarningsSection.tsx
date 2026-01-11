@@ -126,7 +126,7 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
               }));
             },
             {
-              revalidate: false,
+              revalidate: true,
             }
           );
 

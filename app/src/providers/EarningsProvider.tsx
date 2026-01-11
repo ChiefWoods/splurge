@@ -2,14 +2,7 @@
 
 import { createContext, ReactNode, useContext } from 'react';
 import useSWR, { KeyedMutator } from 'swr';
-import { PublicKey } from '@solana/web3.js';
-import {
-  getAssociatedTokenAddressSync,
-  unpackAccount,
-} from '@solana/spl-token';
-import { useConnection } from '@solana/wallet-adapter-react';
-import { useStore } from './StoreProvider';
-import { ParsedConfig } from '@/types/accounts';
+import { wrappedFetch } from '@/lib/api';
 
 interface Earning {
   mint: string;
@@ -27,69 +20,39 @@ const EarningsContext = createContext<EarningsContextType>(
   {} as EarningsContextType
 );
 
+const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/earnings`;
+
 export function useEarnings() {
   return useContext(EarningsContext);
 }
 
 export function EarningsProvider({
   children,
-  config,
+  fallbackData,
+  store,
 }: {
   children: ReactNode;
-  config: ParsedConfig;
+  fallbackData: Earning[];
+  store: string;
 }) {
-  const { connection } = useConnection();
-  const { storeData, storeLoading } = useStore();
-
   const {
     data: earningsData,
     isLoading: earningsLoading,
     mutate: earningsMutate,
   } = useSWR(
-    config && storeData
-      ? {
-          acceptedMints: config.acceptedMints,
-          storePda: storeData.publicKey,
-        }
-      : null,
-    async ({ acceptedMints, storePda }) => {
-      const mintAccs = await connection.getMultipleAccountsInfo(
-        acceptedMints.map((mint) => new PublicKey(mint.mint))
-      );
+    'earnings',
+    async () => {
+      const url = new URL(apiEndpoint);
 
-      const atas = mintAccs.map((mintAcc, i) => {
-        const mint = acceptedMints[i].mint;
+      url.searchParams.append('store', store);
 
-        if (!mintAcc) {
-          throw new Error(`Mint account not found: ${mint}`);
-        }
+      const earnings = (await wrappedFetch(url.href)).earnings as Earning[];
 
-        const ata = getAssociatedTokenAddressSync(
-          new PublicKey(mint),
-          new PublicKey(storePda),
-          !PublicKey.isOnCurve(storePda),
-          mintAcc.owner
-        );
-
-        return {
-          mint,
-          ata,
-          programId: mintAcc.owner,
-        };
-      });
-
-      const ataInfos = await connection.getMultipleAccountsInfo(
-        atas.map(({ ata }) => ata)
-      );
-
-      return atas.map(({ ata, mint, programId }, i) => ({
-        mint,
-        ata: ata.toBase58(),
-        amount:
-          ataInfos[i] === null
-            ? 0
-            : Number(unpackAccount(ata, ataInfos[i], programId).amount),
-      }));
+      return earnings;
+    },
+    {
+      fallbackData,
+      revalidateOnMount: false,
     }
   );
 
@@ -97,7 +60,7 @@ export function EarningsProvider({
     <EarningsContext.Provider
       value={{
         earningsData,
-        earningsLoading: earningsLoading || storeLoading,
+        earningsLoading,
         earningsMutate,
       }}
     >
