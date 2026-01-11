@@ -62,9 +62,7 @@ export function LandingFeaturedSection({
               <ItemCardSkeleton key={i} />
             ))}
           </>
-        ) : items.length > 0 &&
-          stores.length > 0 &&
-          filteredItems.length > 0 ? (
+        ) : stores.length > 0 && filteredItems.length > 0 ? (
           <>
             {filteredItems.map((item) => {
               const store = stores.find(
