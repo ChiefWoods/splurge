@@ -1,21 +1,21 @@
 meta {
-  name: fetch orders
+  name: get reviews
   type: http
   seq: 1
 }
 
 get {
-  url: http://localhost:3000/api/accounts/orders
+  url: http://localhost:3000/api/accounts/reviews
   body: none
   auth: inherit
 }
 
 params:query {
   ~pda: 
-  ~shopper: 
-  ~store: 
+  ~item: 
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

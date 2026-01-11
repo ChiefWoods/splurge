@@ -1,18 +1,18 @@
 meta {
-  name: fetch shoppers
+  name: get items
   type: http
   seq: 1
 }
 
 get {
-  url: http://localhost:3000/api/accounts/shoppers
+  url: http://localhost:3000/api/accounts/items
   body: none
   auth: inherit
 }
 
 params:query {
   ~pda: 
-  ~authority: 
+  ~store: 
 }
 
 settings {
