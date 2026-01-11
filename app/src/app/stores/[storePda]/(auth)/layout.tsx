@@ -15,8 +15,8 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   // fetch store to check if authority matches wallet
   const { data: storeData, isLoading: storeLoading } = useSWR(
-    storePda,
-    async (storePda) => {
+    'store',
+    async () => {
       const url = new URL(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`
       );
