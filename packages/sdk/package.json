@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "codama:convert": "codama convert src/idl/anchor/splurge.json src/idl/codama/splurge.json",
+    "codama:run": "codama run web3js"
+  },
   "devDependencies": {
     "@codama/nodes-from-anchor": "^1.5.1",
     "@pratikbuilds/web3js-legacy": "^0.1.3",
