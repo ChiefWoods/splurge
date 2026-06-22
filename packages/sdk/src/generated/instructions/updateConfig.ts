@@ -12,8 +12,7 @@ import { AccountMeta, Keypair, PublicKey, TransactionInstruction } from "@solana
 
 import { SPLURGE_PROGRAM_ID } from "..";
 import { findConfigPda } from "../pdas/config";
-import { acceptedMintCodec } from "../types/acceptedMint";
-import type { AcceptedMint } from "../types/acceptedMint";
+import { AcceptedMint, acceptedMintCodec } from "../types/acceptedMint";
 
 export interface UpdateConfigInstructionAccounts {
   admin: PublicKey;

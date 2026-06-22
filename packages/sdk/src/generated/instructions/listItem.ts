@@ -53,7 +53,7 @@ export function createListItemInstruction(
   if (!item) {
     const [derived] = findItemPda(
       {
-        store: store,
+        store,
         name: args.name,
       },
       programId,

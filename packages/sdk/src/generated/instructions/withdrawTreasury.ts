@@ -36,7 +36,7 @@ export function createWithdrawTreasuryInstruction(
   if (!treasuryTokenAccount) {
     const [derived] = findTreasuryTokenAccountPda(
       {
-        treasury: treasury,
+        treasury,
         tokenProgram: accounts.tokenProgram,
         paymentMint: accounts.paymentMint,
       },

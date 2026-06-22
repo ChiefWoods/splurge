@@ -4,5 +4,5 @@ import baseConfig from "../../oxfmt.config.ts";
 
 export default defineConfig({
   ...baseConfig,
-  ignorePatterns: ["src/idl", "src/types"],
+  ignorePatterns: ["src/idl/anchor", "src/types"],
 });

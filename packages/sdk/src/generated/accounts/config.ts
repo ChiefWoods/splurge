@@ -10,8 +10,7 @@ import {
 } from "@solana/codecs";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { acceptedMintCodec } from "../types/acceptedMint";
-import type { AcceptedMint } from "../types/acceptedMint";
+import { AcceptedMint, acceptedMintCodec } from "../types/acceptedMint";
 
 export interface ConfigAccountData {
   orderFeeBps: number;

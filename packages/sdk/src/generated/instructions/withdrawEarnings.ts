@@ -41,7 +41,7 @@ export function createWithdrawEarningsInstruction(
   if (!storeTokenAccount) {
     const [derived] = findStoreTokenAccountPda(
       {
-        store: store,
+        store,
         tokenProgram: accounts.tokenProgram,
         paymentMint: accounts.paymentMint,
       },
