@@ -3,7 +3,8 @@
   "type": "module",
   "license": "ISC",
   "workspaces": [
-    "app"
+    "app",
+    "packages/*"
   ],
   "scripts": {
     "lint": "oxlint",
