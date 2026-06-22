@@ -1,13 +1,25 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { beforeEach, describe, expect, test } from "bun:test";
+
+import { BN, Program } from "@coral-xyz/anchor";
 import {
   getAccount,
   getAssociatedTokenAddressSync,
   MAX_FEE_BASIS_POINTS,
   TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
+} from "@solana/spl-token";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { LiteSVMProvider } from "anchor-litesvm";
+import { LiteSVM } from "litesvm";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchConfigAcc, fetchItemAcc, fetchOrderAcc } from "../accounts";
+import {
+  MINT_DECIMALS,
+  USDC_MINT,
+  USDC_PRICE_UPDATE_V2,
+  USDT_MINT,
+  USDT_PRICE_UPDATE_V2,
+} from "../constants";
 import {
   getConfigPda,
   getItemPda,
@@ -15,38 +27,20 @@ import {
   getShopperPda,
   getStorePda,
   getTreasuryPda,
-} from '../pda';
-import { fetchConfigAcc, fetchItemAcc, fetchOrderAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import {
-  MINT_DECIMALS,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-  USDT_MINT,
-  USDT_PRICE_UPDATE_V2,
-} from '../constants';
-import {
-  expectAnchorError,
-  fundedSystemAccountInfo,
-  getSetup,
-  initAta,
-} from '../setup';
+} from "../pda";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, initAta } from "../setup";
 
-describe('createOrder', () => {
+describe("createOrder", () => {
   let { litesvm, provider, program } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
     program: Program<Splurge>;
   };
 
-  const [admin, shopperAuthority, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
   const treasury = getTreasuryPda();
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
 
@@ -54,21 +48,21 @@ describe('createOrder', () => {
     USDC_MINT,
     shopperAuthority.publicKey,
     false,
-    TOKEN_PROGRAM_ID
+    TOKEN_PROGRAM_ID,
   );
   const initShopperAtaBal = 1e8; // $100
 
   const tokenProgram = TOKEN_PROGRAM_ID;
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
-      ...[admin, shopperAuthority, storeAuthority].map((kp) => {
+    ({ litesvm, provider, program } = await getSetup(
+      [admin, shopperAuthority, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
         };
       }),
-    ]));
+    ));
 
     initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
@@ -94,9 +88,9 @@ describe('createOrder', () => {
 
     await program.methods
       .initializeShopper({
-        name: 'Shopper A',
-        image: 'https://example.com/image.png',
-        address: 'address',
+        name: "Shopper A",
+        image: "https://example.com/image.png",
+        address: "address",
       })
       .accounts({
         authority: shopperAuthority.publicKey,
@@ -106,9 +100,9 @@ describe('createOrder', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -121,8 +115,8 @@ describe('createOrder', () => {
         price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -131,16 +125,14 @@ describe('createOrder', () => {
       .rpc();
   });
 
-  test('creates an order', async () => {
+  test("creates an order", async () => {
     const treasuryAta = getAssociatedTokenAddressSync(
       USDC_MINT,
       treasury,
       !PublicKey.isOnCurve(treasury),
-      tokenProgram
+      tokenProgram,
     );
-    const initTreasuryAtaBal = (
-      await getAccount(provider.connection, treasuryAta)
-    ).amount;
+    const initTreasuryAtaBal = (await getAccount(provider.connection, treasuryAta)).amount;
 
     const amount = 1;
     const paymentMint = USDC_MINT;
@@ -172,50 +164,34 @@ describe('createOrder', () => {
     expect(orderAcc.timestamp.toNumber()).toBe(Number(unixTimestamp));
     expect(orderAcc.status).toStrictEqual({ pending: {} });
     expect(orderAcc.amount).toBe(amount);
-    expect(orderAcc.paymentSubtotal.toNumber()).toBeCloseTo(
-      itemPrice * amount,
-      -MINT_DECIMALS
-    );
+    expect(orderAcc.paymentSubtotal.toNumber()).toBeCloseTo(itemPrice * amount, -MINT_DECIMALS);
     expect(orderAcc.paymentMint).toStrictEqual(paymentMint);
 
-    const postShopperUsdcAtaBal = (
-      await getAccount(provider.connection, shopperAuthorityUsdcAta)
-    ).amount;
-
-    const orderAta = getAssociatedTokenAddressSync(
-      paymentMint,
-      orderPda,
-      true,
-      tokenProgram
-    );
-    const orderAtaBal = (await getAccount(provider.connection, orderAta))
+    const postShopperUsdcAtaBal = (await getAccount(provider.connection, shopperAuthorityUsdcAta))
       .amount;
+
+    const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram);
+    const orderAtaBal = (await getAccount(provider.connection, orderAta)).amount;
 
     expect(initShopperAtaBal).toBeCloseTo(
       Number(postShopperUsdcAtaBal + orderAtaBal),
-      -MINT_DECIMALS
+      -MINT_DECIMALS,
     );
 
     const configPda = getConfigPda();
     const { orderFeeBps } = await fetchConfigAcc(program, configPda);
 
-    const postTreasuryAtaBal = (
-      await getAccount(provider.connection, treasuryAta)
-    ).amount;
-    const platformFee = Math.ceil(
-      (Number(orderAtaBal) * orderFeeBps) / MAX_FEE_BASIS_POINTS
-    );
+    const postTreasuryAtaBal = (await getAccount(provider.connection, treasuryAta)).amount;
+    const platformFee = Math.ceil((Number(orderAtaBal) * orderFeeBps) / MAX_FEE_BASIS_POINTS);
 
-    expect(Number(initTreasuryAtaBal)).toBeCloseTo(
-      Number(postTreasuryAtaBal) - platformFee
-    );
+    expect(Number(initTreasuryAtaBal)).toBeCloseTo(Number(postTreasuryAtaBal) - platformFee);
 
     const itemAcc = await fetchItemAcc(program, itemPda);
 
     expect(initInventoryCount).toBe(itemAcc.inventoryCount + amount);
   });
 
-  test('throws if payment mint is not accepted', async () => {
+  test("throws if payment mint is not accepted", async () => {
     const amount = 1;
     const paymentMint = USDT_MINT;
 
@@ -240,14 +216,11 @@ describe('createOrder', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'PaymentMintNotAccepted');
+      expectAnchorError(err, "PaymentMintNotAccepted");
     }
   });
 
-  test('throws if platform is locked', async () => {
-    const configPda = getConfigPda();
-    const configAcc = await fetchConfigAcc(program, configPda);
-
+  test("throws if platform is locked", async () => {
     await program.methods
       .updateConfig({
         acceptedMints: null,
@@ -285,20 +258,20 @@ describe('createOrder', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'PlatformPaused');
+      expectAnchorError(err, "PlatformPaused");
     }
   });
 
-  test('throws if item has insufficient inventory', async () => {
-    const itemName = 'Item B';
+  test("throws if item has insufficient inventory", async () => {
+    const itemName = "Item B";
 
     await program.methods
       .listItem({
         price: new BN(itemPrice),
         inventoryCount: 0,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -330,7 +303,7 @@ describe('createOrder', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'InsufficientInventory');
+      expectAnchorError(err, "InsufficientInventory");
     }
   });
 });

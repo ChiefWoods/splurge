@@ -1,23 +1,16 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair } from '@solana/web3.js';
-import { Splurge } from '../../target/types/splurge';
-import { Program } from '@coral-xyz/anchor';
-import { fetchConfigAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from '../setup';
-import {
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-  USDT_MINT,
-  USDT_PRICE_UPDATE_V2,
-} from '../constants';
-import { getConfigPda } from '../pda';
+import { beforeEach, describe, expect, test } from "bun:test";
 
-describe('updateConfig', () => {
-  let { litesvm, provider, program } = {} as {
-    litesvm: LiteSVM;
-    provider: LiteSVMProvider;
+import { Program } from "@coral-xyz/anchor";
+import { Keypair } from "@solana/web3.js";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchConfigAcc } from "../accounts";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2, USDT_MINT, USDT_PRICE_UPDATE_V2 } from "../constants";
+import { getConfigPda } from "../pda";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+
+describe("updateConfig", () => {
+  let { program } = {} as {
     program: Program<Splurge>;
   };
 
@@ -31,14 +24,14 @@ describe('updateConfig', () => {
   ];
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
-      ...[admin, newAdmin].map((kp) => {
+    ({ program } = await getSetup(
+      [admin, newAdmin].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
         };
       }),
-    ]));
+    ));
 
     await program.methods
       .initializeConfig({
@@ -53,7 +46,7 @@ describe('updateConfig', () => {
       .rpc();
   });
 
-  test('updates a config', async () => {
+  test("updates a config", async () => {
     acceptedMints.push({
       mint: USDT_MINT,
       priceUpdateV2: USDT_PRICE_UPDATE_V2,
@@ -82,7 +75,7 @@ describe('updateConfig', () => {
     expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
   });
 
-  test('throws if updating as unauthorized admin', async () => {
+  test("throws if updating as unauthorized admin", async () => {
     acceptedMints.push({
       mint: USDT_MINT,
       priceUpdateV2: USDT_PRICE_UPDATE_V2,
@@ -104,7 +97,7 @@ describe('updateConfig', () => {
         .signers([newAdmin])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'UnauthorizedAdmin');
+      expectAnchorError(err, "UnauthorizedAdmin");
     }
   });
 });

@@ -1,43 +1,31 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { beforeEach, describe, expect, test } from "bun:test";
+
+import { BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
-  getAccount,
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
-import {
-  getItemPda,
-  getOrderPda,
-  getShopperPda,
-  getStorePda,
-  getTreasuryPda,
-} from '../pda';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+  TaskQueueV0,
+} from "@helium/tuktuk-sdk";
+import { getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LiteSVMProvider } from "anchor-litesvm";
+import { LiteSVM } from "litesvm";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchTaskQueueAcc } from "../accounts";
+import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { getItemPda, getOrderPda, getShopperPda, getStorePda, getTreasuryPda } from "../pda";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
-} from '../setup';
-import {
-  TUKTUK_PROGRAM_ID,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-} from '../constants';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
-import {
-  nextAvailableTaskIds,
-  taskKey,
-  taskQueueAuthorityKey,
-  TaskQueueV0,
-} from '@helium/tuktuk-sdk';
-import { fetchTaskQueueAcc } from '../accounts';
+} from "../setup";
 
-describe('withdrawEarnings', () => {
+describe("withdrawEarnings", () => {
   let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
@@ -46,13 +34,10 @@ describe('withdrawEarnings', () => {
     taskQueuePda: PublicKey;
   };
 
-  const [admin, shopperAuthority, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
   const treasury = getTreasuryPda();
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
@@ -67,15 +52,14 @@ describe('withdrawEarnings', () => {
   let taskId: number;
 
   beforeEach(async () => {
-    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
-      await getSetup([
-        ...[admin, shopperAuthority, storeAuthority].map((kp) => {
-          return {
-            pubkey: kp.publicKey,
-            account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
-          };
-        }),
-      ]));
+    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } = await getSetup(
+      [admin, shopperAuthority, storeAuthority].map((kp) => {
+        return {
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
+        };
+      }),
+    ));
 
     await initTaskQueue(tuktukProgram, admin, taskQueuePda);
     taskQueueAcc = await fetchTaskQueueAcc(tuktukProgram, taskQueuePda);
@@ -103,9 +87,9 @@ describe('withdrawEarnings', () => {
 
     await program.methods
       .initializeShopper({
-        name: 'Shopper A',
-        image: 'https://example.com/image.png',
-        address: 'address',
+        name: "Shopper A",
+        image: "https://example.com/image.png",
+        address: "address",
       })
       .accounts({
         authority: shopperAuthority.publicKey,
@@ -115,9 +99,9 @@ describe('withdrawEarnings', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -130,8 +114,8 @@ describe('withdrawEarnings', () => {
         price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -159,16 +143,9 @@ describe('withdrawEarnings', () => {
       .signers([shopperAuthority])
       .rpc();
 
-    orderAta = getAssociatedTokenAddressSync(
-      paymentMint,
-      orderPda,
-      !PublicKey.isOnCurve(orderPda)
-    );
+    orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, !PublicKey.isOnCurve(orderPda));
     const [taskPda] = taskKey(taskQueuePda, taskId);
-    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-      taskQueuePda,
-      admin.publicKey
-    );
+    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
     await program.methods
       .shipOrder(taskId)
@@ -204,17 +181,9 @@ describe('withdrawEarnings', () => {
       .rpc();
   });
 
-  test('withdraw earnings', async () => {
-    const storeUsdcAta = getAssociatedTokenAddressSync(
-      USDC_MINT,
-      storePda,
-      true,
-      tokenProgram
-    );
-    const preStoreUsdcAtaAcc = await getAccount(
-      provider.connection,
-      storeUsdcAta
-    );
+  test("withdraw earnings", async () => {
+    const storeUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, storePda, true, tokenProgram);
+    const preStoreUsdcAtaAcc = await getAccount(provider.connection, storeUsdcAta);
 
     await program.methods
       .withdrawEarnings()
@@ -231,27 +200,18 @@ describe('withdrawEarnings', () => {
       USDC_MINT,
       storeAuthority.publicKey,
       false,
-      tokenProgram
+      tokenProgram,
     );
-    const storeAuthorityUsdcAtaAcc = await getAccount(
-      provider.connection,
-      storeAuthorityUsdcAta
-    );
+    const storeAuthorityUsdcAtaAcc = await getAccount(provider.connection, storeAuthorityUsdcAta);
 
-    expect(Number(storeAuthorityUsdcAtaAcc.amount)).toBe(
-      Number(preStoreUsdcAtaAcc.amount)
-    );
+    expect(Number(storeAuthorityUsdcAtaAcc.amount)).toBe(Number(preStoreUsdcAtaAcc.amount));
 
-    const postStoreUsdcAtaAcc = await getAccount(
-      provider.connection,
-      storeUsdcAta,
-      'processed'
-    );
+    const postStoreUsdcAtaAcc = await getAccount(provider.connection, storeUsdcAta, "processed");
 
     expect(postStoreUsdcAtaAcc.amount).toBe(0n);
   });
 
-  test('throws if withdrawing as unauthorized store authority', async () => {
+  test("throws if withdrawing as unauthorized store authority", async () => {
     try {
       await program.methods
         .withdrawEarnings()
@@ -264,7 +224,7 @@ describe('withdrawEarnings', () => {
         .signers([storeAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'UnauthorizedStoreAuthority');
+      expectAnchorError(err, "UnauthorizedStoreAuthority");
     }
   });
 });

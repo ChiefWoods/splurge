@@ -1,25 +1,23 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, PublicKey } from '@solana/web3.js';
-import { Splurge } from '../../target/types/splurge';
-import { Program } from '@coral-xyz/anchor';
-import { fetchConfigAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from '../setup';
-import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from '../constants';
-import { getConfigPda } from '../pda';
+import { beforeEach, describe, expect, test } from "bun:test";
 
-describe('initializeConfig', () => {
-  let { litesvm, provider, program } = {} as {
-    litesvm: LiteSVM;
-    provider: LiteSVMProvider;
+import { Program } from "@coral-xyz/anchor";
+import { Keypair, PublicKey } from "@solana/web3.js";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchConfigAcc } from "../accounts";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { getConfigPda } from "../pda";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+
+describe("initializeConfig", () => {
+  let { program } = {} as {
     program: Program<Splurge>;
   };
 
   const admin = Keypair.generate();
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
+    ({ program } = await getSetup([
       {
         pubkey: admin.publicKey,
         account: fundedSystemAccountInfo(),
@@ -27,7 +25,7 @@ describe('initializeConfig', () => {
     ]));
   });
 
-  test('initializes a config', async () => {
+  test("initializes a config", async () => {
     const acceptedMints = [
       {
         mint: USDC_MINT,
@@ -57,7 +55,7 @@ describe('initializeConfig', () => {
     expect(configAcc.acceptedMints).toStrictEqual(acceptedMints);
   });
 
-  test('throws if a mint is default PublicKey', async () => {
+  test("throws if a mint is default PublicKey", async () => {
     const acceptedMints = [
       {
         mint: PublicKey.default,
@@ -78,11 +76,11 @@ describe('initializeConfig', () => {
         .signers([admin])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'InvalidAddress');
+      expectAnchorError(err, "InvalidAddress");
     }
   });
 
-  test('throws if whitelist is empty', async () => {
+  test("throws if whitelist is empty", async () => {
     const acceptedMints = [];
 
     try {
@@ -98,7 +96,7 @@ describe('initializeConfig', () => {
         .signers([admin])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'EmptyAcceptedMints');
+      expectAnchorError(err, "EmptyAcceptedMints");
     }
   });
 });

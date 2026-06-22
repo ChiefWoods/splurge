@@ -1,11 +1,20 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { beforeEach, describe, expect, test } from "bun:test";
+
+import { BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+  TaskQueueV0,
+} from "@helium/tuktuk-sdk";
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LiteSVM } from "litesvm";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchReviewAcc, fetchTaskQueueAcc } from "../accounts";
+import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import {
   getItemPda,
   getOrderPda,
@@ -13,46 +22,27 @@ import {
   getShopperPda,
   getStorePda,
   getTreasuryPda,
-} from '../pda';
-import { fetchReviewAcc, fetchTaskQueueAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import {
-  TUKTUK_PROGRAM_ID,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-} from '../constants';
+} from "../pda";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
-} from '../setup';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
-import {
-  nextAvailableTaskIds,
-  taskKey,
-  taskQueueAuthorityKey,
-  TaskQueueV0,
-} from '@helium/tuktuk-sdk';
+} from "../setup";
 
-describe('createReview', () => {
-  let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
+describe("createReview", () => {
+  let { litesvm, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
-    provider: LiteSVMProvider;
     program: Program<Splurge>;
     tuktukProgram: Program<Tuktuk>;
     taskQueuePda: PublicKey;
   };
 
-  const [admin, shopperAuthority, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
   const treasury = getTreasuryPda();
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
@@ -67,15 +57,14 @@ describe('createReview', () => {
   let taskId: number;
 
   beforeEach(async () => {
-    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
-      await getSetup([
-        ...[admin, shopperAuthority, storeAuthority].map((kp) => {
-          return {
-            pubkey: kp.publicKey,
-            account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
-          };
-        }),
-      ]));
+    ({ litesvm, program, tuktukProgram, taskQueuePda } = await getSetup(
+      [admin, shopperAuthority, storeAuthority].map((kp) => {
+        return {
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
+        };
+      }),
+    ));
 
     await initTaskQueue(tuktukProgram, admin, taskQueuePda);
     taskQueueAcc = await fetchTaskQueueAcc(tuktukProgram, taskQueuePda);
@@ -103,9 +92,9 @@ describe('createReview', () => {
 
     await program.methods
       .initializeShopper({
-        name: 'Shopper A',
-        image: 'https://example.com/image.png',
-        address: 'address',
+        name: "Shopper A",
+        image: "https://example.com/image.png",
+        address: "address",
       })
       .accounts({
         authority: shopperAuthority.publicKey,
@@ -115,9 +104,9 @@ describe('createReview', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -130,8 +119,8 @@ describe('createReview', () => {
         price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -159,16 +148,9 @@ describe('createReview', () => {
       .signers([shopperAuthority])
       .rpc();
 
-    orderAta = getAssociatedTokenAddressSync(
-      paymentMint,
-      orderPda,
-      !PublicKey.isOnCurve(orderPda)
-    );
+    orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, !PublicKey.isOnCurve(orderPda));
     const [taskPda] = taskKey(taskQueuePda, taskId);
-    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-      taskQueuePda,
-      admin.publicKey
-    );
+    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
     await program.methods
       .shipOrder(taskId)
@@ -191,7 +173,7 @@ describe('createReview', () => {
       .rpc();
   });
 
-  test('create review', async () => {
+  test("create review", async () => {
     await program.methods
       .completeOrder()
       .accountsPartial({
@@ -207,7 +189,7 @@ describe('createReview', () => {
 
     const { unixTimestamp } = litesvm.getClock();
 
-    const text = 'review';
+    const text = "review";
     const rating = 3;
 
     await program.methods
@@ -231,8 +213,8 @@ describe('createReview', () => {
     expect(reviewAcc.text).toBe(text);
   });
 
-  test('throws if order is not completed', async () => {
-    const text = 'review';
+  test("throws if order is not completed", async () => {
+    const text = "review";
     const rating = 3;
 
     try {
@@ -248,11 +230,11 @@ describe('createReview', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'OrderNotCompleted');
+      expectAnchorError(err, "OrderNotCompleted");
     }
   });
 
-  test('throws if rating is invalid', async () => {
+  test("throws if rating is invalid", async () => {
     await program.methods
       .completeOrder()
       .accountsPartial({
@@ -266,7 +248,7 @@ describe('createReview', () => {
       .signers([admin])
       .rpc();
 
-    const text = 'This is a review';
+    const text = "This is a review";
     const rating = 0;
 
     try {
@@ -282,11 +264,11 @@ describe('createReview', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'InvalidRating');
+      expectAnchorError(err, "InvalidRating");
     }
   });
 
-  test('throws if review for order already exists', async () => {
+  test("throws if review for order already exists", async () => {
     await program.methods
       .completeOrder()
       .accountsPartial({
@@ -300,7 +282,7 @@ describe('createReview', () => {
       .signers([admin])
       .rpc();
 
-    const text = 'This is a review';
+    const text = "This is a review";
     const rating = 3;
 
     await program.methods
@@ -315,7 +297,7 @@ describe('createReview', () => {
       .signers([shopperAuthority])
       .rpc();
 
-    const newText = 'This is another review';
+    const newText = "This is another review";
     const newRating = 4;
 
     expect(async () => {

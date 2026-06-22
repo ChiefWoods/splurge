@@ -1,44 +1,31 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { beforeEach, describe, expect, test } from "bun:test";
+
+import { BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
-  getAccount,
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
-import {
-  getItemPda,
-  getOrderPda,
-  getShopperPda,
-  getStorePda,
-  getTreasuryPda,
-} from '../pda';
-import { fetchOrderAcc, fetchTaskQueueAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import {
-  TUKTUK_PROGRAM_ID,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-  USDT_MINT,
-} from '../constants';
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+  TaskQueueV0,
+} from "@helium/tuktuk-sdk";
+import { getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LiteSVMProvider } from "anchor-litesvm";
+import { LiteSVM } from "litesvm";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchOrderAcc, fetchTaskQueueAcc } from "../accounts";
+import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2, USDT_MINT } from "../constants";
+import { getItemPda, getOrderPda, getShopperPda, getStorePda, getTreasuryPda } from "../pda";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
-} from '../setup';
-import {
-  nextAvailableTaskIds,
-  taskKey,
-  taskQueueAuthorityKey,
-  TaskQueueV0,
-} from '@helium/tuktuk-sdk';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
+} from "../setup";
 
-describe('cancelOrder', () => {
+describe("cancelOrder", () => {
   let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
@@ -47,13 +34,10 @@ describe('cancelOrder', () => {
     taskQueuePda: PublicKey;
   };
 
-  const [admin, shopperAuthority, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
   const treasury = getTreasuryPda();
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
@@ -68,15 +52,14 @@ describe('cancelOrder', () => {
   const itemPda = getItemPda(storePda, itemName);
 
   beforeEach(async () => {
-    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
-      await getSetup([
-        ...[admin, shopperAuthority, storeAuthority].map((kp) => {
-          return {
-            pubkey: kp.publicKey,
-            account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
-          };
-        }),
-      ]));
+    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } = await getSetup(
+      [admin, shopperAuthority, storeAuthority].map((kp) => {
+        return {
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
+        };
+      }),
+    ));
 
     await initTaskQueue(tuktukProgram, admin, taskQueuePda);
     taskQueueAcc = await fetchTaskQueueAcc(tuktukProgram, taskQueuePda);
@@ -106,9 +89,9 @@ describe('cancelOrder', () => {
 
     await program.methods
       .initializeShopper({
-        name: 'Shopper A',
-        image: 'https://example.com/image.png',
-        address: 'address',
+        name: "Shopper A",
+        image: "https://example.com/image.png",
+        address: "address",
       })
       .accounts({
         authority: shopperAuthority.publicKey,
@@ -118,9 +101,9 @@ describe('cancelOrder', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -133,8 +116,8 @@ describe('cancelOrder', () => {
         price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -162,13 +145,10 @@ describe('cancelOrder', () => {
     const orderAta = getAssociatedTokenAddressSync(
       paymentMint,
       orderPda,
-      !PublicKey.isOnCurve(orderPda)
+      !PublicKey.isOnCurve(orderPda),
     );
     const [taskPda] = taskKey(taskQueuePda, taskId);
-    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-      taskQueuePda,
-      admin.publicKey
-    );
+    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
     await program.methods
       .shipOrder(taskId)
@@ -191,32 +171,27 @@ describe('cancelOrder', () => {
       .rpc();
   });
 
-  test('cancels an order', async () => {
+  test("cancels an order", async () => {
     const orderAta = getAssociatedTokenAddressSync(
       paymentMint,
       orderPda,
       !PublicKey.isOnCurve(orderPda),
-      tokenProgram
+      tokenProgram,
     );
     const preOrderAtaRent = litesvm.getBalance(orderAta);
-    const preShopperAuthorityBal = litesvm.getBalance(
-      shopperAuthority.publicKey
-    );
+    const preShopperAuthorityBal = litesvm.getBalance(shopperAuthority.publicKey);
     const shopperAuthorityAta = getAssociatedTokenAddressSync(
       paymentMint,
       shopperAuthority.publicKey,
       !PublicKey.isOnCurve(shopperAuthority.publicKey),
-      tokenProgram
+      tokenProgram,
     );
-    const preShopperAuthorityAta = await getAccount(
-      provider.connection,
-      shopperAuthorityAta
-    );
+    const preShopperAuthorityAta = await getAccount(provider.connection, shopperAuthorityAta);
     const treasuryAta = getAssociatedTokenAddressSync(
       paymentMint,
       treasury,
       !PublicKey.isOnCurve(treasury),
-      tokenProgram
+      tokenProgram,
     );
     const preTreasuryAta = await getAccount(provider.connection, treasuryAta);
 
@@ -236,23 +211,16 @@ describe('cancelOrder', () => {
 
     expect(orderAcc.status).toStrictEqual({ cancelled: {} });
 
-    const postShopperAuthorityBal = litesvm.getBalance(
-      shopperAuthority.publicKey
-    );
+    const postShopperAuthorityBal = litesvm.getBalance(shopperAuthority.publicKey);
 
-    expect(preShopperAuthorityBal).toBe(
-      postShopperAuthorityBal - preOrderAtaRent
-    );
+    expect(preShopperAuthorityBal).toBe(postShopperAuthorityBal - preOrderAtaRent);
 
-    const postShopperAuthorityAta = await getAccount(
-      provider.connection,
-      shopperAuthorityAta
-    );
+    const postShopperAuthorityAta = await getAccount(provider.connection, shopperAuthorityAta);
 
     expect(Number(preShopperAuthorityAta.amount)).toBe(
       Number(postShopperAuthorityAta.amount) -
         orderAcc.paymentSubtotal.toNumber() -
-        orderAcc.platformFee.toNumber()
+        orderAcc.platformFee.toNumber(),
     );
 
     const postOrderAtaRent = litesvm.getBalance(orderAta);
@@ -262,11 +230,11 @@ describe('cancelOrder', () => {
     const postTreasuryAta = await getAccount(provider.connection, treasuryAta);
 
     expect(Number(preTreasuryAta.amount)).toBe(
-      Number(postTreasuryAta.amount) + orderAcc.platformFee.toNumber()
+      Number(postTreasuryAta.amount) + orderAcc.platformFee.toNumber(),
     );
   });
 
-  test('throws if cancelling as unauthorized admin', async () => {
+  test("throws if cancelling as unauthorized admin", async () => {
     try {
       await program.methods
         .cancelOrder()
@@ -280,7 +248,7 @@ describe('cancelOrder', () => {
         .signers([storeAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'UnauthorizedAdmin');
+      expectAnchorError(err, "UnauthorizedAdmin");
     }
   });
 });

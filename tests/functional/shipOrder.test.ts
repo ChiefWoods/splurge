@@ -1,58 +1,41 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { beforeEach, describe, expect, test } from "bun:test";
+
+import { BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
-import {
-  getItemPda,
-  getOrderPda,
-  getShopperPda,
-  getStorePda,
-  getTreasuryPda,
-} from '../pda';
-import { fetchOrderAcc, fetchTaskQueueAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import {
-  TUKTUK_PROGRAM_ID,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-  USDT_MINT,
-} from '../constants';
+  nextAvailableTaskIds,
+  taskKey,
+  taskQueueAuthorityKey,
+  TaskQueueV0,
+} from "@helium/tuktuk-sdk";
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LiteSVM } from "litesvm";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchOrderAcc, fetchTaskQueueAcc } from "../accounts";
+import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2, USDT_MINT } from "../constants";
+import { getItemPda, getOrderPda, getShopperPda, getStorePda, getTreasuryPda } from "../pda";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
-} from '../setup';
-import {
-  nextAvailableTaskIds,
-  taskKey,
-  taskQueueAuthorityKey,
-  TaskQueueV0,
-} from '@helium/tuktuk-sdk';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
+} from "../setup";
 
-describe('shipOrder', () => {
-  let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
+describe("shipOrder", () => {
+  let { litesvm, program, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
-    provider: LiteSVMProvider;
     program: Program<Splurge>;
     tuktukProgram: Program<Tuktuk>;
     taskQueuePda: PublicKey;
   };
 
-  const [admin, shopperAuthority, storeAuthority] = Array.from(
-    { length: 3 },
-    Keypair.generate
-  );
+  const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
   const treasury = getTreasuryPda();
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
   const itemPrice = 1e6; // $1
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
@@ -66,15 +49,14 @@ describe('shipOrder', () => {
   const itemPda = getItemPda(storePda, itemName);
 
   beforeEach(async () => {
-    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } =
-      await getSetup([
-        ...[admin, shopperAuthority, storeAuthority].map((kp) => {
-          return {
-            pubkey: kp.publicKey,
-            account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
-          };
-        }),
-      ]));
+    ({ litesvm, program, tuktukProgram, taskQueuePda } = await getSetup(
+      [admin, shopperAuthority, storeAuthority].map((kp) => {
+        return {
+          pubkey: kp.publicKey,
+          account: fundedSystemAccountInfo(LAMPORTS_PER_SOL * 5),
+        };
+      }),
+    ));
 
     await initTaskQueue(tuktukProgram, admin, taskQueuePda);
     taskQueueAcc = await fetchTaskQueueAcc(tuktukProgram, taskQueuePda);
@@ -104,9 +86,9 @@ describe('shipOrder', () => {
 
     await program.methods
       .initializeShopper({
-        name: 'Shopper A',
-        image: 'https://example.com/image.png',
-        address: 'address',
+        name: "Shopper A",
+        image: "https://example.com/image.png",
+        address: "address",
       })
       .accounts({
         authority: shopperAuthority.publicKey,
@@ -116,9 +98,9 @@ describe('shipOrder', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -131,8 +113,8 @@ describe('shipOrder', () => {
         price: new BN(itemPrice),
         inventoryCount: initInventoryCount,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -158,18 +140,15 @@ describe('shipOrder', () => {
       .rpc();
   });
 
-  test('updates an order', async () => {
+  test("updates an order", async () => {
     const paymentMint = USDC_MINT;
     const orderAta = getAssociatedTokenAddressSync(
       paymentMint,
       orderPda,
-      !PublicKey.isOnCurve(orderPda)
+      !PublicKey.isOnCurve(orderPda),
     );
     const [taskPda] = taskKey(taskQueuePda, taskId);
-    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-      taskQueuePda,
-      admin.publicKey
-    );
+    const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
     await program.methods
       .shipOrder(taskId)
@@ -196,7 +175,7 @@ describe('shipOrder', () => {
     expect(orderAcc.status).toStrictEqual({ shipping: {} });
   });
 
-  test('throws if updating finalized order', async () => {
+  test("throws if updating finalized order", async () => {
     const paymentMint = USDC_MINT;
 
     await program.methods
@@ -215,13 +194,10 @@ describe('shipOrder', () => {
       const orderAta = getAssociatedTokenAddressSync(
         paymentMint,
         orderPda,
-        !PublicKey.isOnCurve(orderPda)
+        !PublicKey.isOnCurve(orderPda),
       );
       const [taskPda] = taskKey(taskQueuePda, taskId);
-      const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-        taskQueuePda,
-        admin.publicKey
-      );
+      const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
       await program.methods
         .shipOrder(taskId)
@@ -245,19 +221,16 @@ describe('shipOrder', () => {
     }).toThrow();
   });
 
-  test('throws if updating as unauthorized admin', async () => {
+  test("throws if updating as unauthorized admin", async () => {
     try {
       const paymentMint = USDC_MINT;
       const orderAta = getAssociatedTokenAddressSync(
         paymentMint,
         orderPda,
-        !PublicKey.isOnCurve(orderPda)
+        !PublicKey.isOnCurve(orderPda),
       );
       const [taskPda] = taskKey(taskQueuePda, taskId);
-      const [taskQueueAuthorityPda] = taskQueueAuthorityKey(
-        taskQueuePda,
-        admin.publicKey
-      );
+      const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
       await program.methods
         .shipOrder(taskId)
@@ -279,7 +252,7 @@ describe('shipOrder', () => {
         .signers([shopperAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'UnauthorizedAdmin');
+      expectAnchorError(err, "UnauthorizedAdmin");
     }
   });
 });

@@ -1,34 +1,32 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair } from '@solana/web3.js';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
-import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from '../constants';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import { fundedSystemAccountInfo, getSetup } from '../setup';
-import { getItemPda, getStorePda } from '../pda';
-import { fetchItemAcc } from '../accounts';
+import { beforeEach, describe, expect, test } from "bun:test";
 
-describe('updateItem', () => {
-  let { litesvm, provider, program } = {} as {
-    litesvm: LiteSVM;
-    provider: LiteSVMProvider;
+import { BN, Program } from "@coral-xyz/anchor";
+import { Keypair } from "@solana/web3.js";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchItemAcc } from "../accounts";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { getItemPda, getStorePda } from "../pda";
+import { fundedSystemAccountInfo, getSetup } from "../setup";
+
+describe("updateItem", () => {
+  let { program } = {} as {
     program: Program<Splurge>;
   };
 
   const [admin, storeAuthority] = Array.from({ length: 2 }, Keypair.generate);
 
-  const itemName = 'Item A';
+  const itemName = "Item A";
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
-      ...[admin, storeAuthority].map((kp) => {
+    ({ program } = await getSetup(
+      [admin, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
         };
       }),
-    ]));
+    ));
 
     await program.methods
       .initializeConfig({
@@ -49,9 +47,9 @@ describe('updateItem', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -64,8 +62,8 @@ describe('updateItem', () => {
         price: new BN(1e6), // $1
         inventoryCount: 10,
         name: itemName,
-        image: 'https://example.com/item.png',
-        description: 'description',
+        image: "https://example.com/item.png",
+        description: "description",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -74,7 +72,7 @@ describe('updateItem', () => {
       .rpc();
   });
 
-  test('updates an item', async () => {
+  test("updates an item", async () => {
     const price = 20e6; // $2
     const inventoryCount = 5;
 

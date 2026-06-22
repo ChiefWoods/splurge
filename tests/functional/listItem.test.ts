@@ -1,36 +1,30 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { Keypair } from '@solana/web3.js';
-import { Splurge } from '../../target/types/splurge';
-import { BN, Program } from '@coral-xyz/anchor';
-import {
-  MAX_STORE_ITEM_NAME_LEN,
-  USDC_MINT,
-  USDC_PRICE_UPDATE_V2,
-} from '../constants';
-import { fetchItemAcc } from '../accounts';
-import { LiteSVM } from 'litesvm';
-import { LiteSVMProvider } from 'anchor-litesvm';
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from '../setup';
-import { getItemPda, getStorePda } from '../pda';
+import { beforeEach, describe, expect, test } from "bun:test";
 
-describe('listItem', () => {
-  let { litesvm, provider, program } = {} as {
-    litesvm: LiteSVM;
-    provider: LiteSVMProvider;
+import { BN, Program } from "@coral-xyz/anchor";
+import { Keypair } from "@solana/web3.js";
+
+import { Splurge } from "../../target/types/splurge";
+import { fetchItemAcc } from "../accounts";
+import { MAX_STORE_ITEM_NAME_LEN, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { getItemPda, getStorePda } from "../pda";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+
+describe("listItem", () => {
+  let { program } = {} as {
     program: Program<Splurge>;
   };
 
   const [admin, storeAuthority] = Array.from({ length: 2 }, Keypair.generate);
 
   beforeEach(async () => {
-    ({ litesvm, provider, program } = await getSetup([
-      ...[admin, storeAuthority].map((kp) => {
+    ({ program } = await getSetup(
+      [admin, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
           account: fundedSystemAccountInfo(),
         };
       }),
-    ]));
+    ));
 
     await program.methods
       .initializeConfig({
@@ -51,9 +45,9 @@ describe('listItem', () => {
 
     await program.methods
       .initializeStore({
-        name: 'Store A',
-        image: 'https://example.com/image.png',
-        about: 'about',
+        name: "Store A",
+        image: "https://example.com/image.png",
+        about: "about",
       })
       .accounts({
         authority: storeAuthority.publicKey,
@@ -62,12 +56,12 @@ describe('listItem', () => {
       .rpc();
   });
 
-  test('list an item', async () => {
+  test("list an item", async () => {
     const price = 1e6; // $1
     const inventoryCount = 10;
-    const name = 'Item A';
-    const image = 'https://example.com/item.png';
-    const description = 'description';
+    const name = "Item A";
+    const image = "https://example.com/item.png";
+    const description = "description";
 
     await program.methods
       .listItem({
@@ -95,12 +89,12 @@ describe('listItem', () => {
     expect(itemAcc.description).toBe(description);
   });
 
-  test('throws if item name is empty', async () => {
+  test("throws if item name is empty", async () => {
     const price = 1e6; // $1
     const inventoryCount = 10;
-    const name = '';
-    const image = 'https://example.com/item.png';
-    const description = 'description';
+    const name = "";
+    const image = "https://example.com/item.png";
+    const description = "description";
 
     try {
       await program.methods
@@ -117,16 +111,16 @@ describe('listItem', () => {
         .signers([storeAuthority])
         .rpc();
     } catch (err) {
-      expectAnchorError(err, 'ItemNameRequired');
+      expectAnchorError(err, "ItemNameRequired");
     }
   });
 
-  test('throws if item name is too long', async () => {
+  test("throws if item name is too long", async () => {
     const price = 1e6; // $1
     const inventoryCount = 10;
-    const name = '_'.repeat(MAX_STORE_ITEM_NAME_LEN + 1);
-    const image = 'https://example.com/item.png';
-    const description = 'description';
+    const name = "_".repeat(MAX_STORE_ITEM_NAME_LEN + 1);
+    const image = "https://example.com/item.png";
+    const description = "description";
 
     expect(async () => {
       await program.methods
