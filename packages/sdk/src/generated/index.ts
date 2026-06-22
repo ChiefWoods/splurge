@@ -5,7 +5,6 @@ export const SPLURGE_PROGRAM_ID = new PublicKey("SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFU
 export * from "./accounts/config";
 export * from "./accounts/item";
 export * from "./accounts/order";
-export * from "./accounts/priceUpdateV2";
 export * from "./accounts/review";
 export * from "./accounts/shopper";
 export * from "./accounts/store";
@@ -29,7 +28,6 @@ export * from "./pdas/shopper";
 export * from "./pdas/order";
 export * from "./pdas/review";
 export * from "./pdas/store";
+export * from "./pdas/item";
 export * from "./types/acceptedMint";
 export * from "./types/orderStatus";
-export * from "./types/priceFeedMessage";
-export * from "./types/verificationLevel";

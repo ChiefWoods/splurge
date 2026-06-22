@@ -17,8 +17,9 @@
   "private": true,
   "scripts": {
     "build": "rolldown -c",
+    "typecheck": "tsc --noEmit",
     "codama:convert": "codama convert src/idl/anchor/splurge.json src/idl/codama/splurge.json",
-    "codama:run": "codama run web3js"
+    "codama:run": "codama run web3js && bun run scripts/patch-generated-client.ts"
   },
   "dependencies": {
     "@solana/codecs": "^6.10.0"

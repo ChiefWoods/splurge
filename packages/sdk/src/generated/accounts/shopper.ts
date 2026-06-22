@@ -69,7 +69,7 @@ export async function fetchAllMaybeShopperAccounts(
       return null;
     }
     return {
-      address: addresses[index],
+      address: addresses[index]!,
       data: deserializeShopperAccount(accountInfo.data),
     };
   });
@@ -81,7 +81,7 @@ export async function fetchAllShopperAccounts(
 ): Promise<ShopperAccount[]> {
   const maybeAccounts = await fetchAllMaybeShopperAccounts(connection, addresses);
   const missingAddresses = maybeAccounts
-    .flatMap((account, i) => (!account ? [addresses[i].toBase58()] : []))
+    .flatMap((account, i) => (!account ? [addresses[i]!.toBase58()] : []))
     .join(", ");
   if (missingAddresses) {
     throw new Error("Shopper account(s) not found at address(es): " + missingAddresses);

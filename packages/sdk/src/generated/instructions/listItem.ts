@@ -8,11 +8,12 @@ import {
 import { AccountMeta, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 
 import { SPLURGE_PROGRAM_ID } from "..";
+import { findItemPda } from "../pdas/item";
 import { findStorePda } from "../pdas/store";
 
 export interface ListItemInstructionAccounts {
   authority: PublicKey;
-  item: PublicKey;
+  item?: PublicKey;
   store?: PublicKey;
   systemProgram: PublicKey;
 }
@@ -48,9 +49,20 @@ export function createListItemInstruction(
     );
     store = derived;
   }
+  let item = accounts.item;
+  if (!item) {
+    const [derived] = findItemPda(
+      {
+        store: store,
+        name: args.name,
+      },
+      programId,
+    );
+    item = derived;
+  }
   const keys: AccountMeta[] = [
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
-    { pubkey: accounts.item, isSigner: false, isWritable: true },
+    { pubkey: item, isSigner: false, isWritable: true },
     { pubkey: store, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ];

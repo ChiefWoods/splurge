@@ -93,7 +93,7 @@ export async function fetchAllMaybeOrderAccounts(
       return null;
     }
     return {
-      address: addresses[index],
+      address: addresses[index]!,
       data: deserializeOrderAccount(accountInfo.data),
     };
   });
@@ -105,7 +105,7 @@ export async function fetchAllOrderAccounts(
 ): Promise<OrderAccount[]> {
   const maybeAccounts = await fetchAllMaybeOrderAccounts(connection, addresses);
   const missingAddresses = maybeAccounts
-    .flatMap((account, i) => (!account ? [addresses[i].toBase58()] : []))
+    .flatMap((account, i) => (!account ? [addresses[i]!.toBase58()] : []))
     .join(", ");
   if (missingAddresses) {
     throw new Error("Order account(s) not found at address(es): " + missingAddresses);

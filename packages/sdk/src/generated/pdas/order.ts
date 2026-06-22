@@ -12,11 +12,13 @@ export function findOrderPda(
   seeds: OrderPdaSeeds,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): [PublicKey, number] {
+  const timestampBuffer = Buffer.alloc(8);
+  timestampBuffer.writeBigInt64LE(seeds.timestamp);
   const seedsBuffer: Buffer[] = [
     Buffer.from("order", "utf8"),
     seeds.shopper.toBuffer(),
     seeds.item.toBuffer(),
-    Buffer.from([seeds.timestamp]),
+    timestampBuffer,
   ];
   return PublicKey.findProgramAddressSync(seedsBuffer, programId);
 }

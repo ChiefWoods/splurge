@@ -67,7 +67,7 @@ export function createCreateOrderInstruction(
   if (!order) {
     const [derived] = findOrderPda(
       {
-        shopper: accounts.shopper,
+        shopper: shopper,
         item: accounts.item,
         timestamp: args.timestamp,
       },
@@ -91,7 +91,7 @@ export function createCreateOrderInstruction(
   if (!treasuryTokenAccount) {
     const [derived] = findTreasuryTokenAccountPda(
       {
-        treasury: accounts.treasury,
+        treasury: treasury,
         tokenProgram: accounts.tokenProgram,
         paymentMint: accounts.paymentMint,
       },
@@ -103,7 +103,7 @@ export function createCreateOrderInstruction(
   if (!orderTokenAccount) {
     const [derived] = findOrderTokenAccountPda(
       {
-        order: accounts.order,
+        order: order,
         tokenProgram: accounts.tokenProgram,
         paymentMint: accounts.paymentMint,
       },

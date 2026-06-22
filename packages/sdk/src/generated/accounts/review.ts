@@ -70,7 +70,7 @@ export async function fetchAllMaybeReviewAccounts(
       return null;
     }
     return {
-      address: addresses[index],
+      address: addresses[index]!,
       data: deserializeReviewAccount(accountInfo.data),
     };
   });
@@ -82,7 +82,7 @@ export async function fetchAllReviewAccounts(
 ): Promise<ReviewAccount[]> {
   const maybeAccounts = await fetchAllMaybeReviewAccounts(connection, addresses);
   const missingAddresses = maybeAccounts
-    .flatMap((account, i) => (!account ? [addresses[i].toBase58()] : []))
+    .flatMap((account, i) => (!account ? [addresses[i]!.toBase58()] : []))
     .join(", ");
   if (missingAddresses) {
     throw new Error("Review account(s) not found at address(es): " + missingAddresses);

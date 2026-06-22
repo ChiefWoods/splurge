@@ -10,7 +10,8 @@ import {
 } from "@solana/codecs";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { AcceptedMint, acceptedMintCodec } from "../types/acceptedMint";
+import { acceptedMintCodec } from "../types/acceptedMint";
+import type { AcceptedMint } from "../types/acceptedMint";
 
 export interface ConfigAccountData {
   orderFeeBps: number;
@@ -75,7 +76,7 @@ export async function fetchAllMaybeConfigAccounts(
       return null;
     }
     return {
-      address: addresses[index],
+      address: addresses[index]!,
       data: deserializeConfigAccount(accountInfo.data),
     };
   });
@@ -87,7 +88,7 @@ export async function fetchAllConfigAccounts(
 ): Promise<ConfigAccount[]> {
   const maybeAccounts = await fetchAllMaybeConfigAccounts(connection, addresses);
   const missingAddresses = maybeAccounts
-    .flatMap((account, i) => (!account ? [addresses[i].toBase58()] : []))
+    .flatMap((account, i) => (!account ? [addresses[i]!.toBase58()] : []))
     .join(", ");
   if (missingAddresses) {
     throw new Error("Config account(s) not found at address(es): " + missingAddresses);

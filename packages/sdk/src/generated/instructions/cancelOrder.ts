@@ -41,7 +41,7 @@ export function createCancelOrderInstruction(
   if (!treasuryTokenAccount) {
     const [derived] = findTreasuryTokenAccountPda(
       {
-        treasury: accounts.treasury,
+        treasury: treasury,
         tokenProgram: accounts.tokenProgram,
         paymentMint: accounts.paymentMint,
       },

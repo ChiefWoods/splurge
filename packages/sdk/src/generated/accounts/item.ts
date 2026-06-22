@@ -74,7 +74,7 @@ export async function fetchAllMaybeItemAccounts(
       return null;
     }
     return {
-      address: addresses[index],
+      address: addresses[index]!,
       data: deserializeItemAccount(accountInfo.data),
     };
   });
@@ -86,7 +86,7 @@ export async function fetchAllItemAccounts(
 ): Promise<ItemAccount[]> {
   const maybeAccounts = await fetchAllMaybeItemAccounts(connection, addresses);
   const missingAddresses = maybeAccounts
-    .flatMap((account, i) => (!account ? [addresses[i].toBase58()] : []))
+    .flatMap((account, i) => (!account ? [addresses[i]!.toBase58()] : []))
     .join(", ");
   if (missingAddresses) {
     throw new Error("Item account(s) not found at address(es): " + missingAddresses);
