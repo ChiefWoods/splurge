@@ -1,20 +1,31 @@
 import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
-import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import {
+  clusterApiUrl,
+  Connection,
+  Keypair,
+  sendAndConfirmTransaction,
+  Signer,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
+import { findTreasuryPda } from "@splurge/sdk";
 
 import { tuktukIdl } from "../common/tuktuk";
-import idl from "../target/idl/splurge.json";
-import { Splurge } from "../target/types/splurge";
 
 export const admin = Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.ADMIN_KEYPAIR)));
 export const connection = new Connection(
   process.env.ANCHOR_PROVIDER_URL || clusterApiUrl("devnet"),
 );
 const provider = new AnchorProvider(connection, new Wallet(admin));
-export const splurgeProgram = new Program<Splurge>(idl, provider);
 export const tuktukProgram = new Program<Tuktuk>(tuktukIdl, provider);
 
-export const [treasury] = PublicKey.findProgramAddressSync(
-  [Buffer.from("treasury")],
-  splurgeProgram.programId,
-);
+export const treasury = findTreasuryPda()[0];
+
+export async function sendTransaction(
+  instructions: TransactionInstruction[],
+  signers: Signer[] = [admin],
+) {
+  const transaction = new Transaction().add(...instructions);
+  return sendAndConfirmTransaction(connection, transaction, signers);
+}

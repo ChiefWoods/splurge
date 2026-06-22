@@ -1,27 +1,50 @@
-import { PublicKey } from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { createCancelOrderInstruction, fetchOrderAccount, fetchShopperAccount } from "@splurge/sdk";
 
-import { admin, connection, splurgeProgram } from "../setup";
+import { admin, connection, sendTransaction, treasury } from "../setup";
 
 console.log("Cancelling order...");
 
 // Params
 const shopperPda = new PublicKey("");
 const orderPda = new PublicKey("");
-const paymentMint = new PublicKey("");
 
-const orderAcc = await splurgeProgram.account.order.fetchNullable(orderPda);
-if (!orderAcc) throw new Error("Order not found");
-const { owner: tokenProgram } = await connection.getAccountInfo(orderAcc.paymentMint);
+const orderAcc = (await fetchOrderAccount(connection, orderPda)).data;
 
-const signature = await splurgeProgram.methods
-  .cancelOrder()
-  .accountsPartial({
-    shopper: shopperPda,
+const paymentMint = orderAcc.paymentMint;
+
+const mintAcc = await connection.getAccountInfo(paymentMint);
+if (!mintAcc) throw new Error(`Mint not found: ${paymentMint.toBase58()}`);
+const { owner: tokenProgram } = mintAcc;
+
+const shopperAcc = (await fetchShopperAccount(connection, shopperPda)).data;
+const authorityPubkey = shopperAcc.authority;
+
+const signature = await sendTransaction([
+  createCancelOrderInstruction({
+    admin: admin.publicKey,
+    authority: authorityPubkey,
     order: orderPda,
     paymentMint,
+    shopper: shopperPda,
+    treasuryTokenAccount: getAssociatedTokenAddressSync(
+      paymentMint,
+      treasury,
+      !PublicKey.isOnCurve(treasury),
+      tokenProgram,
+    ),
+    orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram),
+    authorityTokenAccount: getAssociatedTokenAddressSync(
+      paymentMint,
+      authorityPubkey,
+      !PublicKey.isOnCurve(authorityPubkey),
+      tokenProgram,
+    ),
     tokenProgram,
-  })
-  .signers([admin])
-  .rpc();
+    systemProgram: SystemProgram.programId,
+    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+  }),
+]);
 
 console.log("Order cancelled:", signature);

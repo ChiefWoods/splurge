@@ -1,5 +1,8 @@
+import { SystemProgram } from "@solana/web3.js";
+import { createUpdateConfigInstruction } from "@splurge/sdk";
+
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { admin, splurgeProgram } from "../setup";
+import { admin, sendTransaction } from "../setup";
 
 console.log("Updating config...");
 
@@ -18,17 +21,16 @@ const isPaused = null;
 const newAdmin = null;
 const orderFeeBps = null;
 
-const signature = await splurgeProgram.methods
-  .updateConfig({
-    acceptedMints,
-    isPaused,
-    newAdmin,
-    orderFeeBps,
-  })
-  .accounts({
-    authority: admin.publicKey,
-  })
-  .signers([admin])
-  .rpc();
+const signature = await sendTransaction([
+  createUpdateConfigInstruction(
+    { admin: admin.publicKey, systemProgram: SystemProgram.programId },
+    {
+      acceptedMints,
+      isPaused,
+      newAdmin,
+      orderFeeBps,
+    },
+  ),
+]);
 
 console.log("Config updated:", signature);
