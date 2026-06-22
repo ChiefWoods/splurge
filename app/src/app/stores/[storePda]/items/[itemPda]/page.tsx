@@ -1,5 +1,8 @@
-import { Separator } from '@/components/ui/separator';
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
+
+import { ItemAccountSection } from "@/components/ItemAccountSection";
+import { ItemReviewSection } from "@/components/ItemReviewSection";
+import { Separator } from "@/components/ui/separator";
 import {
   fetchAllOrders,
   fetchAllReviews,
@@ -7,11 +10,9 @@ import {
   fetchConfig,
   fetchItem,
   fetchStore,
-} from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { ItemAccountSection } from '@/components/ItemAccountSection';
-import { ItemReviewSection } from '@/components/ItemReviewSection';
-import { ReviewsProvider } from '@/providers/ReviewsProvider';
+} from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { ReviewsProvider } from "@/providers/ReviewsProvider";
 
 export default async function Page({
   params,
@@ -40,7 +41,7 @@ export default async function Page({
   }
 
   if (!config) {
-    throw new Error('Config not initialized.');
+    throw new Error("Config not initialized.");
   }
 
   return (

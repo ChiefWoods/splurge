@@ -1,25 +1,23 @@
-import { Splurge } from '@/types/splurge';
-import { Address, BN, Program } from '@coral-xyz/anchor';
-import { Connection } from '@solana/web3.js';
-import splurgeIdl from '@/idl/splurge.json';
-import { PublicKey } from '@solana/web3.js';
+import { Address, BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
+import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
+import { TransactionInstruction } from "@solana/web3.js";
+
+import splurgeIdl from "@/idl/splurge.json";
 import {
   CreateReviewArgs,
   InitializeShopperArgs,
   InitializeStoreArgs,
   ListItemArgs,
   UpdateItemArgs,
-} from '@/types/accounts';
-import { TransactionInstruction } from '@solana/web3.js';
-import { getAssociatedTokenAddressSync } from '@solana/spl-token';
-import {
-  nextAvailableTaskIds,
-  taskKey,
-  taskQueueAuthorityKey,
-} from '@helium/tuktuk-sdk';
-import { ProgramClient } from './ProgramClient';
-import { TASK_QUEUE } from '../lib/client/tuktuk';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
+} from "@/types/accounts";
+import { Splurge } from "@/types/splurge";
+
+import { TASK_QUEUE } from "../lib/client/tuktuk";
+import { ProgramClient } from "./ProgramClient";
 
 export class SplurgeClient extends ProgramClient<Splurge> {
   static PROGRAM_ID = new PublicKey(splurgeIdl.address);
@@ -34,57 +32,50 @@ export class SplurgeClient extends ProgramClient<Splurge> {
   static configPda = this.getConfigPda();
 
   static getConfigPda(): PublicKey {
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('config')],
-      this.PROGRAM_ID
-    )[0];
+    return PublicKey.findProgramAddressSync([Buffer.from("config")], this.PROGRAM_ID)[0];
   }
 
   static getShopperPda(authority: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('shopper'), authority.toBuffer()],
-      this.PROGRAM_ID
+      [Buffer.from("shopper"), authority.toBuffer()],
+      this.PROGRAM_ID,
     )[0];
   }
 
   static getStorePda(authority: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('store'), authority.toBuffer()],
-      this.PROGRAM_ID
+      [Buffer.from("store"), authority.toBuffer()],
+      this.PROGRAM_ID,
     )[0];
   }
 
   static getItemPda(storePda: PublicKey, name: string): PublicKey {
     if (name.length > SplurgeClient.MAX_ITEM_NAME_LENGTH) {
-      throw new Error('Store item name exceeds maximum seed length');
+      throw new Error("Store item name exceeds maximum seed length");
     }
 
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('item'), storePda.toBuffer(), Buffer.from(name)],
-      this.PROGRAM_ID
+      [Buffer.from("item"), storePda.toBuffer(), Buffer.from(name)],
+      this.PROGRAM_ID,
     )[0];
   }
 
-  static getOrderPda(
-    shopperPda: PublicKey,
-    itemPda: PublicKey,
-    timestamp: BN
-  ): PublicKey {
+  static getOrderPda(shopperPda: PublicKey, itemPda: PublicKey, timestamp: BN): PublicKey {
     return PublicKey.findProgramAddressSync(
       [
-        Buffer.from('order'),
+        Buffer.from("order"),
         shopperPda.toBuffer(),
         itemPda.toBuffer(),
-        timestamp.toArrayLike(Buffer, 'le', 8),
+        timestamp.toArrayLike(Buffer, "le", 8),
       ],
-      this.PROGRAM_ID
+      this.PROGRAM_ID,
     )[0];
   }
 
   static getReviewPda(orderPda: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('review'), orderPda.toBuffer()],
-      this.PROGRAM_ID
+      [Buffer.from("review"), orderPda.toBuffer()],
+      this.PROGRAM_ID,
     )[0];
   }
 
@@ -249,21 +240,10 @@ export class SplurgeClient extends ProgramClient<Splurge> {
     tokenProgram: PublicKey;
     tuktukProgram: Program<Tuktuk>;
   }): Promise<TransactionInstruction> {
-    const orderAta = getAssociatedTokenAddressSync(
-      paymentMint,
-      orderPda,
-      true,
-      tokenProgram
-    );
-    const storeAta = getAssociatedTokenAddressSync(
-      paymentMint,
-      storePda,
-      true,
-      tokenProgram
-    );
-    const taskQueueAcc =
-      await tuktukProgram.account.taskQueueV0.fetchNullable(TASK_QUEUE);
-    if (!taskQueueAcc) throw new Error('Task queue not found.');
+    const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram);
+    const storeAta = getAssociatedTokenAddressSync(paymentMint, storePda, true, tokenProgram);
+    const taskQueueAcc = await tuktukProgram.account.taskQueueV0.fetchNullable(TASK_QUEUE);
+    if (!taskQueueAcc) throw new Error("Task queue not found.");
     const taskId = nextAvailableTaskIds(taskQueueAcc.taskBitmap, 1, false)[0];
     const [taskPda] = taskKey(TASK_QUEUE, taskId, tuktukProgram.programId);
     const [taskQueueAuthorityPda] = taskQueueAuthorityKey(TASK_QUEUE, admin);

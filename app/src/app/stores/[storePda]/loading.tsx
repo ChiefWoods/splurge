@@ -1,7 +1,7 @@
-import { AccountSectionSkeleton } from '@/components/AccountSectionSkeleton';
-import { ItemCardSkeleton } from '@/components/ItemCardSkeleton';
-import { SectionHeaderSkeleton } from '@/components/SectionHeaderSkeleton';
-import { Separator } from '@/components/ui/separator';
+import { AccountSectionSkeleton } from "@/components/AccountSectionSkeleton";
+import { ItemCardSkeleton } from "@/components/ItemCardSkeleton";
+import { SectionHeaderSkeleton } from "@/components/SectionHeaderSkeleton";
+import { Separator } from "@/components/ui/separator";
 
 export default function Loading() {
   return (

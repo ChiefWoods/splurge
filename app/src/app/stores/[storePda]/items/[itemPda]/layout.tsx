@@ -1,10 +1,11 @@
-import { fetchItem } from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { ItemProvider } from '@/providers/ItemProvider';
-import { PublicKey } from '@solana/web3.js';
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { ReactNode } from 'react';
+import { PublicKey } from "@solana/web3.js";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ReactNode } from "react";
+
+import { fetchItem } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { ItemProvider } from "@/providers/ItemProvider";
 
 export async function generateMetadata({
   params,
@@ -18,7 +19,7 @@ export async function generateMetadata({
     new PublicKey(itemPda);
   } catch {
     return {
-      title: '404',
+      title: "404",
     };
   }
 
@@ -26,7 +27,7 @@ export async function generateMetadata({
 
   if (!item) {
     return {
-      title: '404',
+      title: "404",
     };
   }
 

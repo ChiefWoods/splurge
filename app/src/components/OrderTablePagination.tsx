@@ -1,29 +1,13 @@
-import { Table } from '@tanstack/react-table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Button } from './ui/button';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from 'lucide-react';
+import { Table } from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-export function OrderTablePagination<TData>({
-  table,
-}: {
-  table: Table<TData>;
-}) {
+import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+
+export function OrderTablePagination<TData>({ table }: { table: Table<TData> }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 px-2">
-      <p className="text-muted-foreground text-sm">
-        {table.getRowCount()} item(s) found.
-      </p>
+      <p className="text-muted-foreground text-sm">{table.getRowCount()} item(s) found.</p>
       <div className="flex w-full flex-wrap items-center justify-between gap-2 space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           <div className="flex items-center gap-2">
@@ -35,17 +19,11 @@ export function OrderTablePagination<TData>({
               }}
             >
               <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
-                />
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
                 {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <SelectItem
-                    key={pageSize}
-                    value={`${pageSize}`}
-                    className="cursor-pointer"
-                  >
+                  <SelectItem key={pageSize} value={`${pageSize}`} className="cursor-pointer">
                     {pageSize}
                   </SelectItem>
                 ))}
@@ -55,8 +33,7 @@ export function OrderTablePagination<TData>({
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">
             <Button

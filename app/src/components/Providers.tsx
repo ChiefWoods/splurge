@@ -1,12 +1,14 @@
-import { SolanaProvider } from '@/providers/SolanaProvider';
-import { ReactNode } from 'react';
-import { SWRConfig } from 'swr';
-import { TooltipProvider } from './ui/tooltip';
-import { PythProvider } from '@/providers/PythProvider';
-import { ThemeProvider } from '@/providers/ThemeProvider';
-import { SettingsProvider } from '@/providers/SettingsProvider';
-import { ShopperProvider } from '@/providers/ShopperProvider';
-import { StoreProvider } from '@/providers/StoreProvider';
+import { ReactNode } from "react";
+import { SWRConfig } from "swr";
+
+import { PythProvider } from "@/providers/PythProvider";
+import { SettingsProvider } from "@/providers/SettingsProvider";
+import { ShopperProvider } from "@/providers/ShopperProvider";
+import { SolanaProvider } from "@/providers/SolanaProvider";
+import { StoreProvider } from "@/providers/StoreProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+
+import { TooltipProvider } from "./ui/tooltip";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -16,12 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
         revalidateOnFocus: false,
       }}
     >
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <TooltipProvider>
           <SettingsProvider>
             <SolanaProvider>

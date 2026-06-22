@@ -1,35 +1,37 @@
-import type { Metadata } from 'next';
-import { Moderustic } from 'next/font/google';
-import './globals.css';
-import { ReactNode } from 'react';
-import { Toaster } from '@/components/ui/sonner';
-import { Providers } from '@/components/Providers';
-import { Header } from '@/components/Header';
+import type { Metadata } from "next";
+import { Moderustic } from "next/font/google";
+
+import "./globals.css";
+import { ReactNode } from "react";
+
+import { Header } from "@/components/Header";
+import { Providers } from "@/components/Providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const moderustic = Moderustic({
-  variable: '--font-moderustic',
-  subsets: ['latin'],
+  variable: "--font-moderustic",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Splurge',
-    template: '%s | Splurge',
+    default: "Splurge",
+    template: "%s | Splurge",
   },
-  description: 'On-chain e-commerce platform on Solana.',
+  description: "On-chain e-commerce platform on Solana.",
   icons: {
     icon: [
       {
-        url: '/favicon-dark.svg',
-        media: '(prefers-color-scheme: light)',
+        url: "/favicon-dark.svg",
+        media: "(prefers-color-scheme: light)",
       },
       {
-        url: '/favicon-light.svg',
-        media: '(prefers-color-scheme: dark)',
+        url: "/favicon-light.svg",
+        media: "(prefers-color-scheme: dark)",
       },
       {
-        url: '/favicon-light.svg',
-        media: '(prefers-color-scheme: no-preference)',
+        url: "/favicon-light.svg",
+        media: "(prefers-color-scheme: no-preference)",
       },
     ],
   },

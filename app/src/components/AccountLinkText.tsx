@@ -1,5 +1,6 @@
-import { truncateAddress } from '@/lib/utils';
-import { AccountLinkButton } from './AccountLinkButton';
+import { truncateAddress } from "@/lib/utils";
+
+import { AccountLinkButton } from "./AccountLinkButton";
 
 export function AccountLinkText({
   prefix,

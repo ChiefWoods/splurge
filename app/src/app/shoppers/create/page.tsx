@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { AlreadyCreatedEmpty } from '@/components/AlreadyCreatedEmpty';
-import { ConnectWalletEmpty } from '@/components/ConnectWalletEmpty';
-import { CreateSection } from '@/components/CreateSection';
-import { CreateStoreDialog } from '@/components/formDialogs/CreateStoreDialog';
-import { WrappedSpinner } from '@/components/WrappedSpinner';
-import { useShopper } from '@/providers/ShopperProvider';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { User } from 'lucide-react';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { User } from "lucide-react";
+
+import { AlreadyCreatedEmpty } from "@/components/AlreadyCreatedEmpty";
+import { ConnectWalletEmpty } from "@/components/ConnectWalletEmpty";
+import { CreateSection } from "@/components/CreateSection";
+import { CreateStoreDialog } from "@/components/formDialogs/CreateStoreDialog";
+import { WrappedSpinner } from "@/components/WrappedSpinner";
+import { useShopper } from "@/providers/ShopperProvider";
 
 export default function Page() {
   const { publicKey } = useUnifiedWallet();

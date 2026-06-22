@@ -1,11 +1,12 @@
-import { fetchAllOrders } from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { OrdersProvider } from '@/providers/OrdersProvider';
-import { Metadata } from 'next';
-import { ReactNode } from 'react';
+import { Metadata } from "next";
+import { ReactNode } from "react";
+
+import { fetchAllOrders } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { OrdersProvider } from "@/providers/OrdersProvider";
 
 export const metadata: Metadata = {
-  title: 'Store Orders',
+  title: "Store Orders",
 };
 
 export default async function Layout({

@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
+
 import { admin, connection, splurgeProgram } from "../setup";
 
-console.log("Completing order...")
+console.log("Completing order...");
 
 // Params
 const shopperPda = new PublicKey("");

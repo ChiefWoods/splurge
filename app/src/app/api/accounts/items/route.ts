@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { fetchAllItems, fetchItem, fetchMultipleItems } from '@/lib/accounts';
+import { NextRequest, NextResponse } from "next/server";
+
+import { fetchAllItems, fetchItem, fetchMultipleItems } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  const pdas = searchParams.getAll('pda');
-  const store = searchParams.get('store');
+  const pdas = searchParams.getAll("pda");
+  const store = searchParams.get("store");
 
   try {
     if (pdas.length === 0) {
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     } else if (pdas.length > 1) {
       return NextResponse.json(
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     } else {
       return NextResponse.json(
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     }
   } catch (err) {
@@ -44,14 +45,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Unable to fetch item account(s).',
+        error: err instanceof Error ? err.message : "Unable to fetch item account(s).",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

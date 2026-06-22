@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
-import { ReactNode } from 'react';
+import { Metadata } from "next";
+import { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: 'Create Shopper',
+  title: "Create Shopper",
 };
 
 export default function Layout({ children }: { children: ReactNode }) {

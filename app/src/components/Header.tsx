@@ -1,24 +1,20 @@
-'use client';
+"use client";
 
-import { Menu, ShoppingCartIcon } from 'lucide-react';
-import Link from 'next/link';
-import { Avatar, AvatarImage } from './ui/avatar';
-import { useShopper } from '@/providers/ShopperProvider';
-import { useStore } from '@/providers/StoreProvider';
-import { useMemo, useState } from 'react';
-import { Keypair } from '@solana/web3.js';
-import { DialectNotification } from './DialectNotification';
-import { UnifiedWalletButton, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { DicebearStyles, getDicebearEndpoint } from '@/lib/client/dicebear';
-import { SettingsDropdown } from './SettingsDropdown';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from './ui/sheet';
-import { Button } from './ui/button';
+import { UnifiedWalletButton, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { Keypair } from "@solana/web3.js";
+import { Menu, ShoppingCartIcon } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+
+import { DicebearStyles, getDicebearEndpoint } from "@/lib/client/dicebear";
+import { useShopper } from "@/providers/ShopperProvider";
+import { useStore } from "@/providers/StoreProvider";
+
+import { DialectNotification } from "./DialectNotification";
+import { SettingsDropdown } from "./SettingsDropdown";
+import { Avatar, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 export function Header() {
   const { publicKey } = useUnifiedWallet();
@@ -32,31 +28,26 @@ export function Header() {
 
   const navLinks = [
     {
-      name: 'My Store',
-      href: storeData ? `/stores/${storeData.publicKey}` : '/stores/create',
+      name: "My Store",
+      href: storeData ? `/stores/${storeData.publicKey}` : "/stores/create",
     },
     {
-      name: 'My Orders',
-      href: shopperData ? `/orders` : '/shoppers/create',
+      name: "My Orders",
+      href: shopperData ? `/orders` : "/shoppers/create",
     },
   ];
 
   return (
     <header className="border-b-primary bg-background sticky top-0 z-10 flex h-20 w-full items-center justify-between gap-4 border-b px-6 py-4">
-      <Link href={'/'} className="*:text-primary flex items-center gap-2">
+      <Link href={"/"} className="*:text-primary flex items-center gap-2">
         <ShoppingCartIcon size={24} />
-        <h1 className="hidden text-2xl font-medium sm:block md:text-3xl">
-          Splurge
-        </h1>
+        <h1 className="hidden text-2xl font-medium sm:block md:text-3xl">Splurge</h1>
       </Link>
       <nav className="ml-auto hidden items-center gap-6 md:flex">
         <ul className="flex items-center gap-4">
           {navLinks.map(({ name, href }) => (
             <li key={href}>
-              <Link
-                href={href}
-                className="font-medium text-nowrap hover:underline"
-              >
+              <Link href={href} className="font-medium text-nowrap hover:underline">
                 {name}
               </Link>
             </li>
@@ -74,18 +65,14 @@ export function Header() {
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size={'icon'}
-              className="*:text-foreground size-8"
-            >
+            <Button variant="ghost" size={"icon"} className="*:text-foreground size-8">
               <Menu />
             </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
               <Link
-                href={'/'}
+                href={"/"}
                 className="*:text-primary flex items-center gap-2"
                 onClick={() => setIsOpen(false)}
               >
@@ -116,19 +103,13 @@ export function Header() {
           <Link href={`/shoppers/${shopperData.publicKey}`}>
             <Avatar className="size-7">
               <AvatarImage
-                src={
-                  shopperData.image ??
-                  getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)
-                }
+                src={shopperData.image ?? getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)}
                 className="bg-white"
               />
             </Avatar>
           </Link>
         )}
-        <UnifiedWalletButton
-          buttonClassName="bg-primary!"
-          currentUserClassName="bg-primary!"
-        />
+        <UnifiedWalletButton buttonClassName="bg-primary!" currentUserClassName="bg-primary!" />
       </div>
     </header>
   );

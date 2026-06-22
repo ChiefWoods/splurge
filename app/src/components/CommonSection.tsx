@@ -1,5 +1,6 @@
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
+
+import { cn } from "@/lib/utils";
 
 export function CommonSection({
   children,
@@ -10,10 +11,7 @@ export function CommonSection({
 }) {
   return (
     <section
-      className={cn(
-        'flex w-full flex-1 flex-col items-center justify-center gap-4',
-        className
-      )}
+      className={cn("flex w-full flex-1 flex-col items-center justify-center gap-4", className)}
     >
       {children}
     </section>

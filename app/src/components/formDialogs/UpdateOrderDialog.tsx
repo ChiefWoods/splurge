@@ -1,41 +1,39 @@
-'use client';
+"use client";
 
-import { useConnection } from '@solana/wallet-adapter-react';
-import { useCallback, useState } from 'react';
-import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { Pencil, Truck, X } from "lucide-react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { useWalletAuth } from "@/hooks/useWalletAuth";
+import { sendPermissionedTx } from "@/lib/api";
+import { buildTx, SPLURGE_CLIENT, TUKTUK_CLIENT } from "@/lib/client/solana";
+import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
+import { alertOrderUpdate } from "@/lib/server/dialect";
+import { atomicToUsd, capitalizeFirstLetter, truncateAddress } from "@/lib/utils";
+import { useOrders } from "@/providers/OrdersProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+import { useStore } from "@/providers/StoreProvider";
 import {
   ParsedConfig,
   ParsedItem,
   ParsedOrder,
   ParsedOrderStatus,
   ParsedShopper,
-} from '@/types/accounts';
-import { Button } from '../ui/button';
-import { Pencil, Truck, X } from 'lucide-react';
-import { StatusBadge } from '../StatusBadge';
-import { useWalletAuth } from '@/hooks/useWalletAuth';
-import { toast } from 'sonner';
-import { buildTx, SPLURGE_CLIENT, TUKTUK_CLIENT } from '@/lib/client/solana';
-import { PublicKey } from '@solana/web3.js';
-import { sendPermissionedTx } from '@/lib/api';
-import {
-  atomicToUsd,
-  capitalizeFirstLetter,
-  truncateAddress,
-} from '@/lib/utils';
-import { useOrders } from '@/providers/OrdersProvider';
-import { TransactionToast } from '../TransactionToast';
-import { alertOrderUpdate } from '@/lib/server/dialect';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '../FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormCancelButton } from '../FormCancelButton';
-import { LargeImage } from '../LargeImage';
-import { useSettings } from '@/providers/SettingsProvider';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { useStore } from '@/providers/StoreProvider';
+} from "@/types/accounts";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormDialogTitle } from "../FormDialogTitle";
+import { LargeImage } from "../LargeImage";
+import { StatusBadge } from "../StatusBadge";
+import { TransactionToast } from "../TransactionToast";
+import { Button } from "../ui/button";
+import { Dialog, DialogHeader, DialogTrigger } from "../ui/dialog";
 
 export function UpdateOrderDialog({
   config,
@@ -64,11 +62,11 @@ export function UpdateOrderDialog({
       toast.promise(
         async () => {
           if (!signMessage) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           if (!storeData) {
-            throw new Error('Store account not created.');
+            throw new Error("Store account not created.");
           }
 
           setIsSubmitting(true);
@@ -82,7 +80,7 @@ export function UpdateOrderDialog({
           const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
 
           if (!mintAcc) {
-            throw new Error('Mint account not found.');
+            throw new Error("Mint account not found.");
           }
 
           const tokenProgram = mintAcc.owner;
@@ -90,7 +88,7 @@ export function UpdateOrderDialog({
           const tx = await buildTx(
             connection,
             [
-              status === 'shipping'
+              status === "shipping"
                 ? await SPLURGE_CLIENT.shipOrderIx({
                     admin,
                     orderPda: orderPdaPubkey,
@@ -112,13 +110,13 @@ export function UpdateOrderDialog({
             ],
             admin,
             [],
-            priorityFee
+            priorityFee,
           );
 
           await signMessage(
             new TextEncoder().encode(
-              `Update order ${truncateAddress(order.publicKey)} to '${capitalizeFirstLetter(status)}' status.`
-            )
+              `Update order ${truncateAddress(order.publicKey)} to '${capitalizeFirstLetter(status)}' status.`,
+            ),
           );
 
           const signature = await sendPermissionedTx(tx);
@@ -129,12 +127,12 @@ export function UpdateOrderDialog({
           };
         },
         {
-          loading: 'Waiting for signature...',
+          loading: "Waiting for signature...",
           success: async ({ signature, storeName }) => {
             await ordersMutate(
               (prev) => {
                 if (!prev) {
-                  throw new Error('Orders should not be null.');
+                  throw new Error("Orders should not be null.");
                 }
 
                 return prev.map((prevOrder) => {
@@ -150,18 +148,16 @@ export function UpdateOrderDialog({
               },
               {
                 revalidate: true,
-              }
+              },
             );
 
             setIsOpen(false);
             setIsSubmitting(false);
 
-            const paymentMintSymbol = ACCEPTED_MINTS_METADATA.get(
-              order.paymentMint
-            )?.symbol;
+            const paymentMintSymbol = ACCEPTED_MINTS_METADATA.get(order.paymentMint)?.symbol;
 
             if (!paymentMintSymbol) {
-              throw new Error('Payment mint not found.');
+              throw new Error("Payment mint not found.");
             }
 
             await alertOrderUpdate({
@@ -176,19 +172,14 @@ export function UpdateOrderDialog({
               status,
             });
 
-            return (
-              <TransactionToast
-                title="Order updated!"
-                link={getTransactionLink(signature)}
-              />
-            );
+            return <TransactionToast title="Order updated!" link={getTransactionLink(signature)} />;
           },
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -203,7 +194,7 @@ export function UpdateOrderDialog({
       shopper,
       order,
       item,
-    ]
+    ],
   );
 
   return (
@@ -231,8 +222,8 @@ export function UpdateOrderDialog({
           <FormDialogFooter>
             <FormCancelButton onClick={() => setIsOpen(false)} />
             <Button
-              size={'sm'}
-              onClick={() => onSubmit('shipping')}
+              size={"sm"}
+              onClick={() => onSubmit("shipping")}
               disabled={isSubmitting}
               className="bg-completed hover:bg-completed/90 transition-colors"
             >
@@ -240,8 +231,8 @@ export function UpdateOrderDialog({
               Shipped
             </Button>
             <Button
-              size={'sm'}
-              onClick={() => onSubmit('cancelled')}
+              size={"sm"}
+              onClick={() => onSubmit("cancelled")}
               disabled={isSubmitting}
               className="bg-cancelled hover:bg-cancelled/90 transition-colors"
             >

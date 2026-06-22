@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { ParsedStore } from '@/types/accounts';
-import { wrappedFetch } from '@/lib/api';
-import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { createContext, ReactNode, useContext } from "react";
+import useSWR, { KeyedMutator } from "swr";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { wrappedFetch } from "@/lib/api";
+import { ParsedStore } from "@/types/accounts";
 
 interface StoreContextType {
   storeData: ParsedStore | undefined;
@@ -33,12 +34,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     async ({ pda }) => {
       const url = new URL(apiEndpoint);
 
-      if (pda) url.searchParams.append('pda', pda);
+      if (pda) url.searchParams.append("pda", pda);
 
       const store = (await wrappedFetch(url.href)).store as ParsedStore;
 
       return store;
-    }
+    },
   );
 
   return (

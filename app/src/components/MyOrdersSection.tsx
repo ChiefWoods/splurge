@@ -1,15 +1,17 @@
-'use client';
+"use client";
 
-import { OrderTable } from './OrderTable';
-import { SectionHeader } from './SectionHeader';
-import { StatusBadge } from './StatusBadge';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { ConnectWalletEmpty } from './ConnectWalletEmpty';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { ParsedItem, ParsedOrder } from '@/types/accounts';
-import useSWR from 'swr';
-import { wrappedFetch } from '@/lib/api';
-import { CommonSection } from './CommonSection';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import useSWR from "swr";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { wrappedFetch } from "@/lib/api";
+import { ParsedItem, ParsedOrder } from "@/types/accounts";
+
+import { CommonSection } from "./CommonSection";
+import { ConnectWalletEmpty } from "./ConnectWalletEmpty";
+import { OrderTable } from "./OrderTable";
+import { SectionHeader } from "./SectionHeader";
+import { StatusBadge } from "./StatusBadge";
 
 export function MyOrdersSection({ items }: { items: ParsedItem[] }) {
   const { publicKey } = useUnifiedWallet();
@@ -20,16 +22,14 @@ export function MyOrdersSection({ items }: { items: ParsedItem[] }) {
     async ({ publicKey }) => {
       const shopperPda = SplurgeClient.getShopperPda(publicKey).toBase58();
 
-      const url = new URL(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/orders`
-      );
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/orders`);
 
-      url.searchParams.append('shopper', shopperPda);
+      url.searchParams.append("shopper", shopperPda);
 
       const orders = (await wrappedFetch(url.href)).orders as ParsedOrder[];
 
       return orders;
-    }
+    },
   );
 
   if (!publicKey) {

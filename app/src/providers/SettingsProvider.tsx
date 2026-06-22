@@ -1,19 +1,14 @@
-'use client';
+"use client";
 
-import { CLUSTER } from '@/lib/client/solana';
-import { CuPriceRange } from '@/types/transactions';
-import { getExplorerLink } from '@/lib/solana-developers-helpers';
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
-type Explorer = 'solana-explorer' | 'solscan' | 'solanaFM' | 'orb';
+import { CLUSTER } from "@/lib/client/solana";
+import { getExplorerLink } from "@/lib/solana-developers-helpers";
+import { CuPriceRange } from "@/types/transactions";
+
+type Explorer = "solana-explorer" | "solscan" | "solanaFM" | "orb";
 type PriorityFee = CuPriceRange;
-type RpcType = 'default' | 'custom';
+type RpcType = "default" | "custom";
 
 interface SettingsContextType {
   explorer: Explorer;
@@ -28,91 +23,89 @@ interface SettingsContextType {
   getAccountLink: (address: string) => string;
 }
 
-const SettingsContext = createContext<SettingsContextType>(
-  {} as SettingsContextType
-);
+const SettingsContext = createContext<SettingsContextType>({} as SettingsContextType);
 
 export function useSettings() {
   return useContext(SettingsContext);
 }
 
 const defaultSettings = {
-  explorer: 'solana-explorer' as Explorer,
-  priorityFee: 'low' as PriorityFee,
-  rpcType: 'default' as RpcType,
-  customRpcUrl: '',
+  explorer: "solana-explorer" as Explorer,
+  priorityFee: "low" as PriorityFee,
+  rpcType: "default" as RpcType,
+  customRpcUrl: "",
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [explorer, setExplorer] = useState<Explorer>(() => {
-    if (typeof window === 'undefined') return defaultSettings.explorer;
-    const saved = localStorage.getItem('explorer') as Explorer;
+    if (typeof window === "undefined") return defaultSettings.explorer;
+    const saved = localStorage.getItem("explorer") as Explorer;
     return saved || defaultSettings.explorer;
   });
 
   const [priorityFee, setPriorityFee] = useState<PriorityFee>(() => {
-    if (typeof window === 'undefined') return defaultSettings.priorityFee;
-    const saved = localStorage.getItem('priority-fee') as PriorityFee;
+    if (typeof window === "undefined") return defaultSettings.priorityFee;
+    const saved = localStorage.getItem("priority-fee") as PriorityFee;
     return saved || defaultSettings.priorityFee;
   });
 
   const [rpcType, setRpcType] = useState<RpcType>(() => {
-    if (typeof window === 'undefined') return defaultSettings.rpcType;
-    const saved = localStorage.getItem('rpc-type') as RpcType;
+    if (typeof window === "undefined") return defaultSettings.rpcType;
+    const saved = localStorage.getItem("rpc-type") as RpcType;
     return saved || defaultSettings.rpcType;
   });
 
   const [customRpcUrl, setCustomRpcUrl] = useState<string>(() => {
-    if (typeof window === 'undefined') return defaultSettings.customRpcUrl;
-    const saved = localStorage.getItem('custom-rpc-url');
+    if (typeof window === "undefined") return defaultSettings.customRpcUrl;
+    const saved = localStorage.getItem("custom-rpc-url");
     return saved || defaultSettings.customRpcUrl;
   });
 
   useEffect(() => {
-    localStorage.setItem('explorer', explorer);
+    localStorage.setItem("explorer", explorer);
   }, [explorer]);
 
   useEffect(() => {
-    localStorage.setItem('priority-fee', priorityFee);
+    localStorage.setItem("priority-fee", priorityFee);
   }, [priorityFee]);
 
   useEffect(() => {
-    localStorage.setItem('rpc-type', rpcType);
+    localStorage.setItem("rpc-type", rpcType);
   }, [rpcType]);
 
   useEffect(() => {
-    localStorage.setItem('custom-rpc-url', customRpcUrl);
+    localStorage.setItem("custom-rpc-url", customRpcUrl);
   }, [customRpcUrl]);
 
   function getTransactionLink(signature: string): string {
     switch (explorer) {
-      case 'solana-explorer':
-        return getExplorerLink('tx', signature, CLUSTER);
-      case 'solscan':
+      case "solana-explorer":
+        return getExplorerLink("tx", signature, CLUSTER);
+      case "solscan":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://solscan.io/tx/${signature}`;
-          case 'devnet':
+          case "devnet":
             return `https://solscan.io/tx/${signature}?cluster=devnet`;
-          case 'testnet':
+          case "testnet":
             return `https://solscan.io/tx/${signature}?cluster=testnet`;
         }
-      case 'solanaFM':
+      case "solanaFM":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://solana.fm/tx/${signature}?cluster=mainnet-alpha`;
-          case 'devnet':
+          case "devnet":
             return `https://solana.fm/tx/${signature}?cluster=devnet-alpha`;
-          case 'testnet':
+          case "testnet":
             return `https://solana.fm/tx/${signature}?cluster=testnet-solana`;
         }
-      case 'orb':
+      case "orb":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta`;
-          case 'devnet':
+          case "devnet":
             return `https://orb.helius.dev/tx/${signature}?cluster=devnet`;
-          case 'testnet':
+          case "testnet":
             return `https://orb.helius.dev/tx/${signature}?cluster=testnet`;
         }
     }
@@ -120,33 +113,33 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   function getAccountLink(address: string): string {
     switch (explorer) {
-      case 'solana-explorer':
-        return getExplorerLink('address', address, CLUSTER);
-      case 'solscan':
+      case "solana-explorer":
+        return getExplorerLink("address", address, CLUSTER);
+      case "solscan":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://solscan.io/account/${address}`;
-          case 'devnet':
+          case "devnet":
             return `https://solscan.io/account/${address}?cluster=devnet`;
-          case 'testnet':
+          case "testnet":
             return `https://solscan.io/account/${address}?cluster=testnet`;
         }
-      case 'solanaFM':
+      case "solanaFM":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://solana.fm/address/${address}?cluster=mainnet-alpha`;
-          case 'devnet':
+          case "devnet":
             return `https://solana.fm/address/${address}?cluster=devnet-alpha`;
-          case 'testnet':
+          case "testnet":
             return `https://solana.fm/address/${address}?cluster=testnet-solana`;
         }
-      case 'orb':
+      case "orb":
         switch (CLUSTER) {
-          case 'mainnet-beta':
+          case "mainnet-beta":
             return `https://orb.helius.dev/address/${address}?cluster=mainnet-beta`;
-          case 'devnet':
+          case "devnet":
             return `https://orb.helius.dev/address/${address}?cluster=devnet`;
-          case 'testnet':
+          case "testnet":
             return `https://orb.helius.dev/address/${address}?cluster=testnet`;
         }
     }

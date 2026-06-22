@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { ParsedItem } from '@/types/accounts';
-import { wrappedFetch } from '@/lib/api';
-import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
+import { createContext, ReactNode, useContext } from "react";
+import useSWR, { KeyedMutator } from "swr";
+
+import { wrappedFetch } from "@/lib/api";
+import { ParsedItem } from "@/types/accounts";
 
 interface ItemContextType {
   itemData: ParsedItem | undefined;
@@ -31,11 +32,11 @@ export function ItemProvider({
     isLoading: itemLoading,
     mutate: itemMutate,
   } = useSWR(
-    'item',
+    "item",
     async () => {
       const url = new URL(apiEndpoint);
 
-      url.searchParams.append('pda', fallbackData.publicKey);
+      url.searchParams.append("pda", fallbackData.publicKey);
 
       const itemAcc = (await wrappedFetch(url.href)).item as ParsedItem;
 
@@ -44,7 +45,7 @@ export function ItemProvider({
     {
       fallbackData,
       revalidateOnMount: false,
-    }
+    },
   );
 
   return (

@@ -1,23 +1,19 @@
-'use client';
+"use client";
 
-import { useItems } from '@/providers/ItemsProvider';
-import { SectionHeader } from './SectionHeader';
-import { ItemCard } from './ItemCard';
-import { EmptyResult } from './EmptyResult';
-import { ShoppingBasket } from 'lucide-react';
-import { ItemCardInfoText } from './ItemCardInfoText';
-import { ItemActionButtons } from './ItemActionButtons';
-import { atomicToUsd } from '@/lib/utils';
-import { ItemCardSkeleton } from './ItemCardSkeleton';
-import { ParsedConfig, ParsedStore } from '@/types/accounts';
+import { ShoppingBasket } from "lucide-react";
 
-export function StoreSection({
-  store,
-  config,
-}: {
-  store: ParsedStore;
-  config: ParsedConfig;
-}) {
+import { atomicToUsd } from "@/lib/utils";
+import { useItems } from "@/providers/ItemsProvider";
+import { ParsedConfig, ParsedStore } from "@/types/accounts";
+
+import { EmptyResult } from "./EmptyResult";
+import { ItemActionButtons } from "./ItemActionButtons";
+import { ItemCard } from "./ItemCard";
+import { ItemCardInfoText } from "./ItemCardInfoText";
+import { ItemCardSkeleton } from "./ItemCardSkeleton";
+import { SectionHeader } from "./SectionHeader";
+
+export function StoreSection({ store, config }: { store: ParsedStore; config: ParsedConfig }) {
   const { itemsData, itemsLoading } = useItems();
 
   return (
@@ -39,11 +35,7 @@ export function StoreSection({
                     <ItemCardInfoText text={`${atomicToUsd(item.price)} USD`} />
                     <ItemCardInfoText text={`${item.inventoryCount} left`} />
                   </div>
-                  <ItemActionButtons
-                    item={item}
-                    store={store}
-                    config={config}
-                  />
+                  <ItemActionButtons item={item} store={store} config={config} />
                 </>
               </ItemCard>
             ))

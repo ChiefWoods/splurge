@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import { InfoTooltip } from '@/components/InfoTooltip';
-import { MintIcon } from '@/components/MintIcon';
-import { SectionHeader } from '@/components/SectionHeader';
-import { TransactionToast } from '@/components/TransactionToast';
-import { Button } from '@/components/ui/button';
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { PublicKey } from "@solana/web3.js";
+import { HandCoins } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { InfoTooltip } from "@/components/InfoTooltip";
+import { MintIcon } from "@/components/MintIcon";
+import { SectionHeader } from "@/components/SectionHeader";
+import { TransactionToast } from "@/components/TransactionToast";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,21 +19,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { buildTx } from '@/lib/client/solana';
-import { atomicToUsd } from '@/lib/utils';
-import { useEarnings } from '@/providers/EarningsProvider';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { PublicKey } from '@solana/web3.js';
-import { HandCoins } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { SPLURGE_CLIENT } from '@/lib/client/solana';
-import { Price } from '@/types/price';
+} from "@/components/ui/table";
+import { sendTx } from "@/lib/api";
+import { buildTx } from "@/lib/client/solana";
+import { SPLURGE_CLIENT } from "@/lib/client/solana";
+import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
+import { atomicToUsd } from "@/lib/utils";
+import { useEarnings } from "@/providers/EarningsProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+import { Price } from "@/types/price";
 
 export function EarningsSection({ prices }: { prices: Price[] }) {
   const { connection } = useConnection();
@@ -63,20 +64,17 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
     });
   }, [earningsData, prices]);
 
-  const totalBalance = balanceRows.reduce(
-    (sum, row) => sum + Number(row.balance),
-    0
-  );
+  const totalBalance = balanceRows.reduce((sum, row) => sum + Number(row.balance), 0);
 
   const onWithdraw = useCallback(() => {
     toast.promise(
       async () => {
         if (!publicKey || !signTransaction) {
-          throw new Error('Wallet not connected.');
+          throw new Error("Wallet not connected.");
         }
 
         if (!earningsData) {
-          throw new Error('No store associated token accounts found.');
+          throw new Error("No store associated token accounts found.");
         }
 
         setIsWithdrawing(true);
@@ -99,11 +97,11 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
                   storePda: SplurgeClient.getStorePda(publicKey),
                   tokenProgram: metadata.owner,
                 });
-              })
+              }),
           ),
           publicKey,
           [],
-          priorityFee
+          priorityFee,
         );
 
         tx = await signTransaction(tx);
@@ -112,12 +110,12 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
         return signature;
       },
       {
-        loading: 'Withdrawing...',
+        loading: "Withdrawing...",
         success: async (signature) => {
           await earningsMutate(
             (prev) => {
               if (!prev) {
-                throw new Error('Store token accounts should not be null.');
+                throw new Error("Store token accounts should not be null.");
               }
 
               return prev.map((account) => ({
@@ -127,24 +125,21 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
             },
             {
               revalidate: true,
-            }
+            },
           );
 
           setIsWithdrawing(false);
 
           return (
-            <TransactionToast
-              title="Earnings withdrawn!"
-              link={getTransactionLink(signature)}
-            />
+            <TransactionToast title="Earnings withdrawn!" link={getTransactionLink(signature)} />
           );
         },
         error: (err) => {
           console.error(err);
           setIsWithdrawing(false);
-          return err.message || 'Something went wrong.';
+          return err.message || "Something went wrong.";
         },
-      }
+      },
     );
   }, [
     publicKey,
@@ -160,11 +155,7 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
     <>
       <div className="flex w-full flex-wrap items-center justify-between gap-2">
         <SectionHeader text="Your Earnings" />
-        <Button
-          size={'sm'}
-          onClick={onWithdraw}
-          disabled={isWithdrawing || totalBalance === 0}
-        >
+        <Button size={"sm"} onClick={onWithdraw} disabled={isWithdrawing || totalBalance === 0}>
           <HandCoins />
           Withdraw All
         </Button>
@@ -200,9 +191,7 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
                 ))}
                 <TableRow>
                   <TableCell className="font-semibold">Total</TableCell>
-                  <TableCell className="font-semibold">
-                    ${totalBalance.toFixed(2)}
-                  </TableCell>
+                  <TableCell className="font-semibold">${totalBalance.toFixed(2)}</TableCell>
                 </TableRow>
               </>
             )

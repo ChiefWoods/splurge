@@ -1,21 +1,22 @@
-import { BN, IdlAccounts, IdlTypes } from '@coral-xyz/anchor';
-import { Splurge } from './splurge';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
-import { ExtractDefinedKeys } from './generators';
+import { BN, IdlAccounts, IdlTypes } from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 
-type Config = IdlAccounts<Splurge>['config'];
-type Shopper = IdlAccounts<Splurge>['shopper'];
-type Store = IdlAccounts<Splurge>['store'];
-type Item = IdlAccounts<Splurge>['item'];
-type Order = IdlAccounts<Splurge>['order'];
-type Review = IdlAccounts<Splurge>['review'];
-type AcceptedMint = IdlTypes<Splurge>['acceptedMint'];
-export type OrderStatus = IdlTypes<Splurge>['orderStatus'];
-export type InitializeShopperArgs = IdlTypes<Splurge>['initializeShopperArgs'];
-export type InitializeStoreArgs = IdlTypes<Splurge>['initializeStoreArgs'];
-export type ListItemArgs = IdlTypes<Splurge>['listItemArgs'];
-export type UpdateItemArgs = IdlTypes<Splurge>['updateItemArgs'];
-export type CreateReviewArgs = IdlTypes<Splurge>['createReviewArgs'];
+import { ExtractDefinedKeys } from "./generators";
+import { Splurge } from "./splurge";
+
+type Config = IdlAccounts<Splurge>["config"];
+type Shopper = IdlAccounts<Splurge>["shopper"];
+type Store = IdlAccounts<Splurge>["store"];
+type Item = IdlAccounts<Splurge>["item"];
+type Order = IdlAccounts<Splurge>["order"];
+type Review = IdlAccounts<Splurge>["review"];
+type AcceptedMint = IdlTypes<Splurge>["acceptedMint"];
+export type OrderStatus = IdlTypes<Splurge>["orderStatus"];
+export type InitializeShopperArgs = IdlTypes<Splurge>["initializeShopperArgs"];
+export type InitializeStoreArgs = IdlTypes<Splurge>["initializeStoreArgs"];
+export type ListItemArgs = IdlTypes<Splurge>["listItemArgs"];
+export type UpdateItemArgs = IdlTypes<Splurge>["updateItemArgs"];
+export type CreateReviewArgs = IdlTypes<Splurge>["createReviewArgs"];
 
 export type ParsedOrderStatus = ExtractDefinedKeys<OrderStatus>;
 
@@ -81,18 +82,14 @@ export function parseEnum<T>(field: object): T {
 }
 
 function parsePublicKey(field: PublicKey | null): string {
-  return !field || field.equals(SystemProgram.programId)
-    ? ''
-    : field.toBase58();
+  return !field || field.equals(SystemProgram.programId) ? "" : field.toBase58();
 }
 
 function parseBN(field: BN): number {
   return field.toNumber();
 }
 
-function parseAcceptedMints(
-  acceptedMints: AcceptedMint[]
-): ParsedAcceptedMint[] {
+function parseAcceptedMints(acceptedMints: AcceptedMint[]): ParsedAcceptedMint[] {
   return acceptedMints.map((mint) => ({
     mint: parsePublicKey(mint.mint),
     priceUpdateV2: parsePublicKey(mint.priceUpdateV2),
@@ -104,7 +101,7 @@ export function parseConfig({
   isPaused,
   orderFeeBps,
   acceptedMints,
-}: Config): Omit<ParsedConfig, 'publicKey'> {
+}: Config): Omit<ParsedConfig, "publicKey"> {
   return {
     admin: parsePublicKey(admin),
     isPaused,
@@ -118,7 +115,7 @@ export function parseShopper({
   name,
   image,
   address,
-}: Shopper): Omit<ParsedShopper, 'publicKey'> {
+}: Shopper): Omit<ParsedShopper, "publicKey"> {
   return {
     authority: parsePublicKey(authority),
     name,
@@ -132,7 +129,7 @@ export function parseStore({
   name,
   image,
   about,
-}: Store): Omit<ParsedStore, 'publicKey'> {
+}: Store): Omit<ParsedStore, "publicKey"> {
   return {
     authority: parsePublicKey(authority),
     name,
@@ -148,7 +145,7 @@ export function parseItem({
   name,
   image,
   description,
-}: Item): Omit<ParsedItem, 'publicKey'> {
+}: Item): Omit<ParsedItem, "publicKey"> {
   return {
     store: parsePublicKey(store),
     price: parseBN(price),
@@ -168,7 +165,7 @@ export function parseOrder({
   paymentSubtotal,
   platformFee,
   paymentMint,
-}: Order): Omit<ParsedOrder, 'publicKey'> {
+}: Order): Omit<ParsedOrder, "publicKey"> {
   return {
     shopper: parsePublicKey(shopper),
     item: parsePublicKey(item),
@@ -186,7 +183,7 @@ export function parseReview({
   rating,
   timestamp,
   text,
-}: Review): Omit<ParsedReview, 'publicKey'> {
+}: Review): Omit<ParsedReview, "publicKey"> {
   return {
     order: parsePublicKey(order),
     rating,

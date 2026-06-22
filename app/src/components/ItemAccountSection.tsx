@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import { ParsedConfig, ParsedItem, ParsedStore } from '@/types/accounts';
-import { AccountSection } from './AccountSection';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { ItemCardInfoText } from './ItemCardInfoText';
-import { atomicToUsd } from '@/lib/utils';
-import { AccountSectionButtonTab } from './AccountSectionButtonTab';
-import { CheckoutDialog } from './formDialogs/CheckoutDialog';
-import { ShoppingCart } from 'lucide-react';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { ShoppingCart } from "lucide-react";
+
+import { atomicToUsd } from "@/lib/utils";
+import { ParsedConfig, ParsedItem, ParsedStore } from "@/types/accounts";
+
+import { AccountSection } from "./AccountSection";
+import { AccountSectionButtonTab } from "./AccountSectionButtonTab";
+import { CheckoutDialog } from "./formDialogs/CheckoutDialog";
+import { ItemCardInfoText } from "./ItemCardInfoText";
 
 export function ItemAccountSection({
   store,

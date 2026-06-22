@@ -1,9 +1,10 @@
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { Metadata } from 'next';
-import { PublicKey } from '@solana/web3.js';
-import { notFound } from 'next/navigation';
-import { ReactNode } from 'react';
-import { fetchShopper } from '@/lib/accounts';
+import { PublicKey } from "@solana/web3.js";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ReactNode } from "react";
+
+import { fetchShopper } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,7 @@ export async function generateMetadata({
     new PublicKey(shopperPda);
   } catch {
     return {
-      title: '404',
+      title: "404",
     };
   }
 
@@ -25,7 +26,7 @@ export async function generateMetadata({
 
   if (!shopper) {
     return {
-      title: '404',
+      title: "404",
     };
   }
 

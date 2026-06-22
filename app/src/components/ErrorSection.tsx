@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
-import { CommonMain } from './CommonMain';
-import { LucideProps } from 'lucide-react';
-import { Button } from './ui/button';
+import { LucideProps } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
+import { CommonMain } from "./CommonMain";
+import { Button } from "./ui/button";
 
 export function ErrorSection({
   title,
@@ -14,9 +15,7 @@ export function ErrorSection({
 }: {
   title: string;
   description: string;
-  Icon: ForwardRefExoticComponent<
-    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
-  >;
+  Icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
   onClick: () => void;
   btnText: string;
 }) {

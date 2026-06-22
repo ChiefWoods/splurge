@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { ConnectionProvider } from '@solana/wallet-adapter-react';
-import { UnifiedWalletProvider } from '@jup-ag/wallet-adapter';
-import { ReactNode } from 'react';
-import { CLUSTER } from '@/lib/client/solana';
-import { toast } from 'sonner';
-import { useSettings } from './SettingsProvider';
-import { clusterApiUrl } from '@solana/web3.js';
+import { UnifiedWalletProvider } from "@jup-ag/wallet-adapter";
+import { ConnectionProvider } from "@solana/wallet-adapter-react";
+import { clusterApiUrl } from "@solana/web3.js";
+import { ReactNode } from "react";
+import { toast } from "sonner";
+
+import { CLUSTER } from "@/lib/client/solana";
+
+import { useSettings } from "./SettingsProvider";
 
 const metadata = {
-  name: 'Splurge',
-  description: 'On-chain e-commerce platform',
+  name: "Splurge",
+  description: "On-chain e-commerce platform",
   url: process.env.NEXT_PUBLIC_FRONTEND_BASE_URL as string,
   iconUrls: [`${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/favicon.ico`],
 };
@@ -18,15 +20,14 @@ const metadata = {
 export function SolanaProvider({ children }: { children: ReactNode }) {
   const { rpcType, customRpcUrl } = useSettings();
 
-  const defaultEndpoint =
-    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER);
+  const defaultEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER);
 
   return (
     <ConnectionProvider
       endpoint={
-        rpcType === 'default'
+        rpcType === "default"
           ? defaultEndpoint
-          : customRpcUrl !== ''
+          : customRpcUrl !== ""
             ? customRpcUrl
             : defaultEndpoint
       }
@@ -49,14 +50,14 @@ export function SolanaProvider({ children }: { children: ReactNode }) {
             },
             onNotInstalled: (props) => {
               toast.error(
-                `${props.walletName} Wallet is not installed. Please go to the provider website to download.`
+                `${props.walletName} Wallet is not installed. Please go to the provider website to download.`,
               );
             },
           },
           walletlistExplanation: {
-            href: 'https://station.jup.ag/docs/old/additional-topics/wallet-list',
+            href: "https://station.jup.ag/docs/old/additional-topics/wallet-list",
           },
-          theme: 'jupiter',
+          theme: "jupiter",
         }}
       >
         {children}

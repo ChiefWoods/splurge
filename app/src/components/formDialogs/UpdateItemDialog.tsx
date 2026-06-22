@@ -1,46 +1,35 @@
-'use client';
+"use client";
 
-import { Pencil } from 'lucide-react';
-import { WalletGuardButton } from '../WalletGuardButton';
-import { useCallback, useState } from 'react';
-import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
-import { Input } from '../ui/input';
-import { useForm } from 'react-hook-form';
-import { UpdateItemFormData, updateItemSchema } from '@/lib/schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { TransactionToast } from '../TransactionToast';
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { toast } from 'sonner';
-import Image from 'next/image';
-import { PublicKey } from '@solana/web3.js';
-import { useItems } from '@/providers/ItemsProvider';
-import { BN } from '@coral-xyz/anchor';
-import { MINT_DECIMALS } from '@/lib/constants';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '../FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { ParsedItem } from '@/types/accounts';
+import { BN } from "@coral-xyz/anchor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { PublicKey } from "@solana/web3.js";
+import { Pencil } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
-export function UpdateItemDialog({
-  item,
-  storePda,
-}: {
-  item: ParsedItem;
-  storePda: string;
-}) {
+import { sendTx } from "@/lib/api";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { MINT_DECIMALS } from "@/lib/constants";
+import { UpdateItemFormData, updateItemSchema } from "@/lib/schema";
+import { useItems } from "@/providers/ItemsProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+import { ParsedItem } from "@/types/accounts";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormDialogTitle } from "../FormDialogTitle";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { TransactionToast } from "../TransactionToast";
+import { Dialog, DialogHeader, DialogTrigger } from "../ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { WalletGuardButton } from "../WalletGuardButton";
+
+export function UpdateItemDialog({ item, storePda }: { item: ParsedItem; storePda: string }) {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { getTransactionLink, priorityFee } = useSettings();
@@ -61,7 +50,7 @@ export function UpdateItemDialog({
       toast.promise(
         async () => {
           if (!publicKey || !signTransaction) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           setIsSubmitting(true);
@@ -79,7 +68,7 @@ export function UpdateItemDialog({
             ],
             publicKey,
             [],
-            priorityFee
+            priorityFee,
           );
 
           tx = await signTransaction(tx);
@@ -92,12 +81,12 @@ export function UpdateItemDialog({
           };
         },
         {
-          loading: 'Waiting for signature...',
+          loading: "Waiting for signature...",
           success: async ({ signature, inventoryCount, price }) => {
             await itemsMutate(
               (prev) => {
                 if (!prev) {
-                  throw new Error('Items should not be null.');
+                  throw new Error("Items should not be null.");
                 }
 
                 return prev.map((prevItem) => {
@@ -114,7 +103,7 @@ export function UpdateItemDialog({
               },
               {
                 revalidate: true,
-              }
+              },
             );
 
             setIsOpen(false);
@@ -124,19 +113,14 @@ export function UpdateItemDialog({
             });
             setIsSubmitting(false);
 
-            return (
-              <TransactionToast
-                title="Item updated!"
-                link={getTransactionLink(signature)}
-              />
-            );
+            return <TransactionToast title="Item updated!" link={getTransactionLink(signature)} />;
           },
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -149,13 +133,13 @@ export function UpdateItemDialog({
       connection,
       getTransactionLink,
       priorityFee,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="outline" size={'icon'} setOpen={setIsOpen}>
+        <WalletGuardButton variant="outline" size={"icon"} setOpen={setIsOpen}>
           <Pencil />
         </WalletGuardButton>
       </DialogTrigger>
@@ -218,9 +202,7 @@ export function UpdateItemDialog({
                       onChange={(e) => {
                         const usdValue = parseFloat(e.target.value);
                         field.onChange(
-                          isNaN(usdValue)
-                            ? 0
-                            : Number(usdValue.toFixed(2)) * 10 ** MINT_DECIMALS
+                          isNaN(usdValue) ? 0 : Number(usdValue.toFixed(2)) * 10 ** MINT_DECIMALS,
                         );
                       }}
                     />
@@ -236,11 +218,7 @@ export function UpdateItemDialog({
                   form.reset();
                 }}
               />
-              <FormSubmitButton
-                Icon={Pencil}
-                disabled={isSubmitting}
-                text="Update Item"
-              />
+              <FormSubmitButton Icon={Pencil} disabled={isSubmitting} text="Update Item" />
             </FormDialogFooter>
           </form>
         </Form>

@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - 'programs/**'
-      - 'tests/**'
-      - 'Anchor.toml'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - 'package.json'
-      - 'bun.lock'
+      - "programs/**"
+      - "tests/**"
+      - "Anchor.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package.json"
+      - "bun.lock"
 
 env:
   SOLANA_VERSION: "2.3.0"
@@ -34,8 +34,8 @@ jobs:
 
       - name: Install Node
         uses: actions/setup-node@v5
-        with: 
-          node-version: '24'
+        with:
+          node-version: "24"
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2

@@ -1,10 +1,11 @@
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { Metadata } from 'next';
-import { PublicKey } from '@solana/web3.js';
-import { notFound } from 'next/navigation';
-import { ReactNode } from 'react';
-import { fetchAllItems, fetchStore } from '@/lib/accounts';
-import { ItemsProvider } from '@/providers/ItemsProvider';
+import { PublicKey } from "@solana/web3.js";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ReactNode } from "react";
+
+import { fetchAllItems, fetchStore } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { ItemsProvider } from "@/providers/ItemsProvider";
 
 export async function generateMetadata({
   params,
@@ -18,7 +19,7 @@ export async function generateMetadata({
     new PublicKey(storePda);
   } catch {
     return {
-      title: '404',
+      title: "404",
     };
   }
 
@@ -26,14 +27,14 @@ export async function generateMetadata({
 
   if (!store) {
     return {
-      title: '404',
+      title: "404",
     };
   }
 
   return {
     title: {
       default: store.name,
-      template: '%s | Splurge',
+      template: "%s | Splurge",
     },
   };
 }

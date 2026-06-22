@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { SectionHeader } from './SectionHeader';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { ParsedOrder, ParsedReview, ParsedShopper } from '@/types/accounts';
-import { AddReviewDialog } from './formDialogs/AddReviewDialog';
-import { EmptyResult } from './EmptyResult';
-import { UserStar } from 'lucide-react';
-import { ReviewRow } from './ReviewRow';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { UserStar } from "lucide-react";
+import { useMemo } from "react";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { ParsedOrder, ParsedReview, ParsedShopper } from "@/types/accounts";
+
+import { EmptyResult } from "./EmptyResult";
+import { AddReviewDialog } from "./formDialogs/AddReviewDialog";
+import { ReviewRow } from "./ReviewRow";
+import { SectionHeader } from "./SectionHeader";
 
 export function ItemReviewSection({
   itemPda,
@@ -30,7 +32,7 @@ export function ItemReviewSection({
       (order) =>
         order.item === itemPda &&
         order.shopper === SplurgeClient.getShopperPda(publicKey).toBase58() &&
-        order.status === 'completed'
+        order.status === "completed",
     );
 
     for (const order of completedShopperOrders) {
@@ -51,29 +53,19 @@ export function ItemReviewSection({
       <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
         {reviews.length > 0 ? (
           reviews.map((review) => {
-            const reviewOrder = orders.find(
-              ({ publicKey }) => publicKey === review.order
-            );
+            const reviewOrder = orders.find(({ publicKey }) => publicKey === review.order);
 
             if (!reviewOrder) {
-              throw new Error('Matching order not found for review.');
+              throw new Error("Matching order not found for review.");
             }
 
-            const shopper = shoppers.find(
-              (shopper) => shopper.publicKey === reviewOrder.shopper
-            );
+            const shopper = shoppers.find((shopper) => shopper.publicKey === reviewOrder.shopper);
 
             if (!shopper) {
-              throw new Error('Matching shopper not found for order.');
+              throw new Error("Matching shopper not found for order.");
             }
 
-            return (
-              <ReviewRow
-                key={review.publicKey}
-                review={review}
-                shopper={shopper}
-              />
-            );
+            return <ReviewRow key={review.publicKey} review={review} shopper={shopper} />;
           })
         ) : (
           <EmptyResult Icon={UserStar} text="No reviews made." />

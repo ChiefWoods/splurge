@@ -1,20 +1,21 @@
-import { clusterApiUrl, PublicKey } from '@solana/web3.js';
-import { VersionedTransaction } from '@solana/web3.js';
-import { TransactionMessage } from '@solana/web3.js';
-import { TransactionInstruction } from '@solana/web3.js';
-import { AddressLookupTableAccount } from '@solana/web3.js';
-import { Connection } from '@solana/web3.js';
-import { Cluster } from '@solana/web3.js';
-import { CuPriceRange, JitoTipRange } from '@/types/transactions';
-import { optimizeTx } from '../api';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { TuktukClient } from '@/classes/TuktukClient';
+import { clusterApiUrl, PublicKey } from "@solana/web3.js";
+import { VersionedTransaction } from "@solana/web3.js";
+import { TransactionMessage } from "@solana/web3.js";
+import { TransactionInstruction } from "@solana/web3.js";
+import { AddressLookupTableAccount } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
+import { Cluster } from "@solana/web3.js";
 
-export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ??
-  'devnet') as Cluster;
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { TuktukClient } from "@/classes/TuktukClient";
+import { CuPriceRange, JitoTipRange } from "@/types/transactions";
+
+import { optimizeTx } from "../api";
+
+export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? "devnet") as Cluster;
 const CONNECTION = new Connection(
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
-  'confirmed'
+  "confirmed",
 );
 export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
 export const TUKTUK_CLIENT = new TuktukClient(CONNECTION);
@@ -22,16 +23,14 @@ export const TUKTUK_CLIENT = new TuktukClient(CONNECTION);
 export async function getPriorityFee(connection: Connection): Promise<number> {
   const recentFees = await connection.getRecentPrioritizationFees();
   return Math.floor(
-    recentFees.reduce(
-      (acc, { prioritizationFee }) => acc + prioritizationFee,
-      0
-    ) / recentFees.length
+    recentFees.reduce((acc, { prioritizationFee }) => acc + prioritizationFee, 0) /
+      recentFees.length,
   );
 }
 
 export async function getALTs(
   connection: Connection,
-  addresses: PublicKey[]
+  addresses: PublicKey[],
 ): Promise<AddressLookupTableAccount[]> {
   const lookupTableAccounts: AddressLookupTableAccount[] = [];
 
@@ -53,8 +52,8 @@ export async function buildTx(
   instructions: TransactionInstruction[],
   payer: PublicKey,
   lookupTables: AddressLookupTableAccount[] = [],
-  cuPriceRange: CuPriceRange = 'low',
-  jitoTipRange: JitoTipRange = 'low'
+  cuPriceRange: CuPriceRange = "low",
+  jitoTipRange: JitoTipRange = "low",
 ): Promise<VersionedTransaction> {
   const mainALT = await getALTs(connection, [
     new PublicKey(process.env.NEXT_PUBLIC_ADDRESS_LOOKUP_TABLE as string),

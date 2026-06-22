@@ -1,8 +1,8 @@
-import { LandingFeaturedSection } from '@/components/LandingFeaturedSection';
-import { CommonMain } from '@/components/CommonMain';
-import { fetchAllItems, fetchAllStores, fetchConfig } from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { ItemsProvider } from '@/providers/ItemsProvider';
+import { CommonMain } from "@/components/CommonMain";
+import { LandingFeaturedSection } from "@/components/LandingFeaturedSection";
+import { fetchAllItems, fetchAllStores, fetchConfig } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { ItemsProvider } from "@/providers/ItemsProvider";
 
 export default async function Page() {
   const [items, stores, config] = await Promise.all([
@@ -12,7 +12,7 @@ export default async function Page() {
   ]);
 
   if (!config) {
-    throw new Error('Config not initialized.');
+    throw new Error("Config not initialized.");
   }
 
   return (

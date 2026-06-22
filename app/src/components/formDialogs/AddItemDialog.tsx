@@ -1,6 +1,19 @@
-'use client';
+"use client";
 
-import { Dialog, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
+import { BN } from "@coral-xyz/anchor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { PublicKey } from "@solana/web3.js";
+import { Plus } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { FormDialogTitle } from "@/components/FormDialogTitle";
+import { ImageInput } from "@/components/ImageInput";
+import { TransactionToast } from "@/components/TransactionToast";
+import { Dialog, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -8,36 +21,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { CreateItemFormData, createItemSchema } from '@/lib/schema';
-import { Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ImageInput } from '@/components/ImageInput';
-import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { useIrysUploader } from '@/hooks/useIrysUploader';
-import { toast } from 'sonner';
-import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { Textarea } from '../ui/textarea';
-import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
-import { useItems } from '@/providers/ItemsProvider';
-import { PublicKey } from '@solana/web3.js';
-import { BN } from '@coral-xyz/anchor';
-import { ImageInputLabel } from '../ImageInputLabel';
-import { MINT_DECIMALS } from '@/lib/constants';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '@/components/FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { useMobile } from '@/hooks/useMobile';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { WalletGuardButton } from "@/components/WalletGuardButton";
+import { useIrysUploader } from "@/hooks/useIrysUploader";
+import { useMobile } from "@/hooks/useMobile";
+import { sendTx } from "@/lib/api";
+import { DicebearStyles, getDicebearFile } from "@/lib/client/dicebear";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { MINT_DECIMALS } from "@/lib/constants";
+import { CreateItemFormData, createItemSchema } from "@/lib/schema";
+import { useItems } from "@/providers/ItemsProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { ImageInputLabel } from "../ImageInputLabel";
+import { Textarea } from "../ui/textarea";
 
 export function AddItemDialog({ storePda }: { storePda: string }) {
   const { connection } = useConnection();
@@ -46,7 +48,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const { upload } = useIrysUploader();
   const { itemsMutate } = useItems();
   const [isOpen, setIsOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isMobile } = useMobile();
@@ -54,8 +56,8 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const form = useForm<CreateItemFormData>({
     resolver: zodResolver(createItemSchema),
     defaultValues: {
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       inventoryCount: 0,
       price: 1.0,
     },
@@ -64,7 +66,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
     form.reset();
-    setImagePreview('');
+    setImagePreview("");
   }, [form]);
 
   const onSubmit = useCallback(
@@ -72,7 +74,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       toast.promise(
         async () => {
           if (!publicKey || !signTransaction) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           setIsUploading(true);
@@ -80,14 +82,14 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
             data.image ??
               (await getDicebearFile(
                 DicebearStyles.Item,
-                publicKey.toBase58() + new Date().toString()
-              ))
+                publicKey.toBase58() + new Date().toString(),
+              )),
           );
 
           return { imageUri, publicKey, signTransaction };
         },
         {
-          loading: 'Uploading image...',
+          loading: "Uploading image...",
           success: ({ imageUri, publicKey, signTransaction }) => {
             toast.promise(
               async () => {
@@ -107,7 +109,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                   ],
                   publicKey,
                   [],
-                  priorityFee
+                  priorityFee,
                 );
 
                 tx = await signTransaction(tx);
@@ -116,12 +118,12 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 return signature;
               },
               {
-                loading: 'Waiting for signature...',
+                loading: "Waiting for signature...",
                 success: async (signature) => {
                   const newItem = {
                     publicKey: SplurgeClient.getItemPda(
                       new PublicKey(storePda),
-                      data.name
+                      data.name,
                     ).toBase58(),
                     store: storePda,
                     price: data.price * 10 ** MINT_DECIMALS,
@@ -134,43 +136,40 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                   await itemsMutate(
                     (prev) => {
                       if (!prev) {
-                        throw new Error('Items should not be null.');
+                        throw new Error("Items should not be null.");
                       }
 
                       return [...prev, newItem];
                     },
                     {
                       revalidate: true,
-                    }
+                    },
                   );
 
                   closeAndReset();
                   setIsSubmitting(false);
 
                   return (
-                    <TransactionToast
-                      title="Item added!"
-                      link={getTransactionLink(signature)}
-                    />
+                    <TransactionToast title="Item added!" link={getTransactionLink(signature)} />
                   );
                 },
                 error: (err) => {
                   console.error(err);
                   setIsSubmitting(false);
-                  return err.message || 'Something went wrong.';
+                  return err.message || "Something went wrong.";
                 },
-              }
+              },
             );
 
             setIsUploading(false);
-            return 'Image uploaded!';
+            return "Image uploaded!";
           },
           error: (err) => {
             console.error(err);
             setIsUploading(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -183,13 +182,13 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
       connection,
       getTransactionLink,
       priorityFee,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton size={isMobile ? 'icon' : 'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton size={isMobile ? "icon" : "sm"} setOpen={setIsOpen}>
           <Plus />
           <span className="hidden md:block">Add Item</span>
         </WalletGuardButton>
@@ -237,11 +236,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Description"
-                      className="resize-none"
-                      {...field}
-                    />
+                    <Textarea placeholder="Description" className="resize-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -285,9 +280,7 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                       step={0.01}
                       onChange={(e) => {
                         const usdValue = parseFloat(e.target.value);
-                        field.onChange(
-                          isNaN(usdValue) ? 0 : Number(usdValue.toFixed(2))
-                        );
+                        field.onChange(isNaN(usdValue) ? 0 : Number(usdValue.toFixed(2)));
                       }}
                       onBlur={() => {
                         const roundedUsdValue = Number(field.value.toFixed(2));

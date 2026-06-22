@@ -1,14 +1,8 @@
-import { AnchorError, BN, Program } from '@coral-xyz/anchor';
-import { Splurge } from '../target/types/splurge';
-import idl from '../target/idl/splurge.json';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-} from '@solana/web3.js';
-import { AccountInfoBytes, ComputeBudget, LiteSVM } from 'litesvm';
-import { fromWorkspace, LiteSVMProvider } from 'anchor-litesvm';
+import { expect } from "bun:test";
+
+import { AnchorError, BN, Program } from "@coral-xyz/anchor";
+import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
+import { taskQueueKey, taskQueueNameMappingKey } from "@helium/tuktuk-sdk";
 import {
   ACCOUNT_SIZE,
   AccountLayout,
@@ -16,28 +10,23 @@ import {
   MINT_SIZE,
   MintLayout,
   TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import {
-  CONFIG_V0,
-  MINT_DECIMALS,
-  TUKTUK_PROGRAM_ID,
-  USDC_MINT,
-  USDT_MINT,
-} from './constants';
-import { expect } from 'bun:test';
-import usdcPriceUpdateV2AccInfo from './fixtures/usdc_price_update_v2.json';
-import usdtPriceUpdateV2AccInfo from './fixtures/usdt_price_update_v2.json';
-import tuktukIdl from './fixtures/tuktuk.json';
-import { Tuktuk } from '@helium/tuktuk-idls/lib/types/tuktuk.js';
-import tuktukConfigV0 from './fixtures/tuktuk_config_v0.json';
-import { taskQueueKey, taskQueueNameMappingKey } from '@helium/tuktuk-sdk';
-import { fetchConfigV0Acc } from './accounts';
+} from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { fromWorkspace, LiteSVMProvider } from "anchor-litesvm";
+import { AccountInfoBytes, ComputeBudget, LiteSVM } from "litesvm";
 
-export async function getSetup(
-  accounts: { pubkey: PublicKey; account: AccountInfoBytes }[] = []
-) {
-  const litesvm = fromWorkspace('./');
-  litesvm.addProgramFromFile(TUKTUK_PROGRAM_ID, 'tests/fixtures/tuktuk.so');
+import idl from "../target/idl/splurge.json";
+import { Splurge } from "../target/types/splurge";
+import { fetchConfigV0Acc } from "./accounts";
+import { CONFIG_V0, MINT_DECIMALS, TUKTUK_PROGRAM_ID, USDC_MINT, USDT_MINT } from "./constants";
+import tuktukIdl from "./fixtures/tuktuk.json";
+import tuktukConfigV0 from "./fixtures/tuktuk_config_v0.json";
+import usdcPriceUpdateV2AccInfo from "./fixtures/usdc_price_update_v2.json";
+import usdtPriceUpdateV2AccInfo from "./fixtures/usdt_price_update_v2.json";
+
+export async function getSetup(accounts: { pubkey: PublicKey; account: AccountInfoBytes }[] = []) {
+  const litesvm = fromWorkspace("./");
+  litesvm.addProgramFromFile(TUKTUK_PROGRAM_ID, "tests/fixtures/tuktuk.so");
   litesvm.withLogBytesLimit(null);
 
   const computeBudget = new ComputeBudget();
@@ -62,7 +51,7 @@ export async function getSetup(
   const program = new Program<Splurge>(idl, provider);
 
   litesvm.setAccount(CONFIG_V0, {
-    data: Buffer.from(tuktukConfigV0.account.data[0], 'base64'),
+    data: Buffer.from(tuktukConfigV0.account.data[0], "base64"),
     executable: tuktukConfigV0.account.executable,
     lamports: tuktukConfigV0.account.lamports,
     owner: new PublicKey(tuktukConfigV0.account.owner),
@@ -70,17 +59,12 @@ export async function getSetup(
 
   const tuktukProgram = new Program<Tuktuk>(tuktukIdl, provider);
   const tuktukConfigV0Acc = await fetchConfigV0Acc(tuktukProgram, CONFIG_V0);
-  const [taskQueuePda] = taskQueueKey(
-    CONFIG_V0,
-    tuktukConfigV0Acc.nextTaskQueueId
-  );
+  const [taskQueuePda] = taskQueueKey(CONFIG_V0, tuktukConfigV0Acc.nextTaskQueueId);
 
   return { litesvm, provider, program, tuktukProgram, taskQueuePda };
 }
 
-export function fundedSystemAccountInfo(
-  lamports: number = LAMPORTS_PER_SOL
-): AccountInfoBytes {
+export function fundedSystemAccountInfo(lamports: number = LAMPORTS_PER_SOL): AccountInfoBytes {
   return {
     lamports,
     data: Buffer.alloc(0),
@@ -97,18 +81,14 @@ export async function expectAnchorError(error: Error, code: string) {
 
 function initDataAcc(litesvm: LiteSVM, accInfo: any) {
   litesvm.setAccount(new PublicKey(accInfo.pubkey), {
-    data: Buffer.from(accInfo.account.data[0], 'base64'),
+    data: Buffer.from(accInfo.account.data[0], "base64"),
     executable: accInfo.account.executable,
     lamports: accInfo.account.lamports,
     owner: new PublicKey(accInfo.account.owner),
   });
 }
 
-function initMint(
-  litesvm: LiteSVM,
-  mint: PublicKey,
-  owner: PublicKey = TOKEN_PROGRAM_ID
-) {
+function initMint(litesvm: LiteSVM, mint: PublicKey, owner: PublicKey = TOKEN_PROGRAM_ID) {
   const mintData = Buffer.alloc(MINT_SIZE);
 
   MintLayout.encode(
@@ -121,7 +101,7 @@ function initMint(
       freezeAuthority: PublicKey.default,
       freezeAuthorityOption: 0,
     },
-    mintData
+    mintData,
   );
 
   litesvm.setAccount(mint, {
@@ -136,7 +116,7 @@ export function initAta(
   litesvm: LiteSVM,
   mint: PublicKey,
   owner: PublicKey,
-  amount: number = 100 * 10 ** MINT_DECIMALS
+  amount: number = 100 * 10 ** MINT_DECIMALS,
 ) {
   const ataData = Buffer.alloc(ACCOUNT_SIZE);
 
@@ -154,17 +134,12 @@ export function initAta(
       owner,
       state: 1,
     },
-    ataData
+    ataData,
   );
 
   const tokenProgram = litesvm.getAccount(mint).owner;
 
-  const ata = getAssociatedTokenAddressSync(
-    mint,
-    owner,
-    !PublicKey.isOnCurve(owner),
-    tokenProgram
-  );
+  const ata = getAssociatedTokenAddressSync(mint, owner, !PublicKey.isOnCurve(owner), tokenProgram);
 
   litesvm.setAccount(ata, {
     data: ataData,
@@ -177,9 +152,9 @@ export function initAta(
 export async function initTaskQueue(
   tuktukProgram: Program<Tuktuk>,
   payer: Keypair,
-  taskQueuePda: PublicKey
+  taskQueuePda: PublicKey,
 ) {
-  const taskQueueName = 'test-queue';
+  const taskQueueName = "test-queue";
 
   await tuktukProgram.methods
     .initializeTaskQueueV0({
@@ -192,10 +167,7 @@ export async function initTaskQueue(
     .accounts({
       payer: payer.publicKey,
       taskQueue: taskQueuePda,
-      taskQueueNameMapping: taskQueueNameMappingKey(
-        CONFIG_V0,
-        taskQueueName
-      )[0],
+      taskQueueNameMapping: taskQueueNameMappingKey(CONFIG_V0, taskQueueName)[0],
       tuktukConfig: CONFIG_V0,
       updateAuthority: payer.publicKey,
     })

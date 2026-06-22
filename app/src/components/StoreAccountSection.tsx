@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { ParsedStore } from '@/types/accounts';
-import { AccountSection } from './AccountSection';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { AccountSectionButtonTab } from './AccountSectionButtonTab';
-import { AddItemDialog } from './formDialogs/AddItemDialog';
-import { CircleDollarSign, ClipboardList } from 'lucide-react';
-import { Button } from './ui/button';
-import { useMobile } from '@/hooks/useMobile';
-import Link from 'next/link';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { CircleDollarSign, ClipboardList } from "lucide-react";
+import Link from "next/link";
+
+import { useMobile } from "@/hooks/useMobile";
+import { ParsedStore } from "@/types/accounts";
+
+import { AccountSection } from "./AccountSection";
+import { AccountSectionButtonTab } from "./AccountSectionButtonTab";
+import { AddItemDialog } from "./formDialogs/AddItemDialog";
+import { Button } from "./ui/button";
 
 export function StoreAccountSection({ store }: { store: ParsedStore }) {
   const { publicKey } = useUnifiedWallet();
@@ -18,12 +20,12 @@ export function StoreAccountSection({ store }: { store: ParsedStore }) {
     {
       href: `/stores/${store.publicKey}/orders`,
       Icon: ClipboardList,
-      text: 'Manage Orders',
+      text: "Manage Orders",
     },
     {
       href: `/stores/${store.publicKey}/earnings`,
       Icon: CircleDollarSign,
-      text: 'View Earnings',
+      text: "View Earnings",
     },
   ];
 
@@ -43,7 +45,7 @@ export function StoreAccountSection({ store }: { store: ParsedStore }) {
               <Button
                 key={href}
                 asChild
-                size={isMobile ? 'icon' : 'sm'}
+                size={isMobile ? "icon" : "sm"}
                 className="aspect-square size-8 md:aspect-auto md:size-auto"
               >
                 <Link href={href}>

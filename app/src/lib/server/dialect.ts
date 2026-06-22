@@ -1,24 +1,26 @@
-'use server';
+"use server";
 
 import {
   NodeDialectSolanaWalletAdapter,
   Solana,
   SolanaSdkFactory,
-} from '@dialectlabs/blockchain-sdk-solana';
+} from "@dialectlabs/blockchain-sdk-solana";
 import {
   AddressType,
   DappMessageActionType,
   Dialect,
   DialectCloudEnvironment,
   DialectSdk,
-} from '@dialectlabs/sdk';
-import { PublicKey } from '@solana/web3.js';
-import { truncateAddress } from '../utils';
-import { ParsedOrderStatus } from '@/types/accounts';
-import { SPLURGE_CLIENT } from './solana';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+} from "@dialectlabs/sdk";
+import { PublicKey } from "@solana/web3.js";
 
-const environment: DialectCloudEnvironment = 'production';
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { ParsedOrderStatus } from "@/types/accounts";
+
+import { truncateAddress } from "../utils";
+import { SPLURGE_CLIENT } from "./solana";
+
+const environment: DialectCloudEnvironment = "production";
 
 const sdk: DialectSdk<Solana> = Dialect.sdk(
   {
@@ -26,12 +28,12 @@ const sdk: DialectSdk<Solana> = Dialect.sdk(
   },
   SolanaSdkFactory.create({
     wallet: NodeDialectSolanaWalletAdapter.create(),
-  })
+  }),
 );
 
 const dapp = await sdk.dapps.find().then((dapp) => {
   if (!dapp) {
-    throw new Error('Dapp not found. Please register your app first.');
+    throw new Error("Dapp not found. Please register your app first.");
   }
 
   return dapp;
@@ -68,13 +70,13 @@ Order Details:
 
 View and manage your orders in your dashboard.`,
     recipient: storeAuthority,
-    notificationTypeId: 'e23cf8d3-853a-4686-9787-57d74d5427f8',
+    notificationTypeId: "e23cf8d3-853a-4686-9787-57d74d5427f8",
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
     actionsV2: {
       type: DappMessageActionType.LINK,
       links: [
         {
-          label: 'View Order',
+          label: "View Order",
           url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
         },
       ],
@@ -95,13 +97,13 @@ export async function alertOutOfStock({
 
 Update your inventory to continue receiving orders.`,
     recipient: storeAuthority,
-    notificationTypeId: '65b96ab6-49be-4456-b4c7-8736864e27af',
+    notificationTypeId: "65b96ab6-49be-4456-b4c7-8736864e27af",
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
     actionsV2: {
       type: DappMessageActionType.LINK,
       links: [
         {
-          label: 'Update Inventory',
+          label: "Update Inventory",
           url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
         },
       ],
@@ -131,17 +133,9 @@ export async function alertOrderUpdate({
   status: ParsedOrderStatus;
 }) {
   const titleEnding =
-    status === 'shipping'
-      ? 'Shipped'
-      : status === 'cancelled'
-        ? 'Cancelled'
-        : 'Completed';
+    status === "shipping" ? "Shipped" : status === "cancelled" ? "Cancelled" : "Completed";
   const headerEnding =
-    status === 'shipping'
-      ? 'being shipped'
-      : status === 'cancelled'
-        ? 'cancelled'
-        : 'completed';
+    status === "shipping" ? "being shipped" : status === "cancelled" ? "cancelled" : "completed";
 
   await dapp.messages.send({
     title: `Order ${titleEnding}`,
@@ -157,13 +151,13 @@ Order Details:
 
 Track your orders in your dashboard.`,
     recipient: shopperAuthority,
-    notificationTypeId: '481ecda0-6845-4ad6-9f88-bb5d08c6b92f',
+    notificationTypeId: "481ecda0-6845-4ad6-9f88-bb5d08c6b92f",
     addressTypes: [AddressType.Wallet, AddressType.Email, AddressType.Telegram],
     actionsV2: {
       type: DappMessageActionType.LINK,
       links: [
         {
-          label: 'Track Orders',
+          label: "Track Orders",
           url: `${process.env.FRONTEND_BASE_URL}/orders/`,
         },
       ],

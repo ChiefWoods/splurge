@@ -16,5 +16,5 @@ export type SendTransactionResponse = {
   };
 };
 
-export type CuPriceRange = 'low' | 'median' | 'high';
-export type JitoTipRange = 'low' | 'median' | 'high' | 'max';
+export type CuPriceRange = "low" | "median" | "high";
+export type JitoTipRange = "low" | "median" | "high" | "max";

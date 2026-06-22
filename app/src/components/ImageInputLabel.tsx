@@ -1,5 +1,5 @@
-import { FormLabel } from './ui/form';
-import { InfoTooltip } from './InfoTooltip';
+import { InfoTooltip } from "./InfoTooltip";
+import { FormLabel } from "./ui/form";
 
 export function ImageInputLabel() {
   return (

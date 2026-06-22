@@ -1,6 +1,7 @@
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from './ui/empty';
-import { LucideProps } from 'lucide-react';
+import { LucideProps } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "./ui/empty";
 
 export function EmptyResult({
   Icon,

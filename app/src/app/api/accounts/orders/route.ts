@@ -1,17 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import {
-  fetchAllOrders,
-  fetchOrder,
-  fetchMultipleOrders,
-} from '@/lib/accounts';
+import { NextRequest, NextResponse } from "next/server";
+
+import { fetchAllOrders, fetchOrder, fetchMultipleOrders } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  const pdas = searchParams.getAll('pda');
-  const shopper = searchParams.get('shopper');
-  const store = searchParams.get('store');
+  const pdas = searchParams.getAll("pda");
+  const shopper = searchParams.get("shopper");
+  const store = searchParams.get("store");
 
   try {
     if (pdas.length === 0) {
@@ -24,7 +21,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     } else if (pdas.length > 1) {
       return NextResponse.json(
@@ -33,7 +30,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     } else {
       return NextResponse.json(
@@ -42,7 +39,7 @@ export async function GET(req: NextRequest) {
         },
         {
           status: 200,
-        }
+        },
       );
     }
   } catch (err) {
@@ -50,14 +47,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Unable to fetch order account(s).',
+        error: err instanceof Error ? err.message : "Unable to fetch order account(s).",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

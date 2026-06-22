@@ -1,16 +1,13 @@
-import { Separator } from '@/components/ui/separator';
-import { notFound } from 'next/navigation';
-import { StoreAccountSection } from '@/components/StoreAccountSection';
-import { PublicKey } from '@solana/web3.js';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { fetchConfig, fetchStore } from '@/lib/accounts';
-import { StoreSection } from '@/components/StoreSection';
+import { PublicKey } from "@solana/web3.js";
+import { notFound } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ storePda: string }>;
-}) {
+import { StoreAccountSection } from "@/components/StoreAccountSection";
+import { StoreSection } from "@/components/StoreSection";
+import { Separator } from "@/components/ui/separator";
+import { fetchConfig, fetchStore } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+
+export default async function Page({ params }: { params: Promise<{ storePda: string }> }) {
   const { storePda } = await params;
 
   // 404 if PDA is not a valid public key
@@ -31,7 +28,7 @@ export default async function Page({
   }
 
   if (!config) {
-    throw new Error('Config not initialized.');
+    throw new Error("Config not initialized.");
   }
 
   return (

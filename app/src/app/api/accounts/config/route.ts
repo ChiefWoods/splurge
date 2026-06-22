@@ -1,6 +1,7 @@
-import { fetchConfig } from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+
+import { fetchConfig } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,21 +11,18 @@ export async function GET(req: NextRequest) {
       },
       {
         status: 200,
-      }
+      },
     );
   } catch (err) {
     console.error(err);
 
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Unable to fetch config account.',
+        error: err instanceof Error ? err.message : "Unable to fetch config account.",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

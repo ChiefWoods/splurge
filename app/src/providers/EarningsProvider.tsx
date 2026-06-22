@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
-import { wrappedFetch } from '@/lib/api';
+import { createContext, ReactNode, useContext } from "react";
+import useSWR, { KeyedMutator } from "swr";
+
+import { wrappedFetch } from "@/lib/api";
 
 interface Earning {
   mint: string;
@@ -16,9 +17,7 @@ interface EarningsContextType {
   earningsMutate: KeyedMutator<Earning[]>;
 }
 
-const EarningsContext = createContext<EarningsContextType>(
-  {} as EarningsContextType
-);
+const EarningsContext = createContext<EarningsContextType>({} as EarningsContextType);
 
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/earnings`;
 
@@ -40,11 +39,11 @@ export function EarningsProvider({
     isLoading: earningsLoading,
     mutate: earningsMutate,
   } = useSWR(
-    'earnings',
+    "earnings",
     async () => {
       const url = new URL(apiEndpoint);
 
-      url.searchParams.append('store', store);
+      url.searchParams.append("store", store);
 
       const earnings = (await wrappedFetch(url.href)).earnings as Earning[];
 
@@ -53,7 +52,7 @@ export function EarningsProvider({
     {
       fallbackData,
       revalidateOnMount: false,
-    }
+    },
   );
 
   return (

@@ -1,66 +1,55 @@
-'use client';
+"use client";
 
-import { zAmount, zPaymentMint } from '@/lib/schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useConnection } from '@solana/wallet-adapter-react';
-import { ReactNode, useCallback, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { TransactionToast } from '../TransactionToast';
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { toast } from 'sonner';
-import { PublicKey } from '@solana/web3.js';
-import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
-import { WalletGuardButton } from '../WalletGuardButton';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
-import { Input } from '../ui/input';
-import { Package } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-import { z } from 'zod';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { useShopper } from '@/providers/ShopperProvider';
-import { atomicToUsd, removeTrailingZeroes } from '@/lib/utils';
-import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
-import { MintIcon } from '../MintIcon';
-import { usePyth } from '@/providers/PythProvider';
-import { alertNewOrders, alertOutOfStock } from '@/lib/server/dialect';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { MINT_DECIMALS } from '@/lib/constants';
-import { FormDialogTitle } from '@/components/FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { LargeImage } from '../LargeImage';
-import { useSettings } from '@/providers/SettingsProvider';
-import { ParsedConfig, ParsedItem, ParsedStore } from '@/types/accounts';
-import { useItems } from '@/providers/ItemsProvider';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { MAX_FEE_BASIS_POINTS } from "@solana/spl-token";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { Package } from "lucide-react";
+import { ReactNode, useCallback, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { FormDialogTitle } from "@/components/FormDialogTitle";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
+import { MINT_DECIMALS } from "@/lib/constants";
+import { zAmount, zPaymentMint } from "@/lib/schema";
+import { alertNewOrders, alertOutOfStock } from "@/lib/server/dialect";
+import { atomicToUsd, removeTrailingZeroes } from "@/lib/utils";
+import { useItems } from "@/providers/ItemsProvider";
+import { usePyth } from "@/providers/PythProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+import { useShopper } from "@/providers/ShopperProvider";
+import { ParsedConfig, ParsedItem, ParsedStore } from "@/types/accounts";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { LargeImage } from "../LargeImage";
+import { MintIcon } from "../MintIcon";
+import { TransactionToast } from "../TransactionToast";
+import { Dialog, DialogHeader, DialogTrigger } from "../ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { WalletGuardButton } from "../WalletGuardButton";
 
 export function CheckoutDialog({
   item,
   store,
   config,
-  btnVariant = 'default',
-  btnSize = 'sm',
+  btnVariant = "default",
+  btnSize = "sm",
   children,
 }: {
   item: ParsedItem;
   store: ParsedStore;
   config: ParsedConfig;
-  btnVariant?: 'default' | 'secondary';
-  btnSize?: 'sm' | 'icon';
+  btnVariant?: "default" | "secondary";
+  btnSize?: "sm" | "icon";
   children: ReactNode;
 }) {
   const { connection } = useConnection();
@@ -73,7 +62,7 @@ export function CheckoutDialog({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const createOrderSchema = z.object({
-    amount: zAmount.max(item.inventoryCount, 'Amount exceeds inventory count.'),
+    amount: zAmount.max(item.inventoryCount, "Amount exceeds inventory count."),
     paymentMint: zPaymentMint,
   });
 
@@ -89,14 +78,12 @@ export function CheckoutDialog({
 
   const amount = useWatch({
     control: form.control,
-    name: 'amount',
+    name: "amount",
   });
 
   const orderSubtotal = item.price * (amount || 0);
 
-  const platformFee = Math.floor(
-    (orderSubtotal * config.orderFeeBps) / MAX_FEE_BASIS_POINTS
-  );
+  const platformFee = Math.floor((orderSubtotal * config.orderFeeBps) / MAX_FEE_BASIS_POINTS);
 
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
@@ -108,21 +95,19 @@ export function CheckoutDialog({
       toast.promise(
         async () => {
           if (!publicKey) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           if (!pythSolanaReceiver) {
-            throw new Error('Pyth Solana Receiver not initialized');
+            throw new Error("Pyth Solana Receiver not initialized");
           }
 
           if (!shopperData) {
-            throw new Error('Shopper account not created.');
+            throw new Error("Shopper account not created.");
           }
 
           if (config.isPaused) {
-            throw new Error(
-              'Platform is currently paused. No new orders can be created.'
-            );
+            throw new Error("Platform is currently paused. No new orders can be created.");
           }
 
           setIsSubmitting(true);
@@ -130,7 +115,7 @@ export function CheckoutDialog({
           const token = ACCEPTED_MINTS_METADATA.get(data.paymentMint);
 
           if (!token) {
-            throw new Error('Payment mint not found.');
+            throw new Error("Payment mint not found.");
           }
 
           const signatures = await pythSolanaReceiver.provider.sendAll([
@@ -151,16 +136,14 @@ export function CheckoutDialog({
                 ],
                 publicKey,
                 [],
-                priorityFee
+                priorityFee,
               ),
               signers: [],
             },
           ]);
 
           // checkout transaction is the last one
-          await connection.confirmTransaction(
-            signatures[signatures.length - 1]
-          );
+          await connection.confirmTransaction(signatures[signatures.length - 1]);
 
           return {
             signature: signatures[1],
@@ -169,14 +152,14 @@ export function CheckoutDialog({
           };
         },
         {
-          loading: 'Waiting for signature...',
+          loading: "Waiting for signature...",
           success: async ({ signature, shopperData, paymentMintSymbol }) => {
             const newInventoryCount = item.inventoryCount - data.amount;
 
             await itemsMutate(
               (prev) => {
                 if (!prev) {
-                  throw new Error('Items should not be null.');
+                  throw new Error("Items should not be null.");
                 }
 
                 return prev.map((prevItem) => {
@@ -192,7 +175,7 @@ export function CheckoutDialog({
               },
               {
                 revalidate: true,
-              }
+              },
             );
 
             closeAndReset();
@@ -215,19 +198,14 @@ export function CheckoutDialog({
               });
             }
 
-            return (
-              <TransactionToast
-                title="Order created!"
-                link={getTransactionLink(signature)}
-              />
-            );
+            return <TransactionToast title="Order created!" link={getTransactionLink(signature)} />;
           },
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -244,17 +222,13 @@ export function CheckoutDialog({
       store,
       config,
       itemsMutate,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton
-          variant={btnVariant}
-          size={btnSize}
-          setOpen={setIsOpen}
-        >
+        <WalletGuardButton variant={btnVariant} size={btnSize} setOpen={setIsOpen}>
           {children}
         </WalletGuardButton>
       </DialogTrigger>
@@ -301,10 +275,7 @@ export function CheckoutDialog({
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel>Payment Token</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select payment token" />
@@ -314,17 +285,13 @@ export function CheckoutDialog({
                           {/* Accepted mints should be obtained from config account, but hardcoded here due to devnet constraints */}
                           {Array.from(ACCEPTED_MINTS_METADATA.entries()).map(
                             ([mint, { name, image, symbol }]) => (
-                              <SelectItem
-                                key={mint}
-                                value={mint}
-                                className="cursor-pointer"
-                              >
+                              <SelectItem key={mint} value={mint} className="cursor-pointer">
                                 <div className="flex items-center justify-start gap-x-2">
                                   <MintIcon src={image} alt={name} />
                                   <p className="text-sm">{symbol}</p>
                                 </div>
                               </SelectItem>
-                            )
+                            ),
                           )}
                         </SelectContent>
                       </Select>
@@ -338,10 +305,7 @@ export function CheckoutDialog({
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Platform Fee</p>
                 <p className="text-sm">
-                  {removeTrailingZeroes(
-                    atomicToUsd(platformFee, MINT_DECIMALS)
-                  )}{' '}
-                  USD
+                  {removeTrailingZeroes(atomicToUsd(platformFee, MINT_DECIMALS))} USD
                 </p>
               </div>
               <div className="flex justify-between gap-x-2">
@@ -351,20 +315,14 @@ export function CheckoutDialog({
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm font-semibold">Total</p>
                 <p className="text-sm font-semibold">
-                  {removeTrailingZeroes(
-                    atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS)
-                  )}{' '}
+                  {removeTrailingZeroes(atomicToUsd(orderSubtotal + platformFee, MINT_DECIMALS))}{" "}
                   USD
                 </p>
               </div>
             </div>
             <FormDialogFooter>
               <FormCancelButton onClick={closeAndReset} />
-              <FormSubmitButton
-                Icon={Package}
-                disabled={isSubmitting}
-                text="Place Order"
-              />
+              <FormSubmitButton Icon={Package} disabled={isSubmitting} text="Place Order" />
             </FormDialogFooter>
           </form>
         </Form>

@@ -1,10 +1,11 @@
-import { PublicKey } from "@solana/web3.js";
-import { admin, connection, splurgeProgram, tuktukProgram } from "../setup";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { TASK_QUEUE, TUKTUK_PROGRAM_ID } from "../constants";
 import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 
-console.log("Updating order...")
+import { TASK_QUEUE, TUKTUK_PROGRAM_ID } from "../constants";
+import { admin, connection, splurgeProgram, tuktukProgram } from "../setup";
+
+console.log("Updating order...");
 
 // Params
 const authorityPubkey = new PublicKey("");

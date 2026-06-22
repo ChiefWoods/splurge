@@ -1,4 +1,5 @@
 import { defineConfig } from "oxlint";
+
 import baseConfig from "../oxlint.config.ts";
 
 export default defineConfig({
@@ -8,11 +9,5 @@ export default defineConfig({
     "typescript/no-explicit-any": "off",
     "react/no-unescaped-entities": "off",
   },
-  ignorePatterns: [
-    "node_modules/**",
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ],
+  ignorePatterns: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"],
 });

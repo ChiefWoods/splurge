@@ -1,20 +1,21 @@
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { getStoreEarnings } from '@/lib/utils';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { getStoreEarnings } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  const store = searchParams.get('store');
+  const store = searchParams.get("store");
 
   if (!store) {
     return NextResponse.json(
       {
-        error: 'Store is required.',
+        error: "Store is required.",
       },
       {
         status: 400,
-      }
+      },
     );
   }
 
@@ -27,14 +28,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Unable to fetch store earnings.',
+        error: err instanceof Error ? err.message : "Unable to fetch store earnings.",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

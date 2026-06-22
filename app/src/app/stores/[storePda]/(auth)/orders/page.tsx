@@ -1,17 +1,8 @@
-import { ManageOrdersSection } from '@/components/ManageOrdersSection';
-import {
-  fetchAllItems,
-  fetchAllOrders,
-  fetchAllShoppers,
-  fetchConfig,
-} from '@/lib/accounts';
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
+import { ManageOrdersSection } from "@/components/ManageOrdersSection";
+import { fetchAllItems, fetchAllOrders, fetchAllShoppers, fetchConfig } from "@/lib/accounts";
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ storePda: string }>;
-}) {
+export default async function Page({ params }: { params: Promise<{ storePda: string }> }) {
   const { storePda } = await params;
 
   const [orders, items, shoppers, config] = await Promise.all([
@@ -22,7 +13,7 @@ export default async function Page({
   ]);
 
   if (!config) {
-    throw new Error('Config not initialized.');
+    throw new Error("Config not initialized.");
   }
 
   return (

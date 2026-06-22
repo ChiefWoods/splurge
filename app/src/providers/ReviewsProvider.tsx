@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { ParsedReview } from '@/types/accounts';
-import { wrappedFetch } from '@/lib/api';
-import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
+import { createContext, ReactNode, useContext } from "react";
+import useSWR, { KeyedMutator } from "swr";
+
+import { wrappedFetch } from "@/lib/api";
+import { ParsedReview } from "@/types/accounts";
 
 interface ReviewsContextType {
   reviewsData: ParsedReview[] | undefined;
@@ -11,9 +12,7 @@ interface ReviewsContextType {
   reviewsMutate: KeyedMutator<ParsedReview[]>;
 }
 
-const ReviewsContext = createContext<ReviewsContextType>(
-  {} as ReviewsContextType
-);
+const ReviewsContext = createContext<ReviewsContextType>({} as ReviewsContextType);
 
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/reviews`;
 
@@ -35,11 +34,11 @@ export function ReviewsProvider({
     isLoading: reviewsLoading,
     mutate: reviewsMutate,
   } = useSWR(
-    'reviews',
+    "reviews",
     async () => {
       const url = new URL(apiEndpoint);
 
-      if (item) url.searchParams.append('item', item);
+      if (item) url.searchParams.append("item", item);
 
       const reviews = (await wrappedFetch(url.href)).reviews as ParsedReview[];
 
@@ -48,7 +47,7 @@ export function ReviewsProvider({
     {
       fallbackData,
       revalidateOnMount: false,
-    }
+    },
   );
 
   return (

@@ -1,18 +1,13 @@
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
-export function CommonMain({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+import { cn } from "@/lib/utils";
+
+export function CommonMain({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <main
       className={cn(
-        'flex w-full max-w-4xl flex-1 flex-col items-start justify-start gap-y-2 p-4 md:gap-y-6 md:p-6',
-        className
+        "flex w-full max-w-4xl flex-1 flex-col items-start justify-start gap-y-2 p-4 md:gap-y-6 md:p-6",
+        className,
       )}
     >
       {children}

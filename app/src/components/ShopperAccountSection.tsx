@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
-import { ParsedShopper } from '@/types/accounts';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { AccountSection } from './AccountSection';
-import { Button } from './ui/button';
-import Link from 'next/link';
-import { ClipboardList } from 'lucide-react';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { ClipboardList } from "lucide-react";
+import Link from "next/link";
+
+import { ParsedShopper } from "@/types/accounts";
+
+import { AccountSection } from "./AccountSection";
+import { Button } from "./ui/button";
 
 export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
   const { publicKey } = useUnifiedWallet();
@@ -21,7 +23,7 @@ export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
       content={<p>{shopper.address}</p>}
       buttons={
         publicKey?.toBase58() === shopper.authority && (
-          <Button asChild size={'sm'}>
+          <Button asChild size={"sm"}>
             <Link href="/orders">
               <ClipboardList />
               View Orders

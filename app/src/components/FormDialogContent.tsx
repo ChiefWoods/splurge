@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
-import { DialogContent } from './ui/dialog';
+import { ReactNode } from "react";
+
+import { DialogContent } from "./ui/dialog";
 
 export function FormDialogContent({ children }: { children: ReactNode }) {
   return (

@@ -1,5 +1,8 @@
-import Link from 'next/link';
-import { Button } from './ui/button';
+import { LucideProps } from "lucide-react";
+import Link from "next/link";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
+import { Button } from "./ui/button";
 import {
   Empty,
   EmptyContent,
@@ -7,9 +10,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from './ui/empty';
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
-import { LucideProps } from 'lucide-react';
+} from "./ui/empty";
 
 export function AlreadyCreatedEmpty({
   Icon,
@@ -18,9 +19,7 @@ export function AlreadyCreatedEmpty({
   redirectHref,
   btnText,
 }: {
-  Icon: ForwardRefExoticComponent<
-    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
-  >;
+  Icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
   title: string;
   description?: string;
   redirectHref?: string;
@@ -29,10 +28,7 @@ export function AlreadyCreatedEmpty({
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyMedia
-          variant="icon"
-          className="text-primary-foreground bg-primary"
-        >
+        <EmptyMedia variant="icon" className="text-primary-foreground bg-primary">
           <Icon />
         </EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>

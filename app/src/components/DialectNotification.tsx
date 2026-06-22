@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import '@dialectlabs/react-ui/index.css';
-import { DialectSolanaSdk } from '@dialectlabs/react-sdk-blockchain-solana';
-import { NotificationsButton, ThemeType } from '@dialectlabs/react-ui';
-import { useEffect, useMemo, useState } from 'react';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { useTheme } from 'next-themes';
-import { Button } from './ui/button';
-import { Bell } from 'lucide-react';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+import "@dialectlabs/react-ui/index.css";
+import { DialectSolanaSdk } from "@dialectlabs/react-sdk-blockchain-solana";
+import { NotificationsButton, ThemeType } from "@dialectlabs/react-ui";
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { Bell } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useMemo, useState } from "react";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+
+import { Button } from "./ui/button";
 
 export function DialectNotification() {
   const { publicKey, signTransaction, signMessage } = useUnifiedWallet();
-  const [dialectTheme, setDialectTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+  const [dialectTheme, setDialectTheme] = useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
-    return 'light';
+    return "light";
   });
   const { theme } = useTheme();
 
@@ -28,25 +28,25 @@ export function DialectNotification() {
       signMessage,
       signTransaction,
     }),
-    [publicKey, signMessage, signTransaction]
+    [publicKey, signMessage, signTransaction],
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const handler = (e: MediaQueryListEvent) => {
-      setDialectTheme(e.matches ? 'dark' : 'light');
+      setDialectTheme(e.matches ? "dark" : "light");
     };
 
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
   return (
     <DialectSolanaSdk
       dappAddress={SplurgeClient.PROGRAM_ID.toBase58()}
       config={{
-        environment: 'production',
+        environment: "production",
       }}
       customWalletAdapter={walletAdapter}
     >
@@ -54,7 +54,7 @@ export function DialectNotification() {
         theme={
           theme !== undefined
             ? // ThemeType does not have 'system' option
-              theme === 'system'
+              theme === "system"
               ? dialectTheme
               : (theme as ThemeType)
             : dialectTheme
@@ -65,8 +65,8 @@ export function DialectNotification() {
             <Button
               ref={ref}
               onClick={() => setOpen((open) => !open)}
-              variant={'ghost'}
-              size={'icon'}
+              variant={"ghost"}
+              size={"icon"}
               className="group hover:bg-accent! hover:text-accent-foreground! size-8"
             >
               {unreadCount > 0 && (

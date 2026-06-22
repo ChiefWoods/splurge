@@ -1,6 +1,5 @@
-'use client';
+"use client";
 
-import { ReactNode, useMemo, useState } from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,30 +10,27 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { Input } from './ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-} from './ui/table';
-import { capitalizeFirstLetter, atomicToUsd } from '@/lib/utils';
-import { ParsedItem, ParsedOrder } from '@/types/accounts';
-import { InfoTooltip } from './InfoTooltip';
-import { TimestampTooltip } from './TimestampTooltip';
-import Image from 'next/image';
-import { ACCEPTED_MINTS_METADATA } from '@/lib/constants';
-import { OrderTablePagination } from './OrderTablePagination';
-import { AccountLinkButton } from './AccountLinkButton';
-import { SortButton } from './SortButton';
-import { OrderTableRow } from './OrderTableRow';
-import { MintIcon } from './MintIcon';
-import { useSettings } from '@/providers/SettingsProvider';
+} from "@tanstack/react-table";
+import Image from "next/image";
+import { ReactNode, useMemo, useState } from "react";
 
-const ORDER_TABS = ['all', 'pending', 'shipping', 'completed', 'cancelled'];
+import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
+import { capitalizeFirstLetter, atomicToUsd } from "@/lib/utils";
+import { useSettings } from "@/providers/SettingsProvider";
+import { ParsedItem, ParsedOrder } from "@/types/accounts";
+
+import { AccountLinkButton } from "./AccountLinkButton";
+import { InfoTooltip } from "./InfoTooltip";
+import { MintIcon } from "./MintIcon";
+import { OrderTablePagination } from "./OrderTablePagination";
+import { OrderTableRow } from "./OrderTableRow";
+import { SortButton } from "./SortButton";
+import { TimestampTooltip } from "./TimestampTooltip";
+import { Input } from "./ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader } from "./ui/table";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+
+const ORDER_TABS = ["all", "pending", "shipping", "completed", "cancelled"];
 
 type OrderWithItem = ParsedOrder & {
   itemData: ParsedItem;
@@ -55,24 +51,20 @@ export function OrderTable({
   statusRenderer: (order: ParsedOrder) => ReactNode;
 }) {
   const { getAccountLink } = useSettings();
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'timestamp', desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "timestamp", desc: true }]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [tabValue, setTabValue] = useState<string>('all');
-  const [searchValue, setSearchValue] = useState<string>('');
+  const [tabValue, setTabValue] = useState<string>("all");
+  const [searchValue, setSearchValue] = useState<string>("");
 
   const data = useMemo<OrderWithItem[]>(() => {
     if (!orders || !items) return [];
 
     return orders
       .map((order) => {
-        const itemData = items.find(
-          ({ publicKey }) => publicKey === order.item
-        );
+        const itemData = items.find(({ publicKey }) => publicKey === order.item);
 
         if (!itemData) {
-          throw new Error('Matching item not found for order.');
+          throw new Error("Matching item not found for order.");
         }
 
         return {
@@ -82,14 +74,12 @@ export function OrderTable({
         };
       })
       .filter((order) => {
-        if (tabValue !== 'all') {
+        if (tabValue !== "all") {
           if (order.status !== tabValue) return false;
         }
 
         if (searchValue) {
-          return order.itemData.name
-            .toLowerCase()
-            .includes(searchValue.toLowerCase());
+          return order.itemData.name.toLowerCase().includes(searchValue.toLowerCase());
         }
 
         return true;
@@ -99,14 +89,14 @@ export function OrderTable({
   const columns = useMemo<ColumnDef<OrderWithItem>[]>(
     () => [
       {
-        accessorKey: 'status',
+        accessorKey: "status",
         // header: 'Status',
         header: () => <span className="text-foreground">Status</span>,
         cell: ({ row }) => row.original.statusElement,
         enableSorting: false,
       },
       {
-        accessorKey: 'itemData.name',
+        accessorKey: "itemData.name",
         header: ({ column }) => <SortButton text="Item" column={column} />,
         cell: ({ row }) => {
           const { itemData } = row.original;
@@ -125,11 +115,11 @@ export function OrderTable({
         },
       },
       {
-        accessorKey: 'amount',
+        accessorKey: "amount",
         header: ({ column }) => <SortButton text="Amount" column={column} />,
       },
       {
-        id: 'total',
+        id: "total",
         accessorFn: (row) => row.paymentSubtotal + row.platformFee,
         header: ({ column }) => (
           <div className="flex items-center gap-2">
@@ -149,33 +139,25 @@ export function OrderTable({
 
           return (
             <div className="flex items-center gap-x-2">
-              <span className="truncate">
-                {atomicToUsd(paymentSubtotal + platformFee)}
-              </span>
+              <span className="truncate">{atomicToUsd(paymentSubtotal + platformFee)}</span>
               <MintIcon src={metadata.image} alt={metadata.name} />
             </div>
           );
         },
       },
       {
-        accessorKey: 'timestamp',
-        header: ({ column }) => (
-          <SortButton text="Created At" column={column} />
-        ),
-        cell: ({ row }) => (
-          <TimestampTooltip timestamp={row.original.timestamp} />
-        ),
+        accessorKey: "timestamp",
+        header: ({ column }) => <SortButton text="Created At" column={column} />,
+        cell: ({ row }) => <TimestampTooltip timestamp={row.original.timestamp} />,
       },
       {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => (
-          <AccountLinkButton href={getAccountLink(row.original.publicKey)} />
-        ),
+        id: "actions",
+        header: "",
+        cell: ({ row }) => <AccountLinkButton href={getAccountLink(row.original.publicKey)} />,
         enableSorting: false,
       },
     ],
-    [showTotalTooltip, getAccountLink]
+    [showTotalTooltip, getAccountLink],
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -221,16 +203,10 @@ export function OrderTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <OrderTableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    style={{ width: header.getSize() }}
-                  >
+                  <TableHead key={header.id} style={{ width: header.getSize() }}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </OrderTableRow>
@@ -245,19 +221,10 @@ export function OrderTable({
               </OrderTableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <OrderTableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
+                <OrderTableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      style={{ width: cell.column.getSize() }}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                    <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </OrderTableRow>

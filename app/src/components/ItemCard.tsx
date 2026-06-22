@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
-import { LargeImage } from './LargeImage';
-import { ParsedItem, ParsedStore } from '@/types/accounts';
+import Link from "next/link";
+import { ReactNode } from "react";
+
+import { cn } from "@/lib/utils";
+import { ParsedItem, ParsedStore } from "@/types/accounts";
+
+import { LargeImage } from "./LargeImage";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export function ItemCard({
   item,
@@ -22,14 +24,12 @@ export function ItemCard({
         <Link href={`/stores/${store.publicKey}/items/${item.publicKey}`}>
           <LargeImage src={item.image} alt={item.name} />
         </Link>
-        <CardTitle className="truncate text-base md:text-xl">
-          {item.name}
-        </CardTitle>
+        <CardTitle className="truncate text-base md:text-xl">{item.name}</CardTitle>
       </CardHeader>
       <CardContent
         className={cn(
-          'flex w-full gap-x-2 gap-y-2 p-0 md:gap-x-4 md:gap-y-2',
-          store.name ? 'flex-col' : 'flex-col items-end md:flex-row'
+          "flex w-full gap-x-2 gap-y-2 p-0 md:gap-x-4 md:gap-y-2",
+          store.name ? "flex-col" : "flex-col items-end md:flex-row",
         )}
       >
         {children}

@@ -1,11 +1,12 @@
-import { SPLURGE_CLIENT } from '@/lib/server/solana';
-import { getStoreEarnings } from '@/lib/utils';
-import { EarningsProvider } from '@/providers/EarningsProvider';
-import { Metadata } from 'next';
-import { ReactNode } from 'react';
+import { Metadata } from "next";
+import { ReactNode } from "react";
+
+import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { getStoreEarnings } from "@/lib/utils";
+import { EarningsProvider } from "@/providers/EarningsProvider";
 
 export const metadata: Metadata = {
-  title: 'Earnings',
+  title: "Earnings",
 };
 
 export default async function Layout({

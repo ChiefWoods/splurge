@@ -1,33 +1,29 @@
-'use client';
+"use client";
 
-import { ConnectWalletEmpty } from '@/components/ConnectWalletEmpty';
-import { WrappedSpinner } from '@/components/WrappedSpinner';
-import { wrappedFetch } from '@/lib/api';
-import { ParsedStore } from '@/types/accounts';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { forbidden, useParams } from 'next/navigation';
-import { ReactNode } from 'react';
-import useSWR from 'swr';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { forbidden, useParams } from "next/navigation";
+import { ReactNode } from "react";
+import useSWR from "swr";
+
+import { ConnectWalletEmpty } from "@/components/ConnectWalletEmpty";
+import { WrappedSpinner } from "@/components/WrappedSpinner";
+import { wrappedFetch } from "@/lib/api";
+import { ParsedStore } from "@/types/accounts";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { storePda } = useParams<{ storePda: string }>();
   const { publicKey } = useUnifiedWallet();
 
   // fetch store to check if authority matches wallet
-  const { data: storeData, isLoading: storeLoading } = useSWR(
-    'store',
-    async () => {
-      const url = new URL(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`
-      );
+  const { data: storeData, isLoading: storeLoading } = useSWR("store", async () => {
+    const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`);
 
-      url.searchParams.append('pda', storePda);
+    url.searchParams.append("pda", storePda);
 
-      const store = (await wrappedFetch(url.href)).store as ParsedStore;
+    const store = (await wrappedFetch(url.href)).store as ParsedStore;
 
-      return store;
-    }
-  );
+    return store;
+  });
 
   if (!publicKey) {
     return <ConnectWalletEmpty />;

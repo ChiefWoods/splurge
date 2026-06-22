@@ -1,10 +1,7 @@
-'use client';
+"use client";
 
-import { ACCEPTED_IMAGE_TYPES } from '@/lib/constants';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import Image from 'next/image';
-import { ImageIcon, Trash2 } from 'lucide-react';
+import { ImageIcon, Trash2 } from "lucide-react";
+import Image from "next/image";
 import {
   ChangeEvent,
   DragEvent,
@@ -14,10 +11,15 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { ControllerRenderProps } from 'react-hook-form';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+} from "react";
+import { ControllerRenderProps } from "react-hook-form";
+import { toast } from "sonner";
+
+import { ACCEPTED_IMAGE_TYPES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export function ImageInput({
   field,
@@ -38,25 +40,25 @@ export function ImageInput({
       field.onChange(file);
       reader.readAsDataURL(file);
     },
-    [field, reader]
+    [field, reader],
   );
 
   function removeImage(e: MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
-    setImagePreview('');
+    setImagePreview("");
   }
 
   const handleChange = useCallback(
     (file: File | undefined) => {
       if (!file) {
-        toast.error('No file uploaded.');
+        toast.error("No file uploaded.");
       } else if (ACCEPTED_IMAGE_TYPES.includes(file.type)) {
         setImage(file);
       } else {
-        toast.error('Please upload a .jpg, .jpeg, .png or .svg file.');
+        toast.error("Please upload a .jpg, .jpeg, .png or .svg file.");
       }
     },
-    [setImage]
+    [setImage],
   );
 
   const handleDragOver = useCallback((e: DragEvent) => {
@@ -76,7 +78,7 @@ export function ImageInput({
 
       handleChange(e.dataTransfer.files[0]);
     },
-    [handleChange]
+    [handleChange],
   );
 
   const handleLoad = useCallback(() => {
@@ -84,16 +86,16 @@ export function ImageInput({
   }, [setImagePreview, reader]);
 
   const handleError = useCallback(() => {
-    toast.error('Unable to upload image.');
+    toast.error("Unable to upload image.");
   }, []);
 
   useEffect(() => {
-    reader.addEventListener('load', handleLoad);
-    reader.addEventListener('error', handleError);
+    reader.addEventListener("load", handleLoad);
+    reader.addEventListener("error", handleError);
 
     return () => {
-      reader.removeEventListener('load', handleLoad);
-      reader.removeEventListener('error', handleError);
+      reader.removeEventListener("load", handleLoad);
+      reader.removeEventListener("error", handleError);
     };
   }, [reader, setImagePreview, handleLoad, handleError]);
 
@@ -102,10 +104,10 @@ export function ImageInput({
       <Button
         type="button"
         className={cn(
-          'bg-background hover:bg-background relative flex size-32 flex-col items-center justify-center gap-1 rounded-lg border p-0 transition-colors',
+          "bg-background hover:bg-background relative flex size-32 flex-col items-center justify-center gap-1 rounded-lg border p-0 transition-colors",
           isDragOver
-            ? 'border-primary bg-primary/20'
-            : 'border-border bg-background hover:bg-background'
+            ? "border-primary bg-primary/20"
+            : "border-border bg-background hover:bg-background",
         )}
         onClick={() => imageFileInput.current?.click()}
         onDragOver={handleDragOver}
@@ -147,9 +149,7 @@ export function ImageInput({
         ) : (
           <>
             <ImageIcon className="text-muted-foreground" />
-            <span className="text-muted-foreground text-xs">
-              Browse or Drop
-            </span>
+            <span className="text-muted-foreground text-xs">Browse or Drop</span>
           </>
         )}
       </Button>

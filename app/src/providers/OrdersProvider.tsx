@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { ParsedOrder } from '@/types/accounts';
-import { wrappedFetch } from '@/lib/api';
-import { createContext, ReactNode, useContext } from 'react';
-import useSWR, { KeyedMutator } from 'swr';
+import { createContext, ReactNode, useContext } from "react";
+import useSWR, { KeyedMutator } from "swr";
+
+import { wrappedFetch } from "@/lib/api";
+import { ParsedOrder } from "@/types/accounts";
 
 interface OrdersContextType {
   ordersData: ParsedOrder[] | undefined;
@@ -35,12 +36,12 @@ export function OrdersProvider({
     isLoading: ordersLoading,
     mutate: ordersMutate,
   } = useSWR(
-    'orders',
+    "orders",
     async () => {
       const url = new URL(apiEndpoint);
 
-      if (shopper) url.searchParams.append('shopper', shopper);
-      if (store) url.searchParams.append('store', store);
+      if (shopper) url.searchParams.append("shopper", shopper);
+      if (store) url.searchParams.append("store", store);
 
       const orders = (await wrappedFetch(url.href)).orders as ParsedOrder[];
 
@@ -49,7 +50,7 @@ export function OrdersProvider({
     {
       fallbackData,
       revalidateOnMount: false,
-    }
+    },
   );
 
   return (

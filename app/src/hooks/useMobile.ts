@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 // used when styling using Tailwind breakpoints is not possible
 export function useMobile() {
@@ -18,10 +18,10 @@ export function useMobile() {
       timeoutId = setTimeout(checkIsMobile, 100);
     };
 
-    window.addEventListener('resize', debouncedCheck);
+    window.addEventListener("resize", debouncedCheck);
 
     return () => {
-      window.removeEventListener('resize', debouncedCheck);
+      window.removeEventListener("resize", debouncedCheck);
       clearTimeout(timeoutId);
     };
   }, []);

@@ -1,6 +1,17 @@
-'use client';
+"use client";
 
-import { Dialog, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { UserRound } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { FormDialogTitle } from "@/components/FormDialogTitle";
+import { ImageInput } from "@/components/ImageInput";
+import { TransactionToast } from "@/components/TransactionToast";
+import { Dialog, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -8,31 +19,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { CreateProfileFormData, createProfileSchema } from '@/lib/schema';
-import { UserRound } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ImageInput } from '@/components/ImageInput';
-import { WalletGuardButton } from '@/components/WalletGuardButton';
-import { useIrysUploader } from '@/hooks/useIrysUploader';
-import { toast } from 'sonner';
-import { TransactionToast } from '@/components/TransactionToast';
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { DicebearStyles, getDicebearFile } from '@/lib/client/dicebear';
-import { useShopper } from '@/providers/ShopperProvider';
-import { ImageInputLabel } from '../ImageInputLabel';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '@/components/FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { WalletGuardButton } from "@/components/WalletGuardButton";
+import { useIrysUploader } from "@/hooks/useIrysUploader";
+import { sendTx } from "@/lib/api";
+import { DicebearStyles, getDicebearFile } from "@/lib/client/dicebear";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { CreateProfileFormData, createProfileSchema } from "@/lib/schema";
+import { useSettings } from "@/providers/SettingsProvider";
+import { useShopper } from "@/providers/ShopperProvider";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { ImageInputLabel } from "../ImageInputLabel";
 
 export function CreateProfileDialog() {
   const { connection } = useConnection();
@@ -41,22 +43,22 @@ export function CreateProfileDialog() {
   const { shopperMutate } = useShopper();
   const { upload } = useIrysUploader();
   const [isOpen, setIsOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const form = useForm<CreateProfileFormData>({
     resolver: zodResolver(createProfileSchema),
     defaultValues: {
-      name: '',
-      address: '',
+      name: "",
+      address: "",
     },
   });
 
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
     form.reset();
-    setImagePreview('');
+    setImagePreview("");
   }, [form]);
 
   const onSubmit = useCallback(
@@ -64,22 +66,18 @@ export function CreateProfileDialog() {
       toast.promise(
         async () => {
           if (!publicKey || !signTransaction) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           setIsUploading(true);
           const imageUri = await upload(
-            data.image ??
-              (await getDicebearFile(
-                DicebearStyles.Shopper,
-                publicKey.toBase58()
-              ))
+            data.image ?? (await getDicebearFile(DicebearStyles.Shopper, publicKey.toBase58())),
           );
 
           return { imageUri, publicKey, signTransaction };
         },
         {
-          loading: 'Uploading image...',
+          loading: "Uploading image...",
           success: ({ imageUri, publicKey, signTransaction }) => {
             toast.promise(
               async () => {
@@ -97,7 +95,7 @@ export function CreateProfileDialog() {
                   ],
                   publicKey,
                   [],
-                  priorityFee
+                  priorityFee,
                 );
 
                 tx = await signTransaction(tx);
@@ -106,15 +104,14 @@ export function CreateProfileDialog() {
                 return signature;
               },
               {
-                loading: 'Waiting for signature...',
+                loading: "Waiting for signature...",
                 success: async (signature) => {
                   const newShopper = {
                     address: data.address,
                     authority: publicKey.toBase58(),
                     image: imageUri,
                     name: data.name,
-                    publicKey:
-                      SplurgeClient.getShopperPda(publicKey).toBase58(),
+                    publicKey: SplurgeClient.getShopperPda(publicKey).toBase58(),
                   };
 
                   await shopperMutate(newShopper, {
@@ -134,20 +131,20 @@ export function CreateProfileDialog() {
                 error: (err) => {
                   console.error(err);
                   setIsSubmitting(false);
-                  return err.message || 'Something went wrong.';
+                  return err.message || "Something went wrong.";
                 },
-              }
+              },
             );
 
             setIsUploading(false);
-            return 'Image uploaded!';
+            return "Image uploaded!";
           },
           error: (err) => {
             console.error(err);
             setIsUploading(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -159,7 +156,7 @@ export function CreateProfileDialog() {
       connection,
       getTransactionLink,
       priorityFee,
-    ]
+    ],
   );
 
   return (

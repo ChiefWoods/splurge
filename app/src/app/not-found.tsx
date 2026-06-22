@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { ErrorSection } from '@/components/ErrorSection';
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { ErrorSection } from "@/components/ErrorSection";
 
 export default function NotFound() {
   const router = useRouter();

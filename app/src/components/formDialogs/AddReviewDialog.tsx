@@ -1,36 +1,31 @@
-'use client';
+"use client";
 
-import { CreateReviewFormData, createReviewSchema } from '@/lib/schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { TransactionToast } from '../TransactionToast';
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { toast } from 'sonner';
-import { PublicKey } from '@solana/web3.js';
-import { Plus } from 'lucide-react';
-import { Dialog, DialogHeader, DialogTrigger } from '../ui/dialog';
-import { WalletGuardButton } from '../WalletGuardButton';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
-import { Textarea } from '../ui/textarea';
-import { Slider } from '../ui/slider';
-import { useReviews } from '@/providers/ReviewsProvider';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '@/components/FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { SplurgeClient } from '@/classes/SplurgeClient';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { PublicKey } from "@solana/web3.js";
+import { Plus } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { FormDialogTitle } from "@/components/FormDialogTitle";
+import { sendTx } from "@/lib/api";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { CreateReviewFormData, createReviewSchema } from "@/lib/schema";
+import { useReviews } from "@/providers/ReviewsProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { TransactionToast } from "../TransactionToast";
+import { Dialog, DialogHeader, DialogTrigger } from "../ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Slider } from "../ui/slider";
+import { Textarea } from "../ui/textarea";
+import { WalletGuardButton } from "../WalletGuardButton";
 
 export function AddReviewDialog({ orderPda }: { orderPda: string }) {
   const { connection } = useConnection();
@@ -44,7 +39,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
     resolver: zodResolver(createReviewSchema),
     defaultValues: {
       rating: 3,
-      text: '',
+      text: "",
     },
   });
 
@@ -58,7 +53,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
       toast.promise(
         async () => {
           if (!publicKey || !signTransaction) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           setIsSubmitting(true);
@@ -76,7 +71,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
             ],
             publicKey,
             [],
-            priorityFee
+            priorityFee,
           );
 
           tx = await signTransaction(tx);
@@ -85,12 +80,10 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           return signature;
         },
         {
-          loading: 'Waiting for signature...',
+          loading: "Waiting for signature...",
           success: async (signature) => {
             const newReview = {
-              publicKey: SplurgeClient.getReviewPda(
-                new PublicKey(orderPda)
-              ).toBase58(),
+              publicKey: SplurgeClient.getReviewPda(new PublicKey(orderPda)).toBase58(),
               order: orderPda,
               rating: data.rating,
               timestamp: Date.now() / 1000,
@@ -100,32 +93,27 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
             await reviewsMutate(
               (prev) => {
                 if (!prev) {
-                  throw new Error('Reviews should not be null.');
+                  throw new Error("Reviews should not be null.");
                 }
 
                 return [...prev, newReview];
               },
               {
                 revalidate: true,
-              }
+              },
             );
 
             closeAndReset();
             setIsSubmitting(false);
 
-            return (
-              <TransactionToast
-                title="Review added!"
-                link={getTransactionLink(signature)}
-              />
-            );
+            return <TransactionToast title="Review added!" link={getTransactionLink(signature)} />;
           },
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -137,13 +125,13 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
       connection,
       getTransactionLink,
       priorityFee,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="secondary" size={'sm'} setOpen={setIsOpen}>
+        <WalletGuardButton variant="secondary" size={"sm"} setOpen={setIsOpen}>
           <Plus />
           Add Review
         </WalletGuardButton>
@@ -200,11 +188,7 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
             />
             <FormDialogFooter>
               <FormCancelButton onClick={closeAndReset} />
-              <FormSubmitButton
-                Icon={Plus}
-                disabled={isSubmitting}
-                text="Add Review"
-              />
+              <FormSubmitButton Icon={Plus} disabled={isSubmitting} text="Add Review" />
             </FormDialogFooter>
           </form>
         </Form>

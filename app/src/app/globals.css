@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -77,7 +77,7 @@
 
 @layer utilities {
   body {
-    font-family: 'Moderustic', sans-serif;
+    font-family: "Moderustic", sans-serif;
   }
 }
 
@@ -154,7 +154,7 @@
   }
 
   button:not([disabled]),
-  [role='button']:not([disabled]) {
+  [role="button"]:not([disabled]) {
     cursor: pointer;
   }
 
@@ -163,7 +163,7 @@
   }
 
   /* patches Jupiter Unified Wallet modal overlay not spanning full viewport */
-  [class$='ModalDialog'] {
+  [class$="ModalDialog"] {
     min-height: 100%;
     min-width: 100%;
   }
@@ -176,13 +176,13 @@
 }
 
 @layer utilities {
-  input[type='number']::-webkit-inner-spin-button,
-  input[type='number']::-webkit-outer-spin-button {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  input[type='number'] {
+  input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
   }

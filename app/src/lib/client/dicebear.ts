@@ -1,20 +1,17 @@
 export enum DicebearStyles {
-  Shopper = 'personas',
-  Store = 'shapes',
-  Item = 'icons',
+  Shopper = "personas",
+  Store = "shapes",
+  Item = "icons",
 }
 
-export function getDicebearEndpoint(style: string, seed: string = ''): string {
+export function getDicebearEndpoint(style: string, seed: string = ""): string {
   return `${process.env.NEXT_PUBLIC_DICEBEAR_API}/${style}/svg?seed=${seed}`;
 }
 
-export async function getDicebearFile(
-  style: string,
-  seed: string = ''
-): Promise<File> {
+export async function getDicebearFile(style: string, seed: string = ""): Promise<File> {
   const res = await fetch(getDicebearEndpoint(style, seed), {
     headers: {
-      'Content-Type': 'image/jpeg',
+      "Content-Type": "image/jpeg",
     },
   });
 

@@ -1,9 +1,10 @@
-import { CommonMain } from '@/components/CommonMain';
-import { Metadata } from 'next';
-import { ReactNode } from 'react';
+import { Metadata } from "next";
+import { ReactNode } from "react";
+
+import { CommonMain } from "@/components/CommonMain";
 
 export const metadata: Metadata = {
-  title: 'My Orders',
+  title: "My Orders",
 };
 
 export default function Layout({ children }: { children: ReactNode }) {

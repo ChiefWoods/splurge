@@ -1,19 +1,14 @@
-import Link from 'next/link';
-import { Button } from './ui/button';
-import { SquareArrowOutUpRight } from 'lucide-react';
+import { SquareArrowOutUpRight } from "lucide-react";
+import Link from "next/link";
 
-export function AccountLinkButton({
-  href,
-  text,
-}: {
-  href: string;
-  text?: string;
-}) {
+import { Button } from "./ui/button";
+
+export function AccountLinkButton({ href, text }: { href: string; text?: string }) {
   return (
     <Button
       asChild
-      size={'icon'}
-      variant={'ghost'}
+      size={"icon"}
+      variant={"ghost"}
       className="group size-fit bg-transparent p-0 hover:bg-transparent md:p-1"
     >
       <Link href={href} target="_blank">

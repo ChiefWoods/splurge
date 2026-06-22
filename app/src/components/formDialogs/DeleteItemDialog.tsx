@@ -1,36 +1,27 @@
-'use client';
+"use client";
 
-import { buildTx, SPLURGE_CLIENT } from '@/lib/client/solana';
-import { FormEvent, useCallback, useState } from 'react';
-import { toast } from 'sonner';
-import { TransactionToast } from '../TransactionToast';
-import { Trash2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogDescription,
-  DialogHeader,
-  DialogTrigger,
-} from '../ui/dialog';
-import { WalletGuardButton } from '../WalletGuardButton';
-import { useItems } from '@/providers/ItemsProvider';
-import { PublicKey } from '@solana/web3.js';
-import { useConnection, useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { FormDialogTitle } from '@/components/FormDialogTitle';
-import { FormDialogContent } from '../FormDialogContent';
-import { FormDialogFooter } from '../FormDialogFooter';
-import { FormSubmitButton } from '../FormSubmitButton';
-import { FormCancelButton } from '../FormCancelButton';
-import { sendTx } from '@/lib/api';
-import { useSettings } from '@/providers/SettingsProvider';
-import { ParsedItem } from '@/types/accounts';
+import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { PublicKey } from "@solana/web3.js";
+import { Trash2 } from "lucide-react";
+import { FormEvent, useCallback, useState } from "react";
+import { toast } from "sonner";
 
-export function DeleteItemDialog({
-  item,
-  storePda,
-}: {
-  item: ParsedItem;
-  storePda: string;
-}) {
+import { FormDialogTitle } from "@/components/FormDialogTitle";
+import { sendTx } from "@/lib/api";
+import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { useItems } from "@/providers/ItemsProvider";
+import { useSettings } from "@/providers/SettingsProvider";
+import { ParsedItem } from "@/types/accounts";
+
+import { FormCancelButton } from "../FormCancelButton";
+import { FormDialogContent } from "../FormDialogContent";
+import { FormDialogFooter } from "../FormDialogFooter";
+import { FormSubmitButton } from "../FormSubmitButton";
+import { TransactionToast } from "../TransactionToast";
+import { Dialog, DialogDescription, DialogHeader, DialogTrigger } from "../ui/dialog";
+import { WalletGuardButton } from "../WalletGuardButton";
+
+export function DeleteItemDialog({ item, storePda }: { item: ParsedItem; storePda: string }) {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useUnifiedWallet();
   const { getTransactionLink, priorityFee } = useSettings();
@@ -45,7 +36,7 @@ export function DeleteItemDialog({
       toast.promise(
         async () => {
           if (!publicKey || !signTransaction) {
-            throw new Error('Wallet not connected.');
+            throw new Error("Wallet not connected.");
           }
 
           setIsSubmitting(true);
@@ -61,7 +52,7 @@ export function DeleteItemDialog({
             ],
             publicKey,
             [],
-            priorityFee
+            priorityFee,
           );
 
           tx = await signTransaction(tx);
@@ -70,12 +61,12 @@ export function DeleteItemDialog({
           return signature;
         },
         {
-          loading: 'Waiting for signature...',
+          loading: "Waiting for signature...",
           success: async (signature) => {
             await itemsMutate(
               (prev) => {
                 if (!prev) {
-                  throw new Error('Items should not be null.');
+                  throw new Error("Items should not be null.");
                 }
 
                 return prev.filter((prevItem) => {
@@ -84,25 +75,20 @@ export function DeleteItemDialog({
               },
               {
                 revalidate: true,
-              }
+              },
             );
 
             setIsOpen(false);
             setIsSubmitting(false);
 
-            return (
-              <TransactionToast
-                title="Item deleted!"
-                link={getTransactionLink(signature)}
-              />
-            );
+            return <TransactionToast title="Item deleted!" link={getTransactionLink(signature)} />;
           },
           error: (err) => {
             console.error(err);
             setIsSubmitting(false);
-            return err.message || 'Something went wrong.';
+            return err.message || "Something went wrong.";
           },
-        }
+        },
       );
     },
     [
@@ -114,13 +100,13 @@ export function DeleteItemDialog({
       connection,
       getTransactionLink,
       priorityFee,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <WalletGuardButton variant="outline" size={'icon'} setOpen={setIsOpen}>
+        <WalletGuardButton variant="outline" size={"icon"} setOpen={setIsOpen}>
           <Trash2 />
         </WalletGuardButton>
       </DialogTrigger>
@@ -128,8 +114,7 @@ export function DeleteItemDialog({
         <DialogHeader>
           <FormDialogTitle title="Delete Item" />
           <DialogDescription className="text-foreground">
-            Are you sure you want to delete {item.name}? Warning: reviews will
-            be lost forever!
+            Are you sure you want to delete {item.name}? Warning: reviews will be lost forever!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit}>

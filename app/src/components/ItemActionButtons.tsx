@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
-import { ParsedConfig, ParsedItem, ParsedStore } from '@/types/accounts';
-import { DeleteItemDialog } from './formDialogs/DeleteItemDialog';
-import { UpdateItemDialog } from './formDialogs/UpdateItemDialog';
-import { useUnifiedWallet } from '@jup-ag/wallet-adapter';
-import { CheckoutDialog } from './formDialogs/CheckoutDialog';
-import { ShoppingCart } from 'lucide-react';
+import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { ShoppingCart } from "lucide-react";
+
+import { ParsedConfig, ParsedItem, ParsedStore } from "@/types/accounts";
+
+import { CheckoutDialog } from "./formDialogs/CheckoutDialog";
+import { DeleteItemDialog } from "./formDialogs/DeleteItemDialog";
+import { UpdateItemDialog } from "./formDialogs/UpdateItemDialog";
 
 export function ItemActionButtons({
   item,
@@ -25,13 +27,7 @@ export function ItemActionButtons({
     </div>
   ) : (
     item.inventoryCount > 0 && (
-      <CheckoutDialog
-        config={config}
-        item={item}
-        store={store}
-        btnVariant="default"
-        btnSize="icon"
-      >
+      <CheckoutDialog config={config} item={item} store={store} btnVariant="default" btnSize="icon">
         <ShoppingCart />
       </CheckoutDialog>
     )

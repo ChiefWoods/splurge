@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import { CheckoutDialog } from '@/components/formDialogs/CheckoutDialog';
-import { ItemCard } from '@/components/ItemCard';
-import { EmptyResult } from '@/components/EmptyResult';
-import { SectionHeader } from '@/components/SectionHeader';
-import { atomicToUsd, truncateAddress } from '@/lib/utils';
-import { useShopper } from '@/providers/ShopperProvider';
-import { useWallet } from '@jup-ag/wallet-adapter';
-import { ShoppingBasket, ShoppingCart } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useMemo } from 'react';
-import { ItemCardInfoText } from '@/components/ItemCardInfoText';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { ParsedConfig, ParsedItem, ParsedStore } from '@/types/accounts';
-import { ItemCardSkeleton } from './ItemCardSkeleton';
-import { Skeleton } from './ui/skeleton';
+import { useWallet } from "@jup-ag/wallet-adapter";
+import { ShoppingBasket, ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useMemo } from "react";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+import { EmptyResult } from "@/components/EmptyResult";
+import { CheckoutDialog } from "@/components/formDialogs/CheckoutDialog";
+import { ItemCard } from "@/components/ItemCard";
+import { ItemCardInfoText } from "@/components/ItemCardInfoText";
+import { SectionHeader } from "@/components/SectionHeader";
+import { atomicToUsd, truncateAddress } from "@/lib/utils";
+import { useShopper } from "@/providers/ShopperProvider";
+import { ParsedConfig, ParsedItem, ParsedStore } from "@/types/accounts";
+
+import { ItemCardSkeleton } from "./ItemCardSkeleton";
+import { Skeleton } from "./ui/skeleton";
 
 export function LandingFeaturedSection({
   items,
@@ -48,11 +50,7 @@ export function LandingFeaturedSection({
         <Skeleton className="h-8 w-2/5" />
       ) : (
         <SectionHeader
-          text={
-            shopperData?.name
-              ? `Welcome back, ${shopperData.name}`
-              : 'Welcome to Splurge!'
-          }
+          text={shopperData?.name ? `Welcome back, ${shopperData.name}` : "Welcome to Splurge!"}
         />
       )}
       <div className="flex w-full flex-1 flex-wrap gap-6">
@@ -65,21 +63,17 @@ export function LandingFeaturedSection({
         ) : stores.length > 0 && filteredItems.length > 0 ? (
           <>
             {filteredItems.map((item) => {
-              const store = stores.find(
-                ({ publicKey }) => publicKey === item.store
-              );
+              const store = stores.find(({ publicKey }) => publicKey === item.store);
 
               if (!store) {
-                throw new Error('Matching store not found for item.');
+                throw new Error("Matching store not found for item.");
               }
 
               return (
                 <ItemCard key={item.publicKey} item={item} store={store}>
                   <>
                     <div className="flex w-full justify-between gap-y-1 overflow-hidden">
-                      <ItemCardInfoText
-                        text={`${atomicToUsd(item.price)} USD`}
-                      />
+                      <ItemCardInfoText text={`${atomicToUsd(item.price)} USD`} />
                       <ItemCardInfoText
                         text={`${item.inventoryCount} left`}
                         className="hidden md:block"
@@ -121,10 +115,7 @@ export function LandingFeaturedSection({
             })}
           </>
         ) : (
-          <EmptyResult
-            Icon={ShoppingBasket}
-            text="No items listed. Check back later!"
-          />
+          <EmptyResult Icon={ShoppingBasket} text="No items listed. Check back later!" />
         )}
       </div>
     </>

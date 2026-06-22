@@ -1,34 +1,25 @@
-import { VersionedTransaction } from '@solana/web3.js';
-import { NextRequest, NextResponse } from 'next/server';
-import {
-  ADMIN_KEYPAIR,
-  CONNECTION,
-  sendTx,
-  validateProgramIx,
-} from '@/lib/server/solana';
-import { v0TxToBase64 } from '@/lib/utils';
+import { VersionedTransaction } from "@solana/web3.js";
+import { NextRequest, NextResponse } from "next/server";
 
-const allowedIxs = ['ship_order', 'cancel_order'];
+import { ADMIN_KEYPAIR, CONNECTION, sendTx, validateProgramIx } from "@/lib/server/solana";
+import { v0TxToBase64 } from "@/lib/utils";
+
+const allowedIxs = ["ship_order", "cancel_order"];
 
 export async function POST(req: NextRequest) {
   try {
     const { transaction } = await req.json();
 
     if (!transaction) {
-      return NextResponse.json(
-        { error: 'Serialized transaction is required.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Serialized transaction is required." }, { status: 400 });
     }
 
-    const tx = VersionedTransaction.deserialize(
-      Buffer.from(transaction, 'base64')
-    );
+    const tx = VersionedTransaction.deserialize(Buffer.from(transaction, "base64"));
 
     if (!validateProgramIx(tx, allowedIxs)) {
       return NextResponse.json(
-        { error: 'Transaction does not contain the correct instruction.' },
-        { status: 400 }
+        { error: "Transaction does not contain the correct instruction." },
+        { status: 400 },
       );
     }
 
@@ -41,19 +32,16 @@ export async function POST(req: NextRequest) {
     }
 
     const signature = res.result!;
-    await CONNECTION.confirmTransaction(signature, 'confirmed');
+    await CONNECTION.confirmTransaction(signature, "confirmed");
     return NextResponse.json({ signature });
   } catch (err) {
     console.error(err);
 
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Failed to send permissioned transaction.',
+        error: err instanceof Error ? err.message : "Failed to send permissioned transaction.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

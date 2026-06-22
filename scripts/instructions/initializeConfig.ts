@@ -1,9 +1,13 @@
-import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
-import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { admin, connection, splurgeProgram, treasury } from "../setup";
+import {
+  getAssociatedTokenAddressSync,
+  getOrCreateAssociatedTokenAccount,
+} from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 
-console.log("Initializing config...")
+import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { admin, connection, splurgeProgram, treasury } from "../setup";
+
+console.log("Initializing config...");
 
 // Params
 const acceptedMints = [
@@ -14,7 +18,7 @@ const acceptedMints = [
   {
     mint: PYUSD_MINT,
     priceUpdateV2: PYUSD_PRICE_UPDATE_V2,
-  }
+  },
 ];
 const orderFeeBps = 250;
 
@@ -32,17 +36,12 @@ const signature = await splurgeProgram.methods
 
 console.log("Config initialized:", signature);
 
-console.log("Initializing treasury ATAs...")
+console.log("Initializing treasury ATAs...");
 
 for (const { mint } of acceptedMints) {
   const { owner } = await connection.getAccountInfo(mint);
 
-  const ata = getAssociatedTokenAddressSync(
-    mint,
-    treasury,
-    true,
-    owner
-  );
+  const ata = getAssociatedTokenAddressSync(mint, treasury, true, owner);
 
   const ataAcc = await connection.getAccountInfo(ata);
 
@@ -55,11 +54,11 @@ for (const { mint } of acceptedMints) {
       !PublicKey.isOnCurve(treasury),
       "confirmed",
       {
-        commitment: "confirmed"
+        commitment: "confirmed",
       },
       owner,
-    )
-  
+    );
+
     console.log(`Treasury ATA for ${mint.toBase58()} initialized: ${ata.toBase58()}`);
   }
 }

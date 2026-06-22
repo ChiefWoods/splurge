@@ -1,9 +1,6 @@
-'use client';
+"use client";
 
-import {
-  useUnifiedWallet,
-  useUnifiedWalletContext,
-} from '@jup-ag/wallet-adapter';
+import { useUnifiedWallet, useUnifiedWalletContext } from "@jup-ag/wallet-adapter";
 
 export function useWalletAuth() {
   const { connected } = useUnifiedWallet();

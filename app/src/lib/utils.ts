@@ -1,15 +1,14 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { VersionedTransaction } from '@solana/web3.js';
-import { MINT_DECIMALS } from './constants';
-import { Connection } from '@solana/web3.js';
-import { PublicKey } from '@solana/web3.js';
-import { SplurgeClient } from '@/classes/SplurgeClient';
-import { fetchConfig } from './accounts';
-import {
-  getAssociatedTokenAddressSync,
-  unpackAccount,
-} from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, unpackAccount } from "@solana/spl-token";
+import { VersionedTransaction } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+import { SplurgeClient } from "@/classes/SplurgeClient";
+
+import { fetchConfig } from "./accounts";
+import { MINT_DECIMALS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,13 +25,13 @@ export function capitalizeFirstLetter(str: string): string {
 export function atomicToUsd(
   atomic: number,
   precision: number = 2,
-  decimals: number = MINT_DECIMALS
+  decimals: number = MINT_DECIMALS,
 ): string {
   return (atomic / 10 ** decimals).toFixed(precision);
 }
 
 export function removeTrailingZeroes(price: string): string {
-  return price.replace(/\.?0+$/, '');
+  return price.replace(/\.?0+$/, "");
 }
 
 export function getRelativeTime(timestamp: number): string {
@@ -40,7 +39,7 @@ export function getRelativeTime(timestamp: number): string {
   const date = new Date(timestamp * 1000);
 
   if (isNaN(date.getTime())) {
-    return 'Invalid date';
+    return "Invalid date";
   }
 
   const diffMs = now.getTime() - date.getTime();
@@ -59,7 +58,7 @@ export function getRelativeTime(timestamp: number): string {
     const absDiffHours = Math.abs(diffHours);
     const absDiffDays = Math.abs(diffDays);
 
-    if (absDiffSeconds < 60) return 'in a few seconds';
+    if (absDiffSeconds < 60) return "in a few seconds";
     if (absDiffMinutes < 60) return `in ${absDiffMinutes}m`;
     if (absDiffHours < 24) return `in ${absDiffHours}h`;
     if (absDiffDays < 7) return `in ${absDiffDays}d`;
@@ -67,7 +66,7 @@ export function getRelativeTime(timestamp: number): string {
   }
 
   // Past dates
-  if (diffSeconds < 30) return 'just now';
+  if (diffSeconds < 30) return "just now";
   if (diffSeconds < 60) return `${diffSeconds}s ago`;
   if (diffMinutes < 60) return `${diffMinutes}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
@@ -78,12 +77,12 @@ export function getRelativeTime(timestamp: number): string {
 }
 
 export function v0TxToBase64(tx: VersionedTransaction): string {
-  return Buffer.from(tx.serialize()).toString('base64');
+  return Buffer.from(tx.serialize()).toString("base64");
 }
 
 export async function tryGetTokenAccountBalance(
   connection: Connection,
-  address: PublicKey
+  address: PublicKey,
 ): Promise<number> {
   let balance: number = 0;
 
@@ -97,20 +96,17 @@ export async function tryGetTokenAccountBalance(
   return balance;
 }
 
-export async function getStoreEarnings(
-  client: SplurgeClient,
-  storePda: string
-) {
+export async function getStoreEarnings(client: SplurgeClient, storePda: string) {
   const config = await fetchConfig(client);
 
   if (!config) {
-    throw new Error('Config not initialized.');
+    throw new Error("Config not initialized.");
   }
 
   const acceptedMints = config.acceptedMints;
 
   const mintAccs = await client.connection.getMultipleAccountsInfo(
-    acceptedMints.map((mint) => new PublicKey(mint.mint))
+    acceptedMints.map((mint) => new PublicKey(mint.mint)),
   );
 
   const atas = mintAccs.map((mintAcc, i) => {
@@ -124,7 +120,7 @@ export async function getStoreEarnings(
       new PublicKey(mint),
       new PublicKey(storePda),
       !PublicKey.isOnCurve(storePda),
-      mintAcc.owner
+      mintAcc.owner,
     );
 
     return {
@@ -134,17 +130,12 @@ export async function getStoreEarnings(
     };
   });
 
-  const ataInfos = await client.connection.getMultipleAccountsInfo(
-    atas.map(({ ata }) => ata)
-  );
+  const ataInfos = await client.connection.getMultipleAccountsInfo(atas.map(({ ata }) => ata));
 
   const earnings = atas.map(({ ata, mint, programId }, i) => ({
     mint,
     ata: ata.toBase58(),
-    amount:
-      ataInfos[i] === null
-        ? 0
-        : Number(unpackAccount(ata, ataInfos[i], programId).amount),
+    amount: ataInfos[i] === null ? 0 : Number(unpackAccount(ata, ataInfos[i], programId).amount),
   }));
 
   return earnings;

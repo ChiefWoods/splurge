@@ -1,11 +1,7 @@
-import { SectionHeaderSkeleton } from './SectionHeaderSkeleton';
-import { Skeleton } from './ui/skeleton';
+import { SectionHeaderSkeleton } from "./SectionHeaderSkeleton";
+import { Skeleton } from "./ui/skeleton";
 
-export function AccountSectionSkeleton({
-  header = false,
-}: {
-  header?: boolean;
-}) {
+export function AccountSectionSkeleton({ header = false }: { header?: boolean }) {
   return (
     <section className="flex w-full flex-col gap-6">
       {header && <SectionHeaderSkeleton />}

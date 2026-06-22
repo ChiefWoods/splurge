@@ -1,19 +1,15 @@
-import { z } from 'zod';
-import { ACCEPTED_IMAGE_TYPES } from './constants';
-import { capitalizeFirstLetter } from './utils';
-import { SplurgeClient } from '../classes/SplurgeClient';
+import { z } from "zod";
+
+import { SplurgeClient } from "../classes/SplurgeClient";
+import { ACCEPTED_IMAGE_TYPES } from "./constants";
+import { capitalizeFirstLetter } from "./utils";
 
 const zCommonString = (field: string) => {
-  return z
-    .string()
-    .min(3, `${capitalizeFirstLetter(field)} must be at least 3 characters.`);
+  return z.string().min(3, `${capitalizeFirstLetter(field)} must be at least 3 characters.`);
 };
 
 const zName = (maxLength: number) => {
-  return zCommonString('name').max(
-    maxLength,
-    `Name must be less than ${maxLength} characters.`
-  );
+  return zCommonString("name").max(maxLength, `Name must be less than ${maxLength} characters.`);
 };
 
 const zImage = z
@@ -21,49 +17,43 @@ const zImage = z
   .optional()
   .refine((file) => {
     return file ? ACCEPTED_IMAGE_TYPES.includes(file.type) : true;
-  }, 'Only file types of .jpg, .jpeg, .png and .svg formats are supported.');
+  }, "Only file types of .jpg, .jpeg, .png and .svg formats are supported.");
 
-const zInventoryCount = z
-  .number()
-  .int()
-  .min(0, 'Inventory count must be at least 0.');
+const zInventoryCount = z.number().int().min(0, "Inventory count must be at least 0.");
 
 const zPrice = z
   .number()
-  .min(1, 'Price must be at least 1.00.')
-  .refine(
-    (num) => Number(num.toFixed(2)) === num,
-    'Price must have at most 2 decimal places'
-  );
+  .min(1, "Price must be at least 1.00.")
+  .refine((num) => Number(num.toFixed(2)) === num, "Price must have at most 2 decimal places");
 
-export const zAmount = z.number().int().min(1, 'Amount must be at least 1');
+export const zAmount = z.number().int().min(1, "Amount must be at least 1");
 
 export const zPaymentMint = z.string().length(44, {
-  message: 'Invalid payment mint public key.',
+  message: "Invalid payment mint public key.",
 });
 
 const zRating = z
   .number()
   .int()
-  .min(1, 'Rating must be at least 1.')
-  .max(5, 'Rating must be at most 5.');
+  .min(1, "Rating must be at least 1.")
+  .max(5, "Rating must be at most 5.");
 
 export const createProfileSchema = z.object({
   name: zName(SplurgeClient.MAX_SHOPPER_NAME_LENGTH),
   image: zImage,
-  address: zCommonString('address'),
+  address: zCommonString("address"),
 });
 
 export const createStoreSchema = z.object({
   name: zName(SplurgeClient.MAX_STORE_NAME_LENGTH),
   image: zImage,
-  about: zCommonString('about'),
+  about: zCommonString("about"),
 });
 
 export const createItemSchema = z.object({
   name: zName(SplurgeClient.MAX_ITEM_NAME_LENGTH),
   image: zImage,
-  description: zCommonString('description'),
+  description: zCommonString("description"),
   inventoryCount: zInventoryCount,
   price: zPrice,
 });
@@ -75,7 +65,7 @@ export const updateItemSchema = z.object({
 
 export const createReviewSchema = z.object({
   rating: zRating,
-  text: zCommonString('text'),
+  text: zCommonString("text"),
 });
 
 export type CreateProfileFormData = z.infer<typeof createProfileSchema>;

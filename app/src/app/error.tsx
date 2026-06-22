@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { ErrorSection } from '@/components/ErrorSection';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw } from "lucide-react";
+
+import { ErrorSection } from "@/components/ErrorSection";
 
 export default function Error({
   error,

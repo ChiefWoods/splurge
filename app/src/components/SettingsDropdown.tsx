@@ -1,37 +1,25 @@
-'use client';
+"use client";
 
-import { useSettings } from '@/providers/SettingsProvider';
-import { useTheme } from 'next-themes';
-import { ReactNode, useState } from 'react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Button } from './ui/button';
-import { Settings } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Label } from './ui/label';
-import { capitalizeFirstLetter, cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import {
-  InputGroup,
-  InputGroupButton,
-  InputGroupInput,
-} from './ui/input-group';
+import { Settings } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ReactNode, useState } from "react";
+import { toast } from "sonner";
 
-const themeOptions = ['light', 'dark', 'system'];
-const explorerOptions = ['solana-explorer', 'solscan', 'solanaFM', 'orb'];
-const priorityFeeOptions = ['low', 'median', 'high'];
-const rpcTypeOptions = ['default', 'custom'];
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { useSettings } from "@/providers/SettingsProvider";
+
+import { Button } from "./ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { InputGroup, InputGroupButton, InputGroupInput } from "./ui/input-group";
+import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+
+const themeOptions = ["light", "dark", "system"];
+const explorerOptions = ["solana-explorer", "solscan", "solanaFM", "orb"];
+const priorityFeeOptions = ["low", "median", "high"];
+const rpcTypeOptions = ["default", "custom"];
 
 function ToggleGroupSingle({
   value,
@@ -50,8 +38,8 @@ function ToggleGroupSingle({
         if (val) onValueChange(val);
       }}
       className="justify-start"
-      variant={'outline'}
-      size={'sm'}
+      variant={"outline"}
+      size={"sm"}
     >
       {groupItems.map((item) => (
         <ToggleGroupItem key={item} value={item} aria-label={item}>
@@ -62,13 +50,7 @@ function ToggleGroupSingle({
   );
 }
 
-function SettingsSection({
-  header,
-  children,
-}: {
-  header: string;
-  children: ReactNode;
-}) {
+function SettingsSection({ header, children }: { header: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
       <h3 className="text-base font-medium">{header}</h3>
@@ -95,11 +77,7 @@ export function SettingsDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="*:text-foreground size-8"
-        >
+        <Button variant="ghost" size="icon" className="*:text-foreground size-8">
           <Settings className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -107,11 +85,7 @@ export function SettingsDropdown() {
         <div className="space-y-3">
           {/* Theme Section */}
           <SettingsSection header="Theme">
-            <ToggleGroupSingle
-              value={theme}
-              onValueChange={setTheme}
-              groupItems={themeOptions}
-            />
+            <ToggleGroupSingle value={theme} onValueChange={setTheme} groupItems={themeOptions} />
           </SettingsSection>
 
           {/* Preferred Explorer Section */}
@@ -125,12 +99,9 @@ export function SettingsDropdown() {
                   <SelectItem
                     key={option}
                     value={option}
-                    className={cn(
-                      'cursor-pointer',
-                      explorer === option && 'font-medium'
-                    )}
+                    className={cn("cursor-pointer", explorer === option && "font-medium")}
                   >
-                    {option.split('-').map(capitalizeFirstLetter).join(' ')}
+                    {option.split("-").map(capitalizeFirstLetter).join(" ")}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -150,10 +121,7 @@ export function SettingsDropdown() {
           <SettingsSection header="RPC">
             <RadioGroup value={rpcType} onValueChange={setRpcType}>
               {rpcTypeOptions.map((option) => (
-                <div
-                  key={option}
-                  className="flex w-fit cursor-pointer items-center space-x-2"
-                >
+                <div key={option} className="flex w-fit cursor-pointer items-center space-x-2">
                   <RadioGroupItem value={option} id={`rpc-${option}`} />
                   <Label htmlFor={`rpc-${option}`} className="cursor-pointer">
                     {capitalizeFirstLetter(option)}
@@ -168,24 +136,24 @@ export function SettingsDropdown() {
                 value={tempCustomRpcUrl}
                 onChange={(e) => setTempCustomRpcUrl(e.target.value)}
                 className="flex-1 pr-0 focus-visible:ring-offset-0"
-                disabled={rpcType !== 'custom'}
+                disabled={rpcType !== "custom"}
               />
               <InputGroupButton
                 onClick={() => {
-                  if (tempCustomRpcUrl !== '') {
+                  if (tempCustomRpcUrl !== "") {
                     try {
                       new URL(tempCustomRpcUrl);
                     } catch {
-                      toast.error('Custom RPC URL not valid.');
+                      toast.error("Custom RPC URL not valid.");
                       return;
                     }
                   }
 
                   setCustomRpcUrl(tempCustomRpcUrl);
-                  toast.message('Custom RPC URL saved.');
+                  toast.message("Custom RPC URL saved.");
                 }}
                 size="xs"
-                disabled={rpcType !== 'custom'}
+                disabled={rpcType !== "custom"}
                 className="bg-secondary hover:bg-secondary/75 mx-2"
               >
                 Save

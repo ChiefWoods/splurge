@@ -1,5 +1,6 @@
-import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Info } from "lucide-react";
+
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function InfoTooltip({ text }: { text: string }) {
   return (
