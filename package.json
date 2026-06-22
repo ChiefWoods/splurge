@@ -6,8 +6,10 @@
     "app"
   ],
   "scripts": {
-    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt --check",
+    "fmt:fix": "oxfmt --write",
     "prepare": "husky",
     "build:test": "anchor build -- --features no-staleness-check",
     "deploy": "anchor deploy -p splurge --provider.cluster d --program-keypair target/deploy/splurge-keypair.json --provider.wallet splurge-wallet.json",
@@ -31,7 +33,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "litesvm": "^0.3.3",
-    "prettier": "^3.6.2",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
     "typescript": "^5.9.3"
   },
   "packageManager": "bun@1.3.14"
