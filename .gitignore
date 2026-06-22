@@ -9,3 +9,5 @@ test-ledger
 *-keypair.json
 .env
 !.env.example
+.vscode
+.claude
