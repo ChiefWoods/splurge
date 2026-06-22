@@ -8,9 +8,7 @@
   "scripts": {
     "web3js": {
       "from": "@pratikbuilds/web3js-legacy",
-      "args": [
-        "src/generated"
-      ]
+      "args": ["src/generated"]
     }
   }
 }

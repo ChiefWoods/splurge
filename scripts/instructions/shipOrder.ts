@@ -2,7 +2,8 @@ import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tu
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 
-import { TASK_QUEUE, TUKTUK_PROGRAM_ID } from "../constants";
+import { TUKTUK_PROGRAM_ID } from "../../common/tuktuk";
+import { TASK_QUEUE } from "../constants";
 import { admin, connection, splurgeProgram, tuktukProgram } from "../setup";
 
 console.log("Updating order...");

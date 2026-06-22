@@ -1,23 +1,27 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Program } from "@coral-xyz/anchor";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeConfigInstruction,
+  fetchConfigAccount,
+  findConfigPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchConfigAcc } from "../accounts";
 import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { getConfigPda } from "../pda";
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("initializeConfig", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const admin = Keypair.generate();
 
   beforeEach(async () => {
-    ({ program } = await getSetup([
+    ({ provider, connection } = await getSetup([
       {
         pubkey: admin.publicKey,
         account: fundedSystemAccountInfo(),
@@ -34,20 +38,28 @@ describe("initializeConfig", () => {
     ];
     const orderFeeBps = 250;
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints,
-        admin: admin.publicKey,
-        orderFeeBps,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const configPda = getConfigPda();
-    const configAcc = await fetchConfigAcc(program, configPda);
+      [
+        createInitializeConfigInstruction(
+          {
+            authority: admin.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            acceptedMints,
+            admin: admin.publicKey,
+            orderFeeBps,
+          },
+        ),
+      ],
+
+      [admin],
+    );
+
+    const configPda = findConfigPda(SPLURGE_PROGRAM_ID)[0];
+    const configAcc = (await fetchConfigAccount(connection, configPda)).data;
 
     expect(configAcc.admin).toStrictEqual(admin.publicKey);
     expect(configAcc.isPaused).toBe(false);
@@ -64,19 +76,27 @@ describe("initializeConfig", () => {
     ];
 
     try {
-      await program.methods
-        .initializeConfig({
-          acceptedMints,
-          admin: admin.publicKey,
-          orderFeeBps: 250,
-        })
-        .accounts({
-          authority: admin.publicKey,
-        })
-        .signers([admin])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeConfigInstruction(
+            {
+              authority: admin.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              acceptedMints,
+              admin: admin.publicKey,
+              orderFeeBps: 250,
+            },
+          ),
+        ],
+
+        [admin],
+      );
     } catch (err) {
-      expectAnchorError(err, "InvalidAddress");
+      await expectAnchorError(err, "InvalidAddress");
     }
   });
 
@@ -84,19 +104,27 @@ describe("initializeConfig", () => {
     const acceptedMints = [];
 
     try {
-      await program.methods
-        .initializeConfig({
-          acceptedMints,
-          admin: admin.publicKey,
-          orderFeeBps: 250,
-        })
-        .accounts({
-          authority: admin.publicKey,
-        })
-        .signers([admin])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeConfigInstruction(
+            {
+              authority: admin.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              acceptedMints,
+              admin: admin.publicKey,
+              orderFeeBps: 250,
+            },
+          ),
+        ],
+
+        [admin],
+      );
     } catch (err) {
-      expectAnchorError(err, "EmptyAcceptedMints");
+      await expectAnchorError(err, "EmptyAcceptedMints");
     }
   });
 });

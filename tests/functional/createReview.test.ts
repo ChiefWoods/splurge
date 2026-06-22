@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { BN, Program } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
   nextAvailableTaskIds,
@@ -8,39 +8,55 @@ import {
   taskQueueAuthorityKey,
   TaskQueueV0,
 } from "@helium/tuktuk-sdk";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  createCompleteOrderInstruction,
+  createCreateOrderInstruction,
+  createCreateReviewInstruction,
+  createInitializeConfigInstruction,
+  createInitializeShopperInstruction,
+  createInitializeStoreInstruction,
+  createListItemInstruction,
+  createShipOrderInstruction,
+  fetchReviewAccount,
+  findItemPda,
+  findOrderPda,
+  findReviewPda,
+  findShopperPda,
+  findStorePda,
+  findTreasuryPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
 import { LiteSVM } from "litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchReviewAcc, fetchTaskQueueAcc } from "../accounts";
-import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import {
-  getItemPda,
-  getOrderPda,
-  getReviewPda,
-  getShopperPda,
-  getStorePda,
-  getTreasuryPda,
-} from "../pda";
+import { TUKTUK_PROGRAM_ID } from "../../common/tuktuk";
+import { fetchTaskQueueAcc } from "../accounts";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
+  sendTransaction,
 } from "../setup";
 
 describe("createReview", () => {
-  let { litesvm, program, tuktukProgram, taskQueuePda } = {} as {
+  let { litesvm, provider, connection, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
-    program: Program<Splurge>;
+    provider: Awaited<ReturnType<typeof getSetup>>["provider"];
+    connection: Awaited<ReturnType<typeof getSetup>>["connection"];
     tuktukProgram: Program<Tuktuk>;
     taskQueuePda: PublicKey;
   };
 
   const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
-  const treasury = getTreasuryPda();
+  const treasury = findTreasuryPda(SPLURGE_PROGRAM_ID)[0];
 
   const itemName = "Item A";
   const itemPrice = 1e6; // $1
@@ -57,7 +73,7 @@ describe("createReview", () => {
   let taskId: number;
 
   beforeEach(async () => {
-    ({ litesvm, program, tuktukProgram, taskQueuePda } = await getSetup(
+    ({ litesvm, provider, connection, tuktukProgram, taskQueuePda } = await getSetup(
       [admin, shopperAuthority, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
@@ -73,143 +89,218 @@ describe("createReview", () => {
     initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints: [
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeConfigInstruction(
+          { authority: admin.publicKey, systemProgram: SystemProgram.programId },
           {
-            mint: USDC_MINT,
-            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            acceptedMints: [{ mint: USDC_MINT, priceUpdateV2: USDC_PRICE_UPDATE_V2 }],
+            admin: admin.publicKey,
+            orderFeeBps: 250,
           },
-        ],
-        admin: admin.publicKey,
-        orderFeeBps: 250,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+        ),
+      ],
 
-    await program.methods
-      .initializeShopper({
-        name: "Shopper A",
-        image: "https://example.com/image.png",
-        address: "address",
-      })
-      .accounts({
-        authority: shopperAuthority.publicKey,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+      [admin],
+    );
 
-    await program.methods
-      .initializeStore({
-        name: "Store A",
-        image: "https://example.com/image.png",
-        about: "about",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    await program.methods
-      .listItem({
-        price: new BN(itemPrice),
-        inventoryCount: initInventoryCount,
-        name: itemName,
-        image: "https://example.com/item.png",
-        description: "description",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+      [
+        createInitializeShopperInstruction(
+          { authority: shopperAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { name: "Shopper A", image: "https://example.com/image.png", address: "address" },
+        ),
+      ],
 
-    storePda = getStorePda(storeAuthority.publicKey);
-    itemPda = getItemPda(storePda, itemName);
-    shopperPda = getShopperPda(shopperAuthority.publicKey);
+      [shopperAuthority],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeStoreInstruction(
+          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { name: "Store A", image: "https://example.com/image.png", about: "about" },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createListItemInstruction(
+          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          {
+            price: BigInt(itemPrice),
+            inventoryCount: initInventoryCount,
+            name: itemName,
+            image: "https://example.com/item.png",
+            description: "description",
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    storePda = findStorePda({ authority: storeAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
+    itemPda = findItemPda({ store: storePda, name: itemName }, SPLURGE_PROGRAM_ID)[0];
+    shopperPda = findShopperPda({ authority: shopperAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
     const { unixTimestamp } = litesvm.getClock();
-    orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
+    orderPda = findOrderPda(
+      { shopper: shopperPda, item: itemPda, timestamp: unixTimestamp },
+      SPLURGE_PROGRAM_ID,
+    )[0];
 
-    await program.methods
-      .createOrder(1, new BN(unixTimestamp))
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        priceUpdateV2: USDC_PRICE_UPDATE_V2,
-        paymentMint: USDC_MINT,
-        tokenProgram,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCreateOrderInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            paymentMint: USDC_MINT,
+            authorityTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              shopperAuthority.publicKey,
+              false,
+              tokenProgram,
+            ),
+            treasuryTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              treasury,
+              !PublicKey.isOnCurve(treasury),
+              tokenProgram,
+            ),
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            systemProgram: SystemProgram.programId,
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          },
+          { amount: 1, timestamp: unixTimestamp },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
 
     orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, !PublicKey.isOnCurve(orderPda));
     const [taskPda] = taskKey(taskQueuePda, taskId);
     const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
-    await program.methods
-      .shipOrder(taskId)
-      .accountsPartial({
-        admin: admin.publicKey,
-        order: orderPda,
-        authority: shopperAuthority.publicKey,
-        item: itemPda,
-        orderTokenAccount: orderAta,
-        paymentMint,
-        shopper: shopperPda,
-        store: storePda,
-        task: taskPda,
-        taskQueue: taskQueuePda,
-        taskQueueAuthority: taskQueueAuthorityPda,
-        tokenProgram,
-        tuktuk: TUKTUK_PROGRAM_ID,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createShipOrderInstruction(
+          {
+            admin: admin.publicKey,
+            order: orderPda,
+            authority: shopperAuthority.publicKey,
+            item: itemPda,
+            orderTokenAccount: orderAta,
+            paymentMint,
+            shopper: shopperPda,
+            store: storePda,
+            storeTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              storePda,
+              true,
+              tokenProgram,
+            ),
+            task: taskPda,
+            taskQueue: taskQueuePda,
+            taskQueueAuthority: taskQueueAuthorityPda,
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            tuktuk: TUKTUK_PROGRAM_ID,
+          },
+          { taskId },
+        ),
+      ],
+
+      [admin],
+    );
   });
 
   test("create review", async () => {
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCompleteOrderInstruction({
+          admin: admin.publicKey,
+          authority: shopperAuthority.publicKey,
+          shopper: shopperPda,
+          store: storePda,
+          item: itemPda,
+          order: orderPda,
+          paymentMint,
+          orderTokenAccount: orderAta,
+          storeTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            storePda,
+            true,
+            tokenProgram,
+          ),
+          tokenProgram,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }),
+      ],
+
+      [admin],
+    );
 
     const { unixTimestamp } = litesvm.getClock();
 
     const text = "review";
     const rating = 3;
 
-    await program.methods
-      .createReview({
-        text,
-        rating,
-      })
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        order: orderPda,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const reviewPda = getReviewPda(orderPda);
-    const reviewAcc = await fetchReviewAcc(program, reviewPda);
+      [
+        createCreateReviewInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            order: orderPda,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            text,
+            rating,
+          },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
+
+    const reviewPda = findReviewPda({ order: orderPda }, SPLURGE_PROGRAM_ID)[0];
+    const reviewAcc = (await fetchReviewAccount(connection, reviewPda)).data;
 
     expect(reviewAcc.order).toStrictEqual(orderPda);
     expect(reviewAcc.rating).toBe(rating);
-    expect(reviewAcc.timestamp.toNumber()).toBe(Number(unixTimestamp));
+    expect(reviewAcc.timestamp).toBe(unixTimestamp);
     expect(reviewAcc.text).toBe(text);
   });
 
@@ -218,101 +309,173 @@ describe("createReview", () => {
     const rating = 3;
 
     try {
-      await program.methods
-        .createReview({
-          text,
-          rating,
-        })
-        .accountsPartial({
-          authority: shopperAuthority.publicKey,
-          order: orderPda,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createCreateReviewInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              order: orderPda,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              text,
+              rating,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "OrderNotCompleted");
+      await expectAnchorError(err, "OrderNotCompleted");
     }
   });
 
   test("throws if rating is invalid", async () => {
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCompleteOrderInstruction({
+          admin: admin.publicKey,
+          authority: shopperAuthority.publicKey,
+          shopper: shopperPda,
+          store: storePda,
+          item: itemPda,
+          order: orderPda,
+          paymentMint,
+          orderTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            orderPda,
+            true,
+            tokenProgram,
+          ),
+          storeTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            storePda,
+            true,
+            tokenProgram,
+          ),
+          tokenProgram,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }),
+      ],
+
+      [admin],
+    );
 
     const text = "This is a review";
     const rating = 0;
 
     try {
-      await program.methods
-        .createReview({
-          text,
-          rating,
-        })
-        .accountsPartial({
-          authority: shopperAuthority.publicKey,
-          order: orderPda,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createCreateReviewInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              order: orderPda,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              text,
+              rating,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "InvalidRating");
+      await expectAnchorError(err, "InvalidRating");
     }
   });
 
   test("throws if review for order already exists", async () => {
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCompleteOrderInstruction({
+          admin: admin.publicKey,
+          authority: shopperAuthority.publicKey,
+          shopper: shopperPda,
+          store: storePda,
+          item: itemPda,
+          order: orderPda,
+          paymentMint,
+          orderTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            orderPda,
+            true,
+            tokenProgram,
+          ),
+          storeTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            storePda,
+            true,
+            tokenProgram,
+          ),
+          tokenProgram,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }),
+      ],
+
+      [admin],
+    );
 
     const text = "This is a review";
     const rating = 3;
 
-    await program.methods
-      .createReview({
-        text,
-        rating,
-      })
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        order: orderPda,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCreateReviewInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            order: orderPda,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            text,
+            rating,
+          },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
 
     const newText = "This is another review";
     const newRating = 4;
 
     expect(async () => {
-      await program.methods
-        .createReview({
-          text: newText,
-          rating: newRating,
-        })
-        .accountsPartial({
-          authority: shopperAuthority.publicKey,
-          shopper: shopperPda,
-          order: orderPda,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createCreateReviewInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              shopper: shopperPda,
+              order: orderPda,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              text: newText,
+              rating: newRating,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     }).toThrow();
   });
 });

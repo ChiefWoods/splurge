@@ -2,9 +2,9 @@ import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 
+import { tuktukIdl } from "../common/tuktuk";
 import idl from "../target/idl/splurge.json";
 import { Splurge } from "../target/types/splurge";
-import tuktukIdl from "./idl/tuktuk.json";
 
 export const admin = Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.ADMIN_KEYPAIR)));
 export const connection = new Connection(

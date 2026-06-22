@@ -6,6 +6,7 @@
       "name": "splurge",
       "dependencies": {
         "@coral-xyz/anchor": "^0.32.1",
+        "@splurge/sdk": "workspace:*",
       },
       "devDependencies": {
         "@helium/tuktuk-idls": "^0.0.10",

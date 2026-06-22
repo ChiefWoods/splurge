@@ -1,23 +1,27 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Program } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeStoreInstruction,
+  fetchStoreAccount,
+  findStorePda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchStoreAcc } from "../accounts";
 import { MAX_STORE_NAME_LEN } from "../constants";
-import { getStorePda } from "../pda";
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("initializeStore", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const storeAuthority = Keypair.generate();
 
   beforeEach(async () => {
-    ({ program } = await getSetup([
+    ({ provider, connection } = await getSetup([
       {
         pubkey: storeAuthority.publicKey,
         account: fundedSystemAccountInfo(),
@@ -30,20 +34,28 @@ describe("initializeStore", () => {
     const image = "https://example.com/image.png";
     const about = "about";
 
-    await program.methods
-      .initializeStore({
-        name,
-        image,
-        about,
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const storePda = getStorePda(storeAuthority.publicKey);
-    const storeAcc = await fetchStoreAcc(program, storePda);
+      [
+        createInitializeStoreInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            name,
+            image,
+            about,
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    const storePda = findStorePda({ authority: storeAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
+    const storeAcc = (await fetchStoreAccount(connection, storePda)).data;
 
     expect(storeAcc.name).toBe(name);
     expect(storeAcc.image).toBe(image);
@@ -57,19 +69,27 @@ describe("initializeStore", () => {
     const about = "about";
 
     try {
-      await program.methods
-        .initializeStore({
-          name,
-          image,
-          about,
-        })
-        .accounts({
-          authority: storeAuthority.publicKey,
-        })
-        .signers([storeAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeStoreInstruction(
+            {
+              authority: storeAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              about,
+            },
+          ),
+        ],
+
+        [storeAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "StoreNameRequired");
+      await expectAnchorError(err, "StoreNameRequired");
     }
   });
 
@@ -79,19 +99,27 @@ describe("initializeStore", () => {
     const about = "about";
 
     try {
-      await program.methods
-        .initializeStore({
-          name,
-          image,
-          about,
-        })
-        .accounts({
-          authority: storeAuthority.publicKey,
-        })
-        .signers([storeAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeStoreInstruction(
+            {
+              authority: storeAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              about,
+            },
+          ),
+        ],
+
+        [storeAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "StoreNameTooLong");
+      await expectAnchorError(err, "StoreNameTooLong");
     }
   });
 
@@ -101,19 +129,27 @@ describe("initializeStore", () => {
     const about = "about";
 
     try {
-      await program.methods
-        .initializeStore({
-          name,
-          image,
-          about,
-        })
-        .accounts({
-          authority: storeAuthority.publicKey,
-        })
-        .signers([storeAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeStoreInstruction(
+            {
+              authority: storeAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              about,
+            },
+          ),
+        ],
+
+        [storeAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "StoreImageRequired");
+      await expectAnchorError(err, "StoreImageRequired");
     }
   });
 });

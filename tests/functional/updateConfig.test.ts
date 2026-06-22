@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Program } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeConfigInstruction,
+  createUpdateConfigInstruction,
+  fetchConfigAccount,
+  findConfigPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchConfigAcc } from "../accounts";
 import { USDC_MINT, USDC_PRICE_UPDATE_V2, USDT_MINT, USDT_PRICE_UPDATE_V2 } from "../constants";
-import { getConfigPda } from "../pda";
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("updateConfig", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const [admin, newAdmin] = Array.from({ length: 2 }, Keypair.generate);
@@ -24,7 +29,7 @@ describe("updateConfig", () => {
   ];
 
   beforeEach(async () => {
-    ({ program } = await getSetup(
+    ({ provider, connection } = await getSetup(
       [admin, newAdmin].map((kp) => {
         return {
           pubkey: kp.publicKey,
@@ -33,17 +38,25 @@ describe("updateConfig", () => {
       }),
     ));
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints,
-        admin: admin.publicKey,
-        orderFeeBps: 250,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeConfigInstruction(
+          {
+            authority: admin.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            acceptedMints,
+            admin: admin.publicKey,
+            orderFeeBps: 250,
+          },
+        ),
+      ],
+
+      [admin],
+    );
   });
 
   test("updates a config", async () => {
@@ -54,21 +67,29 @@ describe("updateConfig", () => {
     const isPaused = true;
     const orderFeeBps = 500;
 
-    await program.methods
-      .updateConfig({
-        acceptedMints,
-        isPaused,
-        newAdmin: newAdmin.publicKey,
-        orderFeeBps,
-      })
-      .accounts({
-        admin: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const configPda = getConfigPda();
-    const configAcc = await fetchConfigAcc(program, configPda);
+      [
+        createUpdateConfigInstruction(
+          {
+            admin: admin.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            acceptedMints,
+            isPaused,
+            newAdmin: newAdmin.publicKey,
+            orderFeeBps,
+          },
+        ),
+      ],
+
+      [admin],
+    );
+
+    const configPda = findConfigPda(SPLURGE_PROGRAM_ID)[0];
+    const configAcc = (await fetchConfigAccount(connection, configPda)).data;
 
     expect(configAcc.admin).toStrictEqual(newAdmin.publicKey);
     expect(configAcc.orderFeeBps).toBe(orderFeeBps);
@@ -84,20 +105,28 @@ describe("updateConfig", () => {
     const orderFeeBps = 500;
 
     try {
-      await program.methods
-        .updateConfig({
-          acceptedMints,
-          isPaused,
-          newAdmin: newAdmin.publicKey,
-          orderFeeBps,
-        })
-        .accounts({
-          admin: newAdmin.publicKey,
-        })
-        .signers([newAdmin])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createUpdateConfigInstruction(
+            {
+              admin: newAdmin.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              acceptedMints,
+              isPaused,
+              newAdmin: newAdmin.publicKey,
+              orderFeeBps,
+            },
+          ),
+        ],
+
+        [newAdmin],
+      );
     } catch (err) {
-      expectAnchorError(err, "UnauthorizedAdmin");
+      await expectAnchorError(err, "UnauthorizedAdmin");
     }
   });
 });

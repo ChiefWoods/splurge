@@ -22,7 +22,8 @@
     "tuktuk": "tuktuk-crank-turner -c tuktuk.toml"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.32.1"
+    "@coral-xyz/anchor": "^0.32.1",
+    "@splurge/sdk": "workspace:*"
   },
   "devDependencies": {
     "@helium/tuktuk-idls": "^0.0.10",

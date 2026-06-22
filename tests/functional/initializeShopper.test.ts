@@ -1,23 +1,27 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Program } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeShopperInstruction,
+  fetchShopperAccount,
+  findShopperPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchShopperAcc } from "../accounts";
 import { MAX_SHOPPER_NAME_LEN } from "../constants";
-import { getShopperPda } from "../pda";
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("initializeShopper", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const shopperAuthority = Keypair.generate();
 
   beforeEach(async () => {
-    ({ program } = await getSetup([
+    ({ provider, connection } = await getSetup([
       {
         pubkey: shopperAuthority.publicKey,
         account: fundedSystemAccountInfo(),
@@ -30,20 +34,31 @@ describe("initializeShopper", () => {
     const image = "https://example.com/image.png";
     const address = "address";
 
-    await program.methods
-      .initializeShopper({
-        name,
-        image,
-        address,
-      })
-      .accounts({
-        authority: shopperAuthority.publicKey,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const shopperPda = getShopperPda(shopperAuthority.publicKey);
-    const shopperAcc = await fetchShopperAcc(program, shopperPda);
+      [
+        createInitializeShopperInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            name,
+            image,
+            address,
+          },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
+
+    const shopperPda = findShopperPda(
+      { authority: shopperAuthority.publicKey },
+      SPLURGE_PROGRAM_ID,
+    )[0];
+    const shopperAcc = (await fetchShopperAccount(connection, shopperPda)).data;
 
     expect(shopperAcc.name).toBe(name);
     expect(shopperAcc.image).toBe(image);
@@ -57,19 +72,27 @@ describe("initializeShopper", () => {
     const address = "address";
 
     try {
-      await program.methods
-        .initializeShopper({
-          name,
-          image,
-          address,
-        })
-        .accounts({
-          authority: shopperAuthority.publicKey,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeShopperInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              address,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "ShopperNameRequired");
+      await expectAnchorError(err, "ShopperNameRequired");
     }
   });
 
@@ -79,19 +102,27 @@ describe("initializeShopper", () => {
     const address = "address";
 
     try {
-      await program.methods
-        .initializeShopper({
-          name,
-          image,
-          address,
-        })
-        .accounts({
-          authority: shopperAuthority.publicKey,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeShopperInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              address,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "ShopperNameTooLong");
+      await expectAnchorError(err, "ShopperNameTooLong");
     }
   });
 
@@ -101,19 +132,27 @@ describe("initializeShopper", () => {
     const address = "address";
 
     try {
-      await program.methods
-        .initializeShopper({
-          name,
-          image,
-          address,
-        })
-        .accounts({
-          authority: shopperAuthority.publicKey,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeShopperInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              address,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "ShopperImageRequired");
+      await expectAnchorError(err, "ShopperImageRequired");
     }
   });
 
@@ -123,19 +162,27 @@ describe("initializeShopper", () => {
     const address = "";
 
     try {
-      await program.methods
-        .initializeShopper({
-          name,
-          image,
-          address,
-        })
-        .accounts({
-          authority: shopperAuthority.publicKey,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createInitializeShopperInstruction(
+            {
+              authority: shopperAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              name,
+              image,
+              address,
+            },
+          ),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "ShopperAddressRequired");
+      await expectAnchorError(err, "ShopperAddressRequired");
     }
   });
 });

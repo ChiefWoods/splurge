@@ -1,6 +1,6 @@
 import { expect } from "bun:test";
 
-import { AnchorError, BN, Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import { taskQueueKey, taskQueueNameMappingKey } from "@helium/tuktuk-sdk";
 import {
@@ -11,22 +11,27 @@ import {
   MintLayout,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SendTransactionError,
+  Signer,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import { fromWorkspace, LiteSVMProvider } from "anchor-litesvm";
 import { AccountInfoBytes, ComputeBudget, LiteSVM } from "litesvm";
 
-import idl from "../target/idl/splurge.json";
-import { Splurge } from "../target/types/splurge";
+import { TUKTUK_PROGRAM_ID, TUKTUK_CONFIG, tuktukIdl, tuktukConfigV0 } from "../common/tuktuk";
 import { fetchConfigV0Acc } from "./accounts";
-import { CONFIG_V0, MINT_DECIMALS, TUKTUK_PROGRAM_ID, USDC_MINT, USDT_MINT } from "./constants";
-import tuktukIdl from "./fixtures/tuktuk.json";
-import tuktukConfigV0 from "./fixtures/tuktuk_config_v0.json";
-import usdcPriceUpdateV2AccInfo from "./fixtures/usdc_price_update_v2.json";
-import usdtPriceUpdateV2AccInfo from "./fixtures/usdt_price_update_v2.json";
+import { MINT_DECIMALS, USDC_MINT, USDT_MINT } from "./constants";
+import { usdcPriceUpdateV2AccInfo, usdtPriceUpdateV2AccInfo } from "./fixtures";
 
 export async function getSetup(accounts: { pubkey: PublicKey; account: AccountInfoBytes }[] = []) {
   const litesvm = fromWorkspace("./");
-  litesvm.addProgramFromFile(TUKTUK_PROGRAM_ID, "tests/fixtures/tuktuk.so");
+  litesvm.addProgramFromFile(TUKTUK_PROGRAM_ID, "common/tuktuk/tuktuk.so");
   litesvm.withLogBytesLimit(null);
 
   const computeBudget = new ComputeBudget();
@@ -48,9 +53,8 @@ export async function getSetup(accounts: { pubkey: PublicKey; account: AccountIn
   }
 
   const provider = new LiteSVMProvider(litesvm);
-  const program = new Program<Splurge>(idl, provider);
 
-  litesvm.setAccount(CONFIG_V0, {
+  litesvm.setAccount(TUKTUK_CONFIG, {
     data: Buffer.from(tuktukConfigV0.account.data[0], "base64"),
     executable: tuktukConfigV0.account.executable,
     lamports: tuktukConfigV0.account.lamports,
@@ -58,10 +62,19 @@ export async function getSetup(accounts: { pubkey: PublicKey; account: AccountIn
   });
 
   const tuktukProgram = new Program<Tuktuk>(tuktukIdl, provider);
-  const tuktukConfigV0Acc = await fetchConfigV0Acc(tuktukProgram, CONFIG_V0);
-  const [taskQueuePda] = taskQueueKey(CONFIG_V0, tuktukConfigV0Acc.nextTaskQueueId);
+  const tuktukConfigV0Acc = await fetchConfigV0Acc(tuktukProgram, TUKTUK_CONFIG);
+  if (!tuktukConfigV0Acc) {
+    throw new Error("Tuktuk config account missing in setup");
+  }
+  const [taskQueuePda] = taskQueueKey(TUKTUK_CONFIG, tuktukConfigV0Acc.nextTaskQueueId);
 
-  return { litesvm, provider, program, tuktukProgram, taskQueuePda };
+  return {
+    litesvm,
+    provider,
+    connection: provider.connection,
+    tuktukProgram,
+    taskQueuePda,
+  };
 }
 
 export function fundedSystemAccountInfo(lamports: number = LAMPORTS_PER_SOL): AccountInfoBytes {
@@ -73,10 +86,10 @@ export function fundedSystemAccountInfo(lamports: number = LAMPORTS_PER_SOL): Ac
   };
 }
 
-export async function expectAnchorError(error: Error, code: string) {
-  expect(error).toBeInstanceOf(AnchorError);
-  const { errorCode } = (error as AnchorError).error;
-  expect(errorCode.code).toBe(code);
+export async function expectAnchorError(error: unknown, code: string) {
+  expect(error).toBeInstanceOf(SendTransactionError);
+  const logs = (error as SendTransactionError).logs;
+  expect(logs.join("\n")).toContain(`Error Code: ${code}`);
 }
 
 function initDataAcc(litesvm: LiteSVM, accInfo: any) {
@@ -167,8 +180,8 @@ export async function initTaskQueue(
     .accounts({
       payer: payer.publicKey,
       taskQueue: taskQueuePda,
-      taskQueueNameMapping: taskQueueNameMappingKey(CONFIG_V0, taskQueueName)[0],
-      tuktukConfig: CONFIG_V0,
+      taskQueueNameMapping: taskQueueNameMappingKey(TUKTUK_CONFIG, taskQueueName)[0],
+      tuktukConfig: TUKTUK_CONFIG,
       updateAuthority: payer.publicKey,
     })
     .signers([payer])
@@ -184,4 +197,12 @@ export async function initTaskQueue(
     })
     .signers([payer])
     .rpc();
+}
+
+export async function sendTransaction(
+  provider: LiteSVMProvider,
+  instructions: TransactionInstruction[],
+  signers: Signer[],
+) {
+  return provider.sendAndConfirm!(new Transaction().add(...instructions), signers);
 }

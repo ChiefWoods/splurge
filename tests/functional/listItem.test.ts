@@ -1,23 +1,30 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { BN, Program } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeConfigInstruction,
+  createInitializeStoreInstruction,
+  createListItemInstruction,
+  fetchItemAccount,
+  findItemPda,
+  findStorePda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchItemAcc } from "../accounts";
 import { MAX_STORE_ITEM_NAME_LEN, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { getItemPda, getStorePda } from "../pda";
-import { expectAnchorError, fundedSystemAccountInfo, getSetup } from "../setup";
+import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("listItem", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const [admin, storeAuthority] = Array.from({ length: 2 }, Keypair.generate);
 
   beforeEach(async () => {
-    ({ program } = await getSetup(
+    ({ provider, connection } = await getSetup(
       [admin, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
@@ -26,34 +33,50 @@ describe("listItem", () => {
       }),
     ));
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints: [
-          {
-            mint: USDC_MINT,
-            priceUpdateV2: USDC_PRICE_UPDATE_V2,
-          },
-        ],
-        admin: admin.publicKey,
-        orderFeeBps: 250,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    await program.methods
-      .initializeStore({
-        name: "Store A",
-        image: "https://example.com/image.png",
-        about: "about",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+      [
+        createInitializeConfigInstruction(
+          {
+            authority: admin.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            acceptedMints: [
+              {
+                mint: USDC_MINT,
+                priceUpdateV2: USDC_PRICE_UPDATE_V2,
+              },
+            ],
+            admin: admin.publicKey,
+            orderFeeBps: 250,
+          },
+        ),
+      ],
+
+      [admin],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeStoreInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            name: "Store A",
+            image: "https://example.com/image.png",
+            about: "about",
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
   });
 
   test("list an item", async () => {
@@ -63,26 +86,34 @@ describe("listItem", () => {
     const image = "https://example.com/item.png";
     const description = "description";
 
-    await program.methods
-      .listItem({
-        price: new BN(price),
-        inventoryCount,
-        name,
-        image,
-        description,
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const storePda = getStorePda(storeAuthority.publicKey);
-    const itemPda = getItemPda(storePda, name);
-    const itemAcc = await fetchItemAcc(program, itemPda);
+      [
+        createListItemInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            price: BigInt(price),
+            inventoryCount,
+            name,
+            image,
+            description,
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    const storePda = findStorePda({ authority: storeAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
+    const itemPda = findItemPda({ store: storePda, name: name }, SPLURGE_PROGRAM_ID)[0];
+    const itemAcc = (await fetchItemAccount(connection, itemPda)).data;
 
     expect(itemAcc.store).toStrictEqual(storePda);
-    expect(itemAcc.price.toNumber()).toBe(price);
+    expect(Number(itemAcc.price)).toBe(price);
     expect(itemAcc.inventoryCount).toBe(inventoryCount);
     expect(itemAcc.name).toBe(name);
     expect(itemAcc.image).toBe(image);
@@ -97,21 +128,29 @@ describe("listItem", () => {
     const description = "description";
 
     try {
-      await program.methods
-        .listItem({
-          price: new BN(price),
-          inventoryCount,
-          name,
-          image,
-          description,
-        })
-        .accounts({
-          authority: storeAuthority.publicKey,
-        })
-        .signers([storeAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createListItemInstruction(
+            {
+              authority: storeAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              price: BigInt(price),
+              inventoryCount,
+              name,
+              image,
+              description,
+            },
+          ),
+        ],
+
+        [storeAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "ItemNameRequired");
+      await expectAnchorError(err, "ItemNameRequired");
     }
   });
 
@@ -123,19 +162,27 @@ describe("listItem", () => {
     const description = "description";
 
     expect(async () => {
-      await program.methods
-        .listItem({
-          price: new BN(price),
-          inventoryCount,
-          name,
-          image,
-          description,
-        })
-        .accounts({
-          authority: storeAuthority.publicKey,
-        })
-        .signers([storeAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createListItemInstruction(
+            {
+              authority: storeAuthority.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            {
+              price: BigInt(price),
+              inventoryCount,
+              name,
+              image,
+              description,
+            },
+          ),
+        ],
+
+        [storeAuthority],
+      );
     }).toThrow();
   });
 });

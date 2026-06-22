@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { BN, Program } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { Tuktuk } from "@helium/tuktuk-idls/lib/types/tuktuk.js";
 import {
   nextAvailableTaskIds,
@@ -8,34 +8,55 @@ import {
   taskQueueAuthorityKey,
   TaskQueueV0,
 } from "@helium/tuktuk-sdk";
-import { getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  createCompleteOrderInstruction,
+  createCreateOrderInstruction,
+  createInitializeConfigInstruction,
+  createInitializeShopperInstruction,
+  createInitializeStoreInstruction,
+  createListItemInstruction,
+  createShipOrderInstruction,
+  fetchOrderAccount,
+  findItemPda,
+  findOrderPda,
+  findShopperPda,
+  findStorePda,
+  findTreasuryPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
 import { LiteSVMProvider } from "anchor-litesvm";
 import { LiteSVM } from "litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchOrderAcc, fetchTaskQueueAcc } from "../accounts";
-import { TUKTUK_PROGRAM_ID, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { getItemPda, getOrderPda, getShopperPda, getStorePda, getTreasuryPda } from "../pda";
+import { TUKTUK_PROGRAM_ID } from "../../common/tuktuk";
+import { fetchTaskQueueAcc } from "../accounts";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import {
   expectAnchorError,
   fundedSystemAccountInfo,
   getSetup,
   initAta,
   initTaskQueue,
+  sendTransaction,
 } from "../setup";
 
 describe("completeOrder", () => {
-  let { litesvm, provider, program, tuktukProgram, taskQueuePda } = {} as {
+  let { litesvm, provider, connection, tuktukProgram, taskQueuePda } = {} as {
     litesvm: LiteSVM;
     provider: LiteSVMProvider;
-    program: Program<Splurge>;
+    connection: LiteSVMProvider["connection"];
     tuktukProgram: Program<Tuktuk>;
     taskQueuePda: PublicKey;
   };
 
   const [admin, shopperAuthority, storeAuthority] = Array.from({ length: 3 }, Keypair.generate);
-  const treasury = getTreasuryPda();
+  const treasury = findTreasuryPda(SPLURGE_PROGRAM_ID)[0];
 
   const itemName = "Item A";
   const itemPrice = 1e6; // $1
@@ -52,7 +73,7 @@ describe("completeOrder", () => {
   let taskId: number;
 
   beforeEach(async () => {
-    ({ litesvm, provider, program, tuktukProgram, taskQueuePda } = await getSetup(
+    ({ litesvm, provider, connection, tuktukProgram, taskQueuePda } = await getSetup(
       [admin, shopperAuthority, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
@@ -68,128 +89,195 @@ describe("completeOrder", () => {
     initAta(litesvm, USDC_MINT, treasury);
     initAta(litesvm, USDC_MINT, shopperAuthority.publicKey, initShopperAtaBal);
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints: [
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeConfigInstruction(
+          { authority: admin.publicKey, systemProgram: SystemProgram.programId },
           {
-            mint: USDC_MINT,
-            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            acceptedMints: [{ mint: USDC_MINT, priceUpdateV2: USDC_PRICE_UPDATE_V2 }],
+            admin: admin.publicKey,
+            orderFeeBps: 250,
           },
-        ],
-        admin: admin.publicKey,
-        orderFeeBps: 250,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+        ),
+      ],
 
-    await program.methods
-      .initializeShopper({
-        name: "Shopper A",
-        image: "https://example.com/image.png",
-        address: "address",
-      })
-      .accounts({
-        authority: shopperAuthority.publicKey,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+      [admin],
+    );
 
-    await program.methods
-      .initializeStore({
-        name: "Store A",
-        image: "https://example.com/image.png",
-        about: "about",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    await program.methods
-      .listItem({
-        price: new BN(itemPrice),
-        inventoryCount: initInventoryCount,
-        name: itemName,
-        image: "https://example.com/item.png",
-        description: "description",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+      [
+        createInitializeShopperInstruction(
+          { authority: shopperAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { name: "Shopper A", image: "https://example.com/image.png", address: "address" },
+        ),
+      ],
 
-    storePda = getStorePda(storeAuthority.publicKey);
-    itemPda = getItemPda(storePda, itemName);
-    shopperPda = getShopperPda(shopperAuthority.publicKey);
+      [shopperAuthority],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeStoreInstruction(
+          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { name: "Store A", image: "https://example.com/image.png", about: "about" },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createListItemInstruction(
+          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          {
+            price: BigInt(itemPrice),
+            inventoryCount: initInventoryCount,
+            name: itemName,
+            image: "https://example.com/item.png",
+            description: "description",
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    storePda = findStorePda({ authority: storeAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
+    itemPda = findItemPda({ store: storePda, name: itemName }, SPLURGE_PROGRAM_ID)[0];
+    shopperPda = findShopperPda({ authority: shopperAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
     const { unixTimestamp } = litesvm.getClock();
-    orderPda = getOrderPda(shopperPda, itemPda, new BN(unixTimestamp));
+    orderPda = findOrderPda(
+      { shopper: shopperPda, item: itemPda, timestamp: unixTimestamp },
+      SPLURGE_PROGRAM_ID,
+    )[0];
 
-    await program.methods
-      .createOrder(1, new BN(unixTimestamp))
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        priceUpdateV2: USDC_PRICE_UPDATE_V2,
-        paymentMint: USDC_MINT,
-        tokenProgram,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCreateOrderInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            paymentMint: USDC_MINT,
+            authorityTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              shopperAuthority.publicKey,
+              false,
+              tokenProgram,
+            ),
+            treasuryTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              treasury,
+              !PublicKey.isOnCurve(treasury),
+              tokenProgram,
+            ),
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            systemProgram: SystemProgram.programId,
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          },
+          { amount: 1, timestamp: unixTimestamp },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
 
     orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, !PublicKey.isOnCurve(orderPda));
     const [taskPda] = taskKey(taskQueuePda, taskId);
     const [taskQueueAuthorityPda] = taskQueueAuthorityKey(taskQueuePda, admin.publicKey);
 
-    await program.methods
-      .shipOrder(taskId)
-      .accountsPartial({
-        admin: admin.publicKey,
-        order: orderPda,
-        authority: shopperAuthority.publicKey,
-        item: itemPda,
-        orderTokenAccount: orderAta,
-        paymentMint,
-        shopper: shopperPda,
-        store: storePda,
-        task: taskPda,
-        taskQueue: taskQueuePda,
-        taskQueueAuthority: taskQueueAuthorityPda,
-        tokenProgram,
-        tuktuk: TUKTUK_PROGRAM_ID,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createShipOrderInstruction(
+          {
+            admin: admin.publicKey,
+            order: orderPda,
+            authority: shopperAuthority.publicKey,
+            item: itemPda,
+            orderTokenAccount: orderAta,
+            paymentMint,
+            shopper: shopperPda,
+            store: storePda,
+            storeTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              storePda,
+              true,
+              tokenProgram,
+            ),
+            task: taskPda,
+            taskQueue: taskQueuePda,
+            taskQueueAuthority: taskQueueAuthorityPda,
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            tuktuk: TUKTUK_PROGRAM_ID,
+          },
+          { taskId },
+        ),
+      ],
+
+      [admin],
+    );
   });
 
   test("complete order", async () => {
-    let orderAcc = await fetchOrderAcc(program, orderPda);
+    let orderAcc = (await fetchOrderAccount(connection, orderPda)).data;
 
     const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram);
     const orderAtaAcc = await getAccount(provider.connection, orderAta);
 
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    orderAcc = await fetchOrderAcc(program, orderPda);
+      [
+        createCompleteOrderInstruction({
+          admin: admin.publicKey,
+          authority: shopperAuthority.publicKey,
+          shopper: shopperPda,
+          store: storePda,
+          item: itemPda,
+          order: orderPda,
+          paymentMint,
+          orderTokenAccount: orderAta,
+          storeTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            storePda,
+            true,
+            tokenProgram,
+          ),
+          tokenProgram,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }),
+      ],
 
-    expect(orderAcc.status).toStrictEqual({ completed: {} });
+      [admin],
+    );
+
+    orderAcc = (await fetchOrderAccount(connection, orderPda)).data;
+
+    expect(orderAcc.status).toBe(3);
 
     const storeUsdcAta = getAssociatedTokenAddressSync(USDC_MINT, storePda, true, tokenProgram);
     const storeUsdcAtaAcc = await getAccount(provider.connection, storeUsdcAta);
@@ -207,86 +295,196 @@ describe("completeOrder", () => {
     clock.unixTimestamp = newTimestamp;
     litesvm.setClock(clock);
 
-    const orderPda = getOrderPda(shopperPda, itemPda, new BN(newTimestamp));
+    const orderPda = findOrderPda(
+      { shopper: shopperPda, item: itemPda, timestamp: newTimestamp },
+      SPLURGE_PROGRAM_ID,
+    )[0];
 
-    await program.methods
-      .createOrder(1, new BN(newTimestamp))
-      .accountsPartial({
-        authority: shopperAuthority.publicKey,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        priceUpdateV2: USDC_PRICE_UPDATE_V2,
-        paymentMint: USDC_MINT,
-        tokenProgram,
-      })
-      .signers([shopperAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createCreateOrderInstruction(
+          {
+            authority: shopperAuthority.publicKey,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            paymentMint: USDC_MINT,
+            authorityTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              shopperAuthority.publicKey,
+              false,
+              tokenProgram,
+            ),
+            treasuryTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              treasury,
+              !PublicKey.isOnCurve(treasury),
+              tokenProgram,
+            ),
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              USDC_MINT,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            systemProgram: SystemProgram.programId,
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          },
+          { amount: 1, timestamp: newTimestamp },
+        ),
+      ],
+
+      [shopperAuthority],
+    );
 
     try {
-      await program.methods
-        .completeOrder()
-        .accountsPartial({
-          admin: admin.publicKey,
-          shopper: shopperPda,
-          store: storePda,
-          item: itemPda,
-          order: orderPda,
-          tokenProgram,
-        })
-        .signers([admin])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createCompleteOrderInstruction({
+            admin: admin.publicKey,
+            authority: shopperAuthority.publicKey,
+            shopper: shopperPda,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            paymentMint,
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            storeTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              storePda,
+              true,
+              tokenProgram,
+            ),
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          }),
+        ],
+
+        [admin],
+      );
     } catch (err) {
-      expectAnchorError(err, "OrderNotBeingShipped");
+      await expectAnchorError(err, "OrderNotBeingShipped");
     }
   });
 
   test("throws if order is already completed", async () => {
-    await program.methods
-      .completeOrder()
-      .accountsPartial({
-        admin: admin.publicKey,
-        shopper: shopperPda,
-        store: storePda,
-        item: itemPda,
-        order: orderPda,
-        tokenProgram,
-      })
-      .signers([admin])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    expect(async () => {
-      await program.methods
-        .completeOrder()
-        .accountsPartial({
+      [
+        createCompleteOrderInstruction({
           admin: admin.publicKey,
+          authority: shopperAuthority.publicKey,
           shopper: shopperPda,
           store: storePda,
           item: itemPda,
           order: orderPda,
+          paymentMint,
+          orderTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            orderPda,
+            true,
+            tokenProgram,
+          ),
+          storeTokenAccount: getAssociatedTokenAddressSync(
+            paymentMint,
+            storePda,
+            true,
+            tokenProgram,
+          ),
           tokenProgram,
-        })
-        .signers([admin])
-        .rpc();
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        }),
+      ],
+
+      [admin],
+    );
+
+    expect(async () => {
+      await sendTransaction(
+        provider,
+
+        [
+          createCompleteOrderInstruction({
+            admin: admin.publicKey,
+            authority: shopperAuthority.publicKey,
+            shopper: shopperPda,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            paymentMint,
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            storeTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              storePda,
+              true,
+              tokenProgram,
+            ),
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          }),
+        ],
+
+        [admin],
+      );
     }).toThrow();
   });
 
   test("throws if signed by unauthorized admin", async () => {
     try {
-      await program.methods
-        .completeOrder()
-        .accountsPartial({
-          admin: shopperAuthority.publicKey,
-          shopper: shopperPda,
-          store: storePda,
-          item: itemPda,
-          order: orderPda,
-          tokenProgram,
-        })
-        .signers([shopperAuthority])
-        .rpc();
+      await sendTransaction(
+        provider,
+
+        [
+          createCompleteOrderInstruction({
+            admin: shopperAuthority.publicKey,
+            authority: shopperAuthority.publicKey,
+            shopper: shopperPda,
+            store: storePda,
+            item: itemPda,
+            order: orderPda,
+            paymentMint,
+            orderTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              orderPda,
+              true,
+              tokenProgram,
+            ),
+            storeTokenAccount: getAssociatedTokenAddressSync(
+              paymentMint,
+              storePda,
+              true,
+              tokenProgram,
+            ),
+            tokenProgram,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          }),
+        ],
+
+        [shopperAuthority],
+      );
     } catch (err) {
-      expectAnchorError(err, "UnauthorizedAdmin");
+      await expectAnchorError(err, "UnauthorizedAdmin");
     }
   });
 });

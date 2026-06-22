@@ -1,17 +1,25 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { BN, Program } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram } from "@solana/web3.js";
+import {
+  createInitializeConfigInstruction,
+  createInitializeStoreInstruction,
+  createListItemInstruction,
+  createUpdateItemInstruction,
+  fetchItemAccount,
+  findItemPda,
+  findStorePda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
+import { LiteSVMProvider } from "anchor-litesvm";
 
-import { Splurge } from "../../target/types/splurge";
-import { fetchItemAcc } from "../accounts";
 import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
-import { getItemPda, getStorePda } from "../pda";
-import { fundedSystemAccountInfo, getSetup } from "../setup";
+import { fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("updateItem", () => {
-  let { program } = {} as {
-    program: Program<Splurge>;
+  let { provider, connection } = {} as {
+    provider: LiteSVMProvider;
+    connection: LiteSVMProvider["connection"];
   };
 
   const [admin, storeAuthority] = Array.from({ length: 2 }, Keypair.generate);
@@ -19,7 +27,7 @@ describe("updateItem", () => {
   const itemName = "Item A";
 
   beforeEach(async () => {
-    ({ program } = await getSetup(
+    ({ provider, connection } = await getSetup(
       [admin, storeAuthority].map((kp) => {
         return {
           pubkey: kp.publicKey,
@@ -28,73 +36,104 @@ describe("updateItem", () => {
       }),
     ));
 
-    await program.methods
-      .initializeConfig({
-        acceptedMints: [
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeConfigInstruction(
           {
-            mint: USDC_MINT,
-            priceUpdateV2: USDC_PRICE_UPDATE_V2,
+            authority: admin.publicKey,
+            systemProgram: SystemProgram.programId,
           },
-        ],
-        admin: admin.publicKey,
-        orderFeeBps: 250,
-      })
-      .accounts({
-        authority: admin.publicKey,
-      })
-      .signers([admin])
-      .rpc();
+          {
+            acceptedMints: [
+              {
+                mint: USDC_MINT,
+                priceUpdateV2: USDC_PRICE_UPDATE_V2,
+              },
+            ],
+            admin: admin.publicKey,
+            orderFeeBps: 250,
+          },
+        ),
+      ],
 
-    await program.methods
-      .initializeStore({
-        name: "Store A",
-        image: "https://example.com/image.png",
-        about: "about",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+      [admin],
+    );
 
-    await program.methods
-      .listItem({
-        price: new BN(1e6), // $1
-        inventoryCount: 10,
-        name: itemName,
-        image: "https://example.com/item.png",
-        description: "description",
-      })
-      .accounts({
-        authority: storeAuthority.publicKey,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
+
+      [
+        createInitializeStoreInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            name: "Store A",
+            image: "https://example.com/image.png",
+            about: "about",
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
+
+    await sendTransaction(
+      provider,
+
+      [
+        createListItemInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+          {
+            price: 1_000_000n,
+            inventoryCount: 10,
+            name: itemName,
+            image: "https://example.com/item.png",
+            description: "description",
+          },
+        ),
+      ],
+
+      [storeAuthority],
+    );
   });
 
   test("updates an item", async () => {
     const price = 20e6; // $2
     const inventoryCount = 5;
 
-    const storePda = getStorePda(storeAuthority.publicKey);
-    const itemPda = getItemPda(storePda, itemName);
+    const storePda = findStorePda({ authority: storeAuthority.publicKey }, SPLURGE_PROGRAM_ID)[0];
+    const itemPda = findItemPda({ store: storePda, name: itemName }, SPLURGE_PROGRAM_ID)[0];
 
-    await program.methods
-      .updateItem({
-        price: new BN(price),
-        inventoryCount,
-      })
-      .accountsPartial({
-        authority: storeAuthority.publicKey,
-        store: storePda,
-        item: itemPda,
-      })
-      .signers([storeAuthority])
-      .rpc();
+    await sendTransaction(
+      provider,
 
-    const itemAcc = await fetchItemAcc(program, itemPda);
+      [
+        createUpdateItemInstruction(
+          {
+            authority: storeAuthority.publicKey,
+            store: storePda,
+            item: itemPda,
+          },
+          {
+            price: BigInt(price),
+            inventoryCount,
+          },
+        ),
+      ],
 
-    expect(itemAcc.price.toNumber()).toBe(price);
+      [storeAuthority],
+    );
+
+    const itemAcc = (await fetchItemAccount(connection, itemPda)).data;
+
+    expect(Number(itemAcc.price)).toBe(price);
     expect(itemAcc.inventoryCount).toBe(inventoryCount);
   });
 });

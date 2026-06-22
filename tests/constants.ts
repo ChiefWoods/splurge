@@ -1,13 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
-import idl from "../target/idl/splurge.json";
-import tuktukIdl from "./fixtures/tuktuk.json";
-import tuktukConfigV0 from "./fixtures/tuktuk_config_v0.json";
-import usdcPriceUpdateV2AccInfo from "./fixtures/usdc_price_update_v2.json";
-import usdtPriceUpdateV2AccInfo from "./fixtures/usdt_price_update_v2.json";
+import { usdcPriceUpdateV2AccInfo, usdtPriceUpdateV2AccInfo } from "./fixtures";
 
-export const SPLURGE_PROGRAM_ID = new PublicKey(idl.address);
-export const TUKTUK_PROGRAM_ID = new PublicKey(tuktukIdl.address);
 export const MAX_SHOPPER_NAME_LEN = 64;
 export const MAX_STORE_NAME_LEN = 64;
 export const MAX_STORE_ITEM_NAME_LEN = 32;
@@ -16,4 +10,3 @@ export const USDT_MINT = new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8Ben
 export const MINT_DECIMALS = 6;
 export const USDC_PRICE_UPDATE_V2 = new PublicKey(usdcPriceUpdateV2AccInfo.pubkey);
 export const USDT_PRICE_UPDATE_V2 = new PublicKey(usdtPriceUpdateV2AccInfo.pubkey);
-export const CONFIG_V0 = new PublicKey(tuktukConfigV0.pubkey);
