@@ -1,0 +1,11 @@
+{
+  "idl": "src/idl/anchor/splurge.json",
+  "scripts": {
+    "web3js": {
+      "from": "@pratikbuilds/web3js-legacy",
+      "args": [
+        "src/generated"
+      ]
+    }
+  }
+}
