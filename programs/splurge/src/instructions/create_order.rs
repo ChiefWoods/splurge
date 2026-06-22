@@ -34,7 +34,7 @@ pub struct CreateOrder<'info> {
         bump = config.bump,
         constraint = !config.is_paused @ SplurgeError::PlatformPaused,
     )]
-    pub config: Account<'info, Config>,
+    pub config: Box<Account<'info, Config>>,
     #[account(
         seeds = [SHOPPER_SEED, authority.key().as_ref()],
         bump = shopper.bump,
@@ -58,7 +58,7 @@ pub struct CreateOrder<'info> {
         bump,
     )]
     pub order: Account<'info, Order>,
-    pub price_update_v2: Account<'info, PriceUpdateV2>,
+    pub price_update_v2: Box<Account<'info, PriceUpdateV2>>,
     #[account(
         mint::token_program = token_program,
     )]
