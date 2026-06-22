@@ -18,11 +18,11 @@
     "tuktuk": "tuktuk-crank-turner -c tuktuk.toml"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.31.1"
+    "@coral-xyz/anchor": "^0.32.1"
   },
   "devDependencies": {
-    "@helium/tuktuk-idls": "^0.0.9",
-    "@helium/tuktuk-sdk": "^0.0.9",
+    "@helium/tuktuk-idls": "^0.0.10",
+    "@helium/tuktuk-sdk": "^0.0.10",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@types/bn.js": "^5.2.0",

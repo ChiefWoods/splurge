@@ -18,10 +18,11 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 no-staleness-check = []
 
 [dependencies]
-anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
-anchor-spl = "0.31.1"
+anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
+anchor-spl = "0.32.1"
 num-derive = "0.4.2"
 num-traits = "0.2.19"
-pyth-solana-receiver-sdk = "0.6.1"
+pyth-solana-receiver-sdk = "1.2.0"
 spl-math = { version = "0.3.0", features = ["no-entrypoint"] }
-tuktuk-program = "0.3.2"
+# uses anchor-lang 0.32.1
+tuktuk-program = { git = "https://github.com/helium/tuktuk", rev = "0defac6d4d95c011a2e843dc8887a101f2a84e19" }

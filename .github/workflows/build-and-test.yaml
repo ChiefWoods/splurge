@@ -14,10 +14,10 @@ on:
       - 'bun.lock'
 
 env:
-  SOLANA_VERSION: '2.1.0'
-  ANCHOR_VERSION: '0.31.1'
-  PROGRAM_NAME: 'splurge'
-  FEATURES: 'no-staleness-check'
+  SOLANA_VERSION: "2.3.0"
+  ANCHOR_VERSION: "0.32.1"
+  PROGRAM_NAME: "splurge"
+  FEATURES: "no-staleness-check"
 
 jobs:
   build-and-test:

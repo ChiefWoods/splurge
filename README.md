@@ -35,8 +35,8 @@ On-chain e-commerce platform for PRJ3223 Capstone Project 2, [Turbin3 Builders C
 1. Update your Solana CLI, avm and Bun toolkit to the latest version
 
 ```bash
-agave-install init 2.1.0
-avm use 0.31.1
+agave-install init 2.3.0
+avm use 0.32.1
 bun upgrade
 ```
 
