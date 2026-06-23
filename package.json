@@ -20,7 +20,7 @@
     "idl:sync:test": "bun run idl:sync",
     "idl:init": "anchor idl init $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json",
     "idl:upgrade": "anchor idl upgrade $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json",
-    "act:test": "act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest",
+    "act:test": "act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest --container-architecture linux/amd64",
     "tuktuk": "tuktuk-crank-turner -c tuktuk.toml"
   },
   "dependencies": {
