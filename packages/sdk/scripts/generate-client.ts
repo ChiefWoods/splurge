@@ -20,6 +20,9 @@ import {
   updateInstructionsVisitor,
   variablePdaSeedNode,
 } from "codama";
+import { format } from "oxfmt";
+
+import oxfmtConfig from "../oxfmt.config.ts";
 
 const sdkRoot = `${import.meta.dir}/..`;
 const anchorIdlPath = `${sdkRoot}/src/idl/anchor/splurge.json`;
@@ -183,6 +186,25 @@ async function patchGeneratedClient(directory: string): Promise<void> {
   }
 }
 
+async function formatFile(absolutePath: string): Promise<void> {
+  const relativePath = absolutePath.replace(`${sdkRoot}/`, "");
+  const source = await Bun.file(absolutePath).text();
+  const { code, errors } = await format(relativePath, source, oxfmtConfig);
+  if (errors.length > 0) {
+    throw new Error(`oxfmt failed on ${relativePath}: ${errors[0]?.message}`);
+  }
+  if (code !== source) {
+    await Bun.write(absolutePath, code);
+  }
+}
+
+async function formatGeneratedClient(directory: string): Promise<void> {
+  const glob = new Bun.Glob("**/*.ts");
+  for await (const relativePath of glob.scan({ cwd: directory, onlyFiles: true })) {
+    await formatFile(`${directory}/${relativePath}`);
+  }
+}
+
 const anchorIdlFile = Bun.file(anchorIdlPath);
 if (!(await anchorIdlFile.exists())) {
   throw new Error(`Failed to load IDL: ${anchorIdlPath} does not exist`);
@@ -204,3 +226,5 @@ await codama.accept(
 );
 // manual patches that visitors cannot fix
 await patchGeneratedClient(generatedPath);
+await formatFile(codamaIdlPath);
+await formatGeneratedClient(generatedPath);
