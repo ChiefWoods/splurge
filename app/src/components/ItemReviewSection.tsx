@@ -1,10 +1,10 @@
 "use client";
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { findShopperPda } from "@splurge/sdk";
 import { UserStar } from "lucide-react";
 import { useMemo } from "react";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { ParsedOrder, ParsedReview, ParsedShopper } from "@/types/accounts";
 
 import { EmptyResult } from "./EmptyResult";
@@ -30,14 +30,14 @@ export function ItemReviewSection({
 
     const completedShopperOrders = orders.filter(
       (order) =>
-        order.item === itemPda &&
-        order.shopper === SplurgeClient.getShopperPda(publicKey).toBase58() &&
-        order.status === "completed",
+        order.data.item === itemPda &&
+        order.data.shopper === findShopperPda({ authority: publicKey })[0].toBase58() &&
+        order.data.status === "completed",
     );
 
     for (const order of completedShopperOrders) {
-      if (!reviews.find((review) => review.order === order.publicKey)) {
-        return order.publicKey;
+      if (!reviews.find((review) => review.data.order === order.address)) {
+        return order.address;
       }
     }
 
@@ -53,19 +53,21 @@ export function ItemReviewSection({
       <ul className="flex w-full flex-1 flex-col flex-wrap gap-6">
         {reviews.length > 0 ? (
           reviews.map((review) => {
-            const reviewOrder = orders.find(({ publicKey }) => publicKey === review.order);
+            const reviewOrder = orders.find(({ address }) => address === review.data.order);
 
             if (!reviewOrder) {
               throw new Error("Matching order not found for review.");
             }
 
-            const shopper = shoppers.find((shopper) => shopper.publicKey === reviewOrder.shopper);
+            const shopper = shoppers.find(
+              (shopper) => shopper.data.address === reviewOrder.data.shopper,
+            );
 
             if (!shopper) {
               throw new Error("Matching shopper not found for order.");
             }
 
-            return <ReviewRow key={review.publicKey} review={review} shopper={shopper} />;
+            return <ReviewRow key={review.address} review={review} shopper={shopper} />;
           })
         ) : (
           <EmptyResult Icon={UserStar} text="No reviews made." />

@@ -28,7 +28,7 @@ export default function Page() {
       title="Store Already Created"
       btnText="Go To Store"
       description="Only one store is allowed per wallet."
-      redirectHref={`/stores/${storeData.publicKey}`}
+      redirectHref={`/stores/${storeData.address}`}
     />
   ) : (
     <CreateSection header="Create your Store to start offering splurges!">

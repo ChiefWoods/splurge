@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { fetchAllItems, fetchItem, fetchMultipleItems } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     if (pdas.length === 0) {
       return NextResponse.json(
         {
-          items: await fetchAllItems(SPLURGE_CLIENT, {
+          items: await fetchAllItems(CONNECTION, {
             store: store ?? undefined,
           }),
         },
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          items: await fetchMultipleItems(SPLURGE_CLIENT, pdas),
+          items: await fetchMultipleItems(CONNECTION, pdas),
         },
         {
           status: 200,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          item: await fetchItem(SPLURGE_CLIENT, pdas[0]),
+          item: await fetchItem(CONNECTION, pdas[0]),
         },
         {
           status: 200,

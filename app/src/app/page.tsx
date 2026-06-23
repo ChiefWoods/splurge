@@ -1,14 +1,14 @@
 import { CommonMain } from "@/components/CommonMain";
 import { LandingFeaturedSection } from "@/components/LandingFeaturedSection";
 import { fetchAllItems, fetchAllStores, fetchConfig } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { ItemsProvider } from "@/providers/ItemsProvider";
 
 export default async function Page() {
   const [items, stores, config] = await Promise.all([
-    fetchAllItems(SPLURGE_CLIENT),
-    fetchAllStores(SPLURGE_CLIENT),
-    fetchConfig(SPLURGE_CLIENT),
+    fetchAllItems(CONNECTION),
+    fetchAllStores(CONNECTION),
+    fetchConfig(CONNECTION),
   ]);
 
   if (!config) {

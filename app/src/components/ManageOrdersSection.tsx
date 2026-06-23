@@ -28,14 +28,14 @@ export function ManageOrdersSection({
         items={items}
         orders={orders}
         statusRenderer={(order) => {
-          if (order.status === "pending") {
-            const orderItem = items.find(({ publicKey }) => publicKey === order.item);
+          if (order.data.status === "pending") {
+            const orderItem = items.find(({ address }) => address === order.data.item);
 
             if (!orderItem) {
               throw new Error("Matching item not found for order.");
             }
 
-            const orderShopper = shoppers.find(({ publicKey }) => publicKey === order.shopper);
+            const orderShopper = shoppers.find(({ address }) => address === order.data.shopper);
 
             if (!orderShopper) {
               throw new Error("Matching shopper not found for order.");
@@ -51,7 +51,7 @@ export function ManageOrdersSection({
               />
             );
           } else {
-            return <StatusBadge status={order.status} />;
+            return <StatusBadge status={order.data.status} />;
           }
         }}
       />

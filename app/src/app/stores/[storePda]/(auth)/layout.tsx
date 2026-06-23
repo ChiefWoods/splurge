@@ -33,7 +33,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     return <WrappedSpinner />;
   }
 
-  if (storeData && storeData.authority !== publicKey.toBase58()) {
+  if (storeData && storeData.data.authority !== publicKey.toBase58()) {
     forbidden();
   }
 

@@ -28,7 +28,7 @@ export default function Page() {
       title="Shopper Already Created"
       btnText="Go To Profile"
       description="Only one shopper profile is allowed per wallet."
-      redirectHref={`/shoppers/${shopperData.publicKey}`}
+      redirectHref={`/shoppers/${shopperData.address}`}
     />
   ) : (
     <CreateSection header="Create your Shopper profile to start splurging!">

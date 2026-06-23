@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { createInitializeShopperInstruction, findShopperPda } from "@splurge/sdk";
 import { UserRound } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { FormDialogTitle } from "@/components/FormDialogTitle";
 import { ImageInput } from "@/components/ImageInput";
 import { TransactionToast } from "@/components/TransactionToast";
@@ -25,7 +25,7 @@ import { WalletGuardButton } from "@/components/WalletGuardButton";
 import { useIrysUploader } from "@/hooks/useIrysUploader";
 import { sendTx } from "@/lib/api";
 import { DicebearStyles, getDicebearFile } from "@/lib/client/dicebear";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { CreateProfileFormData, createProfileSchema } from "@/lib/schema";
 import { useSettings } from "@/providers/SettingsProvider";
 import { useShopper } from "@/providers/ShopperProvider";
@@ -86,12 +86,14 @@ export function CreateProfileDialog() {
                 let tx = await buildTx(
                   connection,
                   [
-                    await SPLURGE_CLIENT.createShopperIx({
-                      name: data.name,
-                      image: imageUri,
-                      address: data.address,
-                      authority: publicKey,
-                    }),
+                    createInitializeShopperInstruction(
+                      { authority: publicKey },
+                      {
+                        name: data.name,
+                        image: imageUri,
+                        address: data.address,
+                      },
+                    ),
                   ],
                   publicKey,
                   [],
@@ -106,12 +108,16 @@ export function CreateProfileDialog() {
               {
                 loading: "Waiting for signature...",
                 success: async (signature) => {
+                  const [shopperAddress, bump] = findShopperPda({ authority: publicKey });
                   const newShopper = {
-                    address: data.address,
-                    authority: publicKey.toBase58(),
-                    image: imageUri,
-                    name: data.name,
-                    publicKey: SplurgeClient.getShopperPda(publicKey).toBase58(),
+                    address: shopperAddress.toBase58(),
+                    data: {
+                      authority: publicKey.toBase58(),
+                      bump,
+                      image: imageUri,
+                      name: data.name,
+                      address: data.address,
+                    },
                   };
 
                   await shopperMutate(newShopper, {

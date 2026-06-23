@@ -36,7 +36,7 @@ export function ItemProvider({
     async () => {
       const url = new URL(apiEndpoint);
 
-      url.searchParams.append("pda", fallbackData.publicKey);
+      url.searchParams.append("pda", fallbackData.address);
 
       const itemAcc = (await wrappedFetch(url.href)).item as ParsedItem;
 

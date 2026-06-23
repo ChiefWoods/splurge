@@ -1,181 +1,208 @@
-import { GetProgramAccountsFilter } from "@solana/web3.js";
+/**
+ * Generated SDK fetcher wrappers that serialize account data into values safe
+ * for client-server transmission.
+ */
+import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  fetchAllMaybeItemAccounts,
+  fetchAllMaybeOrderAccounts,
+  fetchAllMaybeReviewAccounts,
+  fetchAllMaybeShopperAccounts,
+  fetchAllMaybeStoreAccounts,
+  fetchConfigAccount,
+  fetchProgramAccountsItem,
+  fetchProgramAccountsOrder,
+  fetchProgramAccountsReview,
+  fetchProgramAccountsShopper,
+  fetchProgramAccountsStore,
+  findConfigPda,
+  SPLURGE_PROGRAM_ID,
+} from "@splurge/sdk";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import {
   parseConfig,
+  ParsedConfig,
+  ParsedItem,
+  ParsedOrder,
+  ParsedReview,
+  ParsedShopper,
+  ParsedStore,
   parseItem,
   parseOrder,
   parseReview,
   parseShopper,
   parseStore,
 } from "@/types/accounts";
+import { parseProgramAccount } from "@/types/parse";
 
 import { DISCRIMINATOR_SIZE } from "./constants";
 
-// Config
-export async function fetchConfig(client: SplurgeClient) {
-  return client.fetchProgramAccount(SplurgeClient.configPda.toBase58(), "config", parseConfig);
+export async function fetchConfig(connection: Connection): Promise<ParsedConfig> {
+  const config = await fetchConfigAccount(connection, findConfigPda()[0]);
+
+  return parseProgramAccount(config, parseConfig);
 }
 
-// Items
-export async function fetchAllItems(client: SplurgeClient, queries: { store?: string } = {}) {
-  const { store } = queries;
-  const filters: GetProgramAccountsFilter[] = [];
-
-  if (store) {
-    filters.push({
-      memcmp: {
-        offset: DISCRIMINATOR_SIZE,
-        bytes: store,
-        // encoding: 'base58',
-      },
-    });
-  }
-
-  return client.fetchAllProgramAccounts("item", parseItem, filters);
+export async function fetchAllItems(
+  connection: Connection,
+  queries: { store?: string } = {},
+): Promise<ParsedItem[]> {
+  const filters = queries.store
+    ? [{ memcmp: { offset: DISCRIMINATOR_SIZE, bytes: queries.store } }]
+    : [];
+  return (await fetchProgramAccountsItem(connection, SPLURGE_PROGRAM_ID, { filters })).map(
+    (account) => parseProgramAccount(account, parseItem),
+  );
 }
 
-export async function fetchMultipleItems(client: SplurgeClient, pdas: string[]) {
-  return client.fetchMultipleProgramAccounts(pdas, "item", parseItem);
+export async function fetchMultipleItems(
+  connection: Connection,
+  pdas: string[],
+): Promise<(ParsedItem | null)[]> {
+  return (
+    await fetchAllMaybeItemAccounts(
+      connection,
+      pdas.map((pda) => new PublicKey(pda)),
+    )
+  ).map((account) => (account ? parseProgramAccount(account, parseItem) : null));
 }
 
-export async function fetchItem(client: SplurgeClient, pda: string) {
-  return client.fetchProgramAccount(pda, "item", parseItem);
+export async function fetchItem(connection: Connection, pda: string): Promise<ParsedItem | null> {
+  const [account] = await fetchAllMaybeItemAccounts(connection, [new PublicKey(pda)]);
+  return account ? parseProgramAccount(account, parseItem) : null;
 }
 
-// Orders
 export async function fetchAllOrders(
-  client: SplurgeClient,
+  connection: Connection,
   queries: { shopper?: string; store?: string } = {},
-) {
-  const { shopper, store } = queries;
-  const filters: GetProgramAccountsFilter[] = [];
-
-  if (shopper) {
-    filters.push({
-      memcmp: {
-        offset: DISCRIMINATOR_SIZE,
-        bytes: shopper,
-        // encoding: 'base58',
-      },
-    });
+): Promise<ParsedOrder[]> {
+  const filters = queries.shopper
+    ? [{ memcmp: { offset: DISCRIMINATOR_SIZE, bytes: queries.shopper } }]
+    : [];
+  let orders = (await fetchProgramAccountsOrder(connection, SPLURGE_PROGRAM_ID, { filters })).map(
+    (account) => parseProgramAccount(account, parseOrder),
+  );
+  if (queries.store) {
+    const items = await fetchAllItems(connection, { store: queries.store });
+    const itemAddresses = new Set(items.map(({ address }) => address));
+    orders = orders.filter(({ data }) => itemAddresses.has(data.item));
   }
-
-  let orders = await client.fetchAllProgramAccounts("order", parseOrder, filters);
-
-  // filter for orders with a matching item PDA
-  if (store) {
-    const items = await client.fetchAllProgramAccounts("item", parseItem, [
-      {
-        memcmp: {
-          offset: DISCRIMINATOR_SIZE,
-          bytes: store,
-          // encoding: 'base58',
-        },
-      },
-    ]);
-
-    const itemPdas = items.map((item) => item.publicKey);
-
-    orders = orders.filter(({ item }) => itemPdas.includes(item));
-  }
-
   return orders;
 }
 
-export async function fetchMultipleOrders(client: SplurgeClient, pdas: string[]) {
-  return client.fetchMultipleProgramAccounts(pdas, "order", parseOrder);
+export async function fetchMultipleOrders(
+  connection: Connection,
+  pdas: string[],
+): Promise<(ParsedOrder | null)[]> {
+  return (
+    await fetchAllMaybeOrderAccounts(
+      connection,
+      pdas.map((pda) => new PublicKey(pda)),
+    )
+  ).map((account) => (account ? parseProgramAccount(account, parseOrder) : null));
 }
 
-export async function fetchOrder(client: SplurgeClient, pda: string) {
-  return client.fetchProgramAccount(pda, "order", parseOrder);
+export async function fetchOrder(connection: Connection, pda: string): Promise<ParsedOrder | null> {
+  const [account] = await fetchAllMaybeOrderAccounts(connection, [new PublicKey(pda)]);
+  return account ? parseProgramAccount(account, parseOrder) : null;
 }
 
-// Reviews
-export async function fetchAllReviews(client: SplurgeClient, queries: { item?: string } = {}) {
-  const { item } = queries;
-
-  let reviews = await client.fetchAllProgramAccounts("review", parseReview);
-
-  // filter for reviews with a matching order PDA
-  if (item) {
-    const orderAccs = await client.fetchAllProgramAccounts("order", parseOrder, [
-      {
-        memcmp: {
-          offset: DISCRIMINATOR_SIZE + 32,
-          bytes: item,
-          // encoding: 'base58',
-        },
-      },
-    ]);
-
-    const orderPdas = orderAccs.map(({ publicKey }) => publicKey);
-
-    reviews = reviews.filter(({ order }) => orderPdas.includes(order));
+export async function fetchAllReviews(
+  connection: Connection,
+  queries: { item?: string } = {},
+): Promise<ParsedReview[]> {
+  let reviews = (await fetchProgramAccountsReview(connection, SPLURGE_PROGRAM_ID)).map((account) =>
+    parseProgramAccount(account, parseReview),
+  );
+  if (queries.item) {
+    const orders = (
+      await fetchProgramAccountsOrder(connection, SPLURGE_PROGRAM_ID, {
+        filters: [{ memcmp: { offset: DISCRIMINATOR_SIZE + 32, bytes: queries.item } }],
+      })
+    ).map((account) => parseProgramAccount(account, parseOrder));
+    const orderAddresses = new Set(orders.map(({ address }) => address));
+    reviews = reviews.filter(({ data }) => orderAddresses.has(data.order));
   }
-
   return reviews;
 }
 
-export async function fetchMultipleReviews(client: SplurgeClient, pdas: string[]) {
-  return client.fetchMultipleProgramAccounts(pdas, "review", parseReview);
+export async function fetchMultipleReviews(
+  connection: Connection,
+  pdas: string[],
+): Promise<(ParsedReview | null)[]> {
+  return (
+    await fetchAllMaybeReviewAccounts(
+      connection,
+      pdas.map((pda) => new PublicKey(pda)),
+    )
+  ).map((account) => (account ? parseProgramAccount(account, parseReview) : null));
 }
 
-export async function fetchReview(client: SplurgeClient, pda: string) {
-  return client.fetchProgramAccount(pda, "review", parseReview);
+export async function fetchReview(
+  connection: Connection,
+  pda: string,
+): Promise<ParsedReview | null> {
+  const [account] = await fetchAllMaybeReviewAccounts(connection, [new PublicKey(pda)]);
+  return account ? parseProgramAccount(account, parseReview) : null;
 }
 
-// Shoppers
 export async function fetchAllShoppers(
-  client: SplurgeClient,
+  connection: Connection,
   queries: { authority?: string } = {},
-) {
-  const { authority } = queries;
-  const filters: GetProgramAccountsFilter[] = [];
-
-  if (authority) {
-    filters.push({
-      memcmp: {
-        offset: DISCRIMINATOR_SIZE,
-        bytes: authority,
-        // encoding: 'base58',
-      },
-    });
-  }
-
-  return client.fetchAllProgramAccounts("shopper", parseShopper, filters);
+): Promise<ParsedShopper[]> {
+  const filters = queries.authority
+    ? [{ memcmp: { offset: DISCRIMINATOR_SIZE, bytes: queries.authority } }]
+    : [];
+  return (await fetchProgramAccountsShopper(connection, SPLURGE_PROGRAM_ID, { filters })).map(
+    (account) => parseProgramAccount(account, parseShopper),
+  );
 }
 
-export async function fetchMultipleShoppers(client: SplurgeClient, pdas: string[]) {
-  return client.fetchMultipleProgramAccounts(pdas, "shopper", parseShopper);
+export async function fetchMultipleShoppers(
+  connection: Connection,
+  pdas: string[],
+): Promise<(ParsedShopper | null)[]> {
+  return (
+    await fetchAllMaybeShopperAccounts(
+      connection,
+      pdas.map((pda) => new PublicKey(pda)),
+    )
+  ).map((account) => (account ? parseProgramAccount(account, parseShopper) : null));
 }
 
-export async function fetchShopper(client: SplurgeClient, pda: string) {
-  return client.fetchProgramAccount(pda, "shopper", parseShopper);
+export async function fetchShopper(
+  connection: Connection,
+  pda: string,
+): Promise<ParsedShopper | null> {
+  const [account] = await fetchAllMaybeShopperAccounts(connection, [new PublicKey(pda)]);
+  return account ? parseProgramAccount(account, parseShopper) : null;
 }
 
-// Stores
-export async function fetchAllStores(client: SplurgeClient, queries: { authority?: string } = {}) {
-  const { authority } = queries;
-  const filters: GetProgramAccountsFilter[] = [];
-
-  if (authority) {
-    filters.push({
-      memcmp: {
-        offset: DISCRIMINATOR_SIZE,
-        bytes: authority,
-        // encoding: 'base58',
-      },
-    });
-  }
-
-  return client.fetchAllProgramAccounts("store", parseStore, filters);
+export async function fetchAllStores(
+  connection: Connection,
+  queries: { authority?: string } = {},
+): Promise<ParsedStore[]> {
+  const filters = queries.authority
+    ? [{ memcmp: { offset: DISCRIMINATOR_SIZE, bytes: queries.authority } }]
+    : [];
+  return (await fetchProgramAccountsStore(connection, SPLURGE_PROGRAM_ID, { filters })).map(
+    (account) => parseProgramAccount(account, parseStore),
+  );
 }
 
-export async function fetchMultipleStores(client: SplurgeClient, pdas: string[]) {
-  return client.fetchMultipleProgramAccounts(pdas, "store", parseStore);
+export async function fetchMultipleStores(
+  connection: Connection,
+  pdas: string[],
+): Promise<(ParsedStore | null)[]> {
+  return (
+    await fetchAllMaybeStoreAccounts(
+      connection,
+      pdas.map((pda) => new PublicKey(pda)),
+    )
+  ).map((account) => (account ? parseProgramAccount(account, parseStore) : null));
 }
 
-export async function fetchStore(client: SplurgeClient, pda: string) {
-  return client.fetchProgramAccount(pda, "store", parseStore);
+export async function fetchStore(connection: Connection, pda: string): Promise<ParsedStore | null> {
+  const [account] = await fetchAllMaybeStoreAccounts(connection, [new PublicKey(pda)]);
+  return account ? parseProgramAccount(account, parseStore) : null;
 }

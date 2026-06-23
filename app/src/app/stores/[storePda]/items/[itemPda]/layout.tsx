@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { fetchItem } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { ItemProvider } from "@/providers/ItemProvider";
 
 export async function generateMetadata({
@@ -23,7 +23,7 @@ export async function generateMetadata({
     };
   }
 
-  const item = await fetchItem(SPLURGE_CLIENT, itemPda);
+  const item = await fetchItem(CONNECTION, itemPda);
 
   if (!item) {
     return {
@@ -32,7 +32,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: item.name,
+    title: item.data.name,
   };
 }
 
@@ -52,7 +52,7 @@ export default async function Layout({
     notFound();
   }
 
-  const item = await fetchItem(SPLURGE_CLIENT, itemPda);
+  const item = await fetchItem(CONNECTION, itemPda);
 
   // 404 if item doesn't exist
   if (!item) {

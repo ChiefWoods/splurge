@@ -13,12 +13,11 @@ import {
   DialectSdk,
 } from "@dialectlabs/sdk";
 import { PublicKey } from "@solana/web3.js";
+import { findStorePda } from "@splurge/sdk";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { ParsedOrderStatus } from "@/types/accounts";
 
 import { truncateAddress } from "../utils";
-import { SPLURGE_CLIENT } from "./solana";
 
 const environment: DialectCloudEnvironment = "production";
 
@@ -77,7 +76,7 @@ View and manage your orders in your dashboard.`,
       links: [
         {
           label: "View Order",
-          url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}/orders`,
+          url: `${process.env.FRONTEND_BASE_URL}/stores/${findStorePda({ authority: new PublicKey(storeAuthority) })[0].toBase58()}/orders`,
         },
       ],
     },
@@ -104,7 +103,7 @@ Update your inventory to continue receiving orders.`,
       links: [
         {
           label: "Update Inventory",
-          url: `${process.env.FRONTEND_BASE_URL}/stores/${SplurgeClient.getStorePda(new PublicKey(storeAuthority)).toBase58()}`,
+          url: `${process.env.FRONTEND_BASE_URL}/stores/${findStorePda({ authority: new PublicKey(storeAuthority) })[0].toBase58()}`,
         },
       ],
     },
@@ -129,7 +128,7 @@ export async function alertOrderUpdate({
   storeName: string;
   paymentSubtotal: string;
   paymentMintSymbol: string;
-  orderTimestamp: number;
+  orderTimestamp: string;
   status: ParsedOrderStatus;
 }) {
   const titleEnding =
@@ -147,7 +146,7 @@ Order Details:
   - Store: ${storeName}
   - Payment Subtotal: $${paymentSubtotal}
   - Paid In: ${paymentMintSymbol}
-  - Order Date: ${new Date(orderTimestamp * 1000).toUTCString()}
+  - Order Date: ${new Date(Number(orderTimestamp) * 1000).toUTCString()}
 
 Track your orders in your dashboard.`,
     recipient: shopperAuthority,

@@ -6,19 +6,15 @@ import { AddressLookupTableAccount } from "@solana/web3.js";
 import { Connection } from "@solana/web3.js";
 import { Cluster } from "@solana/web3.js";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
-import { TuktukClient } from "@/classes/TuktukClient";
 import { CuPriceRange, JitoTipRange } from "@/types/transactions";
 
 import { optimizeTx } from "../api";
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? "devnet") as Cluster;
-const CONNECTION = new Connection(
+export const CONNECTION = new Connection(
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
   "confirmed",
 );
-export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
-export const TUKTUK_CLIENT = new TuktukClient(CONNECTION);
 
 export async function getPriorityFee(connection: Connection): Promise<number> {
   const recentFees = await connection.getRecentPrioritizationFees();

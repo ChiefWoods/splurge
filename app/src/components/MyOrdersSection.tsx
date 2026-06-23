@@ -1,9 +1,9 @@
 "use client";
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { findShopperPda } from "@splurge/sdk";
 import useSWR from "swr";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { wrappedFetch } from "@/lib/api";
 import { ParsedItem, ParsedOrder } from "@/types/accounts";
 
@@ -20,7 +20,7 @@ export function MyOrdersSection({ items }: { items: ParsedItem[] }) {
   const { data: ordersData, isLoading: ordersLoading } = useSWR(
     publicKey ? { publicKey } : null,
     async ({ publicKey }) => {
-      const shopperPda = SplurgeClient.getShopperPda(publicKey).toBase58();
+      const shopperPda = findShopperPda({ authority: publicKey })[0].toBase58();
 
       const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/orders`);
 
@@ -43,7 +43,7 @@ export function MyOrdersSection({ items }: { items: ParsedItem[] }) {
         items={items}
         orders={ordersData}
         isFetching={ordersLoading}
-        statusRenderer={(order) => <StatusBadge status={order.status} />}
+        statusRenderer={(order) => <StatusBadge status={order.data.status} />}
         showTotalTooltip={true}
       />
     </CommonSection>

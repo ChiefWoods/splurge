@@ -61,7 +61,7 @@ export function OrderTable({
 
     return orders
       .map((order) => {
-        const itemData = items.find(({ publicKey }) => publicKey === order.item);
+        const itemData = items.find(({ address }) => address === order.data.item);
 
         if (!itemData) {
           throw new Error("Matching item not found for order.");
@@ -75,11 +75,11 @@ export function OrderTable({
       })
       .filter((order) => {
         if (tabValue !== "all") {
-          if (order.status !== tabValue) return false;
+          if (order.data.status !== tabValue) return false;
         }
 
         if (searchValue) {
-          return order.itemData.name.toLowerCase().includes(searchValue.toLowerCase());
+          return order.itemData.data.name.toLowerCase().includes(searchValue.toLowerCase());
         }
 
         return true;
@@ -96,20 +96,20 @@ export function OrderTable({
         enableSorting: false,
       },
       {
-        accessorKey: "itemData.name",
+        accessorKey: "itemData.data.name",
         header: ({ column }) => <SortButton text="Item" column={column} />,
         cell: ({ row }) => {
           const { itemData } = row.original;
           return (
             <div className="flex items-center gap-x-4">
               <Image
-                src={itemData.image}
-                alt={itemData.name}
+                src={itemData.data.image}
+                alt={itemData.data.name}
                 width={40}
                 height={40}
                 className="shrink-0 rounded-lg object-cover"
               />
-              <span className="truncate">{itemData.name}</span>
+              <span className="truncate">{itemData.data.name}</span>
             </div>
           );
         },
@@ -120,7 +120,7 @@ export function OrderTable({
       },
       {
         id: "total",
-        accessorFn: (row) => row.paymentSubtotal + row.platformFee,
+        accessorFn: (row) => BigInt(row.data.paymentSubtotal) + BigInt(row.data.platformFee),
         header: ({ column }) => (
           <div className="flex items-center gap-2">
             <SortButton text="Total" column={column} />
@@ -130,7 +130,7 @@ export function OrderTable({
           </div>
         ),
         cell: ({ row }) => {
-          const { paymentSubtotal, platformFee, paymentMint } = row.original;
+          const { paymentSubtotal, platformFee, paymentMint } = row.original.data;
           const metadata = ACCEPTED_MINTS_METADATA.get(paymentMint);
 
           if (!metadata) {
@@ -139,21 +139,23 @@ export function OrderTable({
 
           return (
             <div className="flex items-center gap-x-2">
-              <span className="truncate">{atomicToUsd(paymentSubtotal + platformFee)}</span>
+              <span className="truncate">
+                {atomicToUsd(BigInt(paymentSubtotal) + BigInt(platformFee))}
+              </span>
               <MintIcon src={metadata.image} alt={metadata.name} />
             </div>
           );
         },
       },
       {
-        accessorKey: "timestamp",
+        accessorKey: "data.timestamp",
         header: ({ column }) => <SortButton text="Created At" column={column} />,
-        cell: ({ row }) => <TimestampTooltip timestamp={row.original.timestamp} />,
+        cell: ({ row }) => <TimestampTooltip timestamp={row.original.data.timestamp} />,
       },
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => <AccountLinkButton href={getAccountLink(row.original.publicKey)} />,
+        cell: ({ row }) => <AccountLinkButton href={getAccountLink(row.original.address)} />,
         enableSorting: false,
       },
     ],

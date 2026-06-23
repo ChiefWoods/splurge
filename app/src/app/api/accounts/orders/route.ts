@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { fetchAllOrders, fetchOrder, fetchMultipleOrders } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (pdas.length === 0) {
       return NextResponse.json(
         {
-          orders: await fetchAllOrders(SPLURGE_CLIENT, {
+          orders: await fetchAllOrders(CONNECTION, {
             shopper: shopper ?? undefined,
             store: store ?? undefined,
           }),
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          orders: await fetchMultipleOrders(SPLURGE_CLIENT, pdas),
+          orders: await fetchMultipleOrders(CONNECTION, pdas),
         },
         {
           status: 200,
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          order: await fetchOrder(SPLURGE_CLIENT, pdas[0]),
+          order: await fetchOrder(CONNECTION, pdas[0]),
         },
         {
           status: 200,

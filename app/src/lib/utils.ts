@@ -5,8 +5,6 @@ import { PublicKey } from "@solana/web3.js";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
-
 import { fetchConfig } from "./accounts";
 import { MINT_DECIMALS } from "./constants";
 
@@ -23,20 +21,24 @@ export function capitalizeFirstLetter(str: string): string {
 }
 
 export function atomicToUsd(
-  atomic: number,
+  atomic: string | number | bigint,
   precision: number = 2,
   decimals: number = MINT_DECIMALS,
 ): string {
-  return (atomic / 10 ** decimals).toFixed(precision);
+  const value = typeof atomic === "bigint" ? atomic : BigInt(atomic);
+  const scale = BigInt(10) ** BigInt(decimals);
+  const whole = value / scale;
+  const fraction = (value % scale).toString().padStart(decimals, "0").slice(0, precision);
+  return precision === 0 ? whole.toString() : `${whole}.${fraction.padEnd(precision, "0")}`;
 }
 
 export function removeTrailingZeroes(price: string): string {
   return price.replace(/\.?0+$/, "");
 }
 
-export function getRelativeTime(timestamp: number): string {
+export function getRelativeTime(timestamp: string | number | bigint): string {
   const now = new Date();
-  const date = new Date(timestamp * 1000);
+  const date = new Date(Number(timestamp) * 1000);
 
   if (isNaN(date.getTime())) {
     return "Invalid date";
@@ -96,16 +98,16 @@ export async function tryGetTokenAccountBalance(
   return balance;
 }
 
-export async function getStoreEarnings(client: SplurgeClient, storePda: string) {
-  const config = await fetchConfig(client);
+export async function getStoreEarnings(connection: Connection, storePda: string) {
+  const config = await fetchConfig(connection);
 
   if (!config) {
     throw new Error("Config not initialized.");
   }
 
-  const acceptedMints = config.acceptedMints;
+  const acceptedMints = config.data.acceptedMints;
 
-  const mintAccs = await client.connection.getMultipleAccountsInfo(
+  const mintAccs = await connection.getMultipleAccountsInfo(
     acceptedMints.map((mint) => new PublicKey(mint.mint)),
   );
 
@@ -130,7 +132,7 @@ export async function getStoreEarnings(client: SplurgeClient, storePda: string) 
     };
   });
 
-  const ataInfos = await client.connection.getMultipleAccountsInfo(atas.map(({ ata }) => ata));
+  const ataInfos = await connection.getMultipleAccountsInfo(atas.map(({ ata }) => ata));
 
   const earnings = atas.map(({ ata, mint, programId }, i) => ({
     mint,

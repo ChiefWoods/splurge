@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { ReactNode } from "react";
 
 import { fetchAllOrders } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { OrdersProvider } from "@/providers/OrdersProvider";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default async function Layout({
 }) {
   const { storePda } = await params;
 
-  const orders = await fetchAllOrders(SPLURGE_CLIENT, { store: storePda });
+  const orders = await fetchAllOrders(CONNECTION, { store: storePda });
 
   return (
     <OrdersProvider fallbackData={orders} store={storePda}>

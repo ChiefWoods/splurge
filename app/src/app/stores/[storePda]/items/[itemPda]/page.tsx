@@ -11,7 +11,7 @@ import {
   fetchItem,
   fetchStore,
 } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { ReviewsProvider } from "@/providers/ReviewsProvider";
 
 export default async function Page({
@@ -22,12 +22,12 @@ export default async function Page({
   const { storePda, itemPda } = await params;
 
   const [orders, reviews, shoppers, store, item, config] = await Promise.all([
-    fetchAllOrders(SPLURGE_CLIENT, { store: storePda }),
-    fetchAllReviews(SPLURGE_CLIENT, { item: itemPda }),
-    fetchAllShoppers(SPLURGE_CLIENT),
-    fetchStore(SPLURGE_CLIENT, storePda),
-    fetchItem(SPLURGE_CLIENT, itemPda),
-    fetchConfig(SPLURGE_CLIENT),
+    fetchAllOrders(CONNECTION, { store: storePda }),
+    fetchAllReviews(CONNECTION, { item: itemPda }),
+    fetchAllShoppers(CONNECTION),
+    fetchStore(CONNECTION, storePda),
+    fetchItem(CONNECTION, itemPda),
+    fetchConfig(CONNECTION),
   ]);
 
   // 404 if store doesn't exist

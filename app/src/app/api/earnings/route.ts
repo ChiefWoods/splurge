@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { getStoreEarnings } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const earnings = await getStoreEarnings(SPLURGE_CLIENT, store);
+    const earnings = await getStoreEarnings(CONNECTION, store);
 
     return NextResponse.json({ earnings });
   } catch (err) {

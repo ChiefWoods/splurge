@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { fetchShopper } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export async function generateMetadata({
   params,
@@ -22,7 +22,7 @@ export async function generateMetadata({
     };
   }
 
-  const shopper = await fetchShopper(SPLURGE_CLIENT, shopperPda);
+  const shopper = await fetchShopper(CONNECTION, shopperPda);
 
   if (!shopper) {
     return {
@@ -31,7 +31,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: shopper.name,
+    title: shopper.data.name,
   };
 }
 

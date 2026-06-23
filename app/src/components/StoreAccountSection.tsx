@@ -18,12 +18,12 @@ export function StoreAccountSection({ store }: { store: ParsedStore }) {
 
   const buttons = [
     {
-      href: `/stores/${store.publicKey}/orders`,
+      href: `/stores/${store.address}/orders`,
       Icon: ClipboardList,
       text: "Manage Orders",
     },
     {
-      href: `/stores/${store.publicKey}/earnings`,
+      href: `/stores/${store.address}/earnings`,
       Icon: CircleDollarSign,
       text: "View Earnings",
     },
@@ -31,16 +31,16 @@ export function StoreAccountSection({ store }: { store: ParsedStore }) {
 
   return (
     <AccountSection
-      key={store.publicKey}
-      title={store.name}
-      image={store.image}
+      key={store.address}
+      title={store.data.name}
+      image={store.data.image}
       prefix="Store ID:"
-      address={store.publicKey}
-      content={<p>{store.about}</p>}
+      address={store.address}
+      content={<p>{store.data.about}</p>}
       buttons={
-        publicKey?.toBase58() === store.authority && (
+        publicKey?.toBase58() === store.data.authority && (
           <AccountSectionButtonTab>
-            <AddItemDialog storePda={store.publicKey} />
+            <AddItemDialog storePda={store.address} />
             {buttons.map(({ href, Icon, text }) => (
               <Button
                 key={href}

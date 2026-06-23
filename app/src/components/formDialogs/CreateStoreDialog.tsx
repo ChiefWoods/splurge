@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { createInitializeStoreInstruction, findStorePda } from "@splurge/sdk";
 import { Store } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { FormDialogTitle } from "@/components/FormDialogTitle";
 import { ImageInput } from "@/components/ImageInput";
 import { TransactionToast } from "@/components/TransactionToast";
@@ -25,7 +25,7 @@ import { WalletGuardButton } from "@/components/WalletGuardButton";
 import { useIrysUploader } from "@/hooks/useIrysUploader";
 import { sendTx } from "@/lib/api";
 import { DicebearStyles, getDicebearFile } from "@/lib/client/dicebear";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { CreateStoreFormData, createStoreSchema } from "@/lib/schema";
 import { useSettings } from "@/providers/SettingsProvider";
 import { useStore } from "@/providers/StoreProvider";
@@ -86,12 +86,14 @@ export function CreateStoreDialog() {
                 let tx = await buildTx(
                   connection,
                   [
-                    await SPLURGE_CLIENT.createStoreIx({
-                      name: data.name,
-                      image: imageUri,
-                      about: data.about,
-                      authority: publicKey,
-                    }),
+                    createInitializeStoreInstruction(
+                      { authority: publicKey },
+                      {
+                        name: data.name,
+                        image: imageUri,
+                        about: data.about,
+                      },
+                    ),
                   ],
                   publicKey,
                   [],
@@ -106,12 +108,16 @@ export function CreateStoreDialog() {
               {
                 loading: "Waiting for signature...",
                 success: async (signature) => {
+                  const [storeAddress, bump] = findStorePda({ authority: publicKey });
                   const newStore = {
-                    about: data.about,
-                    authority: publicKey.toBase58(),
-                    image: imageUri,
-                    name: data.name,
-                    publicKey: SplurgeClient.getStorePda(publicKey).toBase58(),
+                    address: storeAddress.toBase58(),
+                    data: {
+                      about: data.about,
+                      authority: publicKey.toBase58(),
+                      bump,
+                      image: imageUri,
+                      name: data.name,
+                    },
                   };
 
                   await storeMutate(newStore, {

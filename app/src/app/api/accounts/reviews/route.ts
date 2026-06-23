@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { fetchAllReviews, fetchReview, fetchMultipleReviews } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     if (pdas.length === 0) {
       return NextResponse.json(
         {
-          reviews: await fetchAllReviews(SPLURGE_CLIENT, {
+          reviews: await fetchAllReviews(CONNECTION, {
             item: item ?? undefined,
           }),
         },
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     } else if (pdas.length > 1) {
       return NextResponse.json(
         {
-          reviews: await fetchMultipleReviews(SPLURGE_CLIENT, pdas),
+          reviews: await fetchMultipleReviews(CONNECTION, pdas),
         },
         {
           status: 200,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     } else {
       return NextResponse.json(
         {
-          review: await fetchReview(SPLURGE_CLIENT, pdas[0]),
+          review: await fetchReview(CONNECTION, pdas[0]),
         },
         {
           status: 200,

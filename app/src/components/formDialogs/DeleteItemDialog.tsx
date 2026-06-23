@@ -2,13 +2,14 @@
 
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { PublicKey } from "@solana/web3.js";
+import { createUnlistItemInstruction } from "@splurge/sdk";
 import { Trash2 } from "lucide-react";
 import { FormEvent, useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { FormDialogTitle } from "@/components/FormDialogTitle";
 import { sendTx } from "@/lib/api";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { useItems } from "@/providers/ItemsProvider";
 import { useSettings } from "@/providers/SettingsProvider";
 import { ParsedItem } from "@/types/accounts";
@@ -44,10 +45,10 @@ export function DeleteItemDialog({ item, storePda }: { item: ParsedItem; storePd
           let tx = await buildTx(
             connection,
             [
-              await SPLURGE_CLIENT.unlistItemIx({
+              createUnlistItemInstruction({
                 authority: publicKey,
-                itemPda: new PublicKey(item.publicKey),
-                storePda: new PublicKey(storePda),
+                item: new PublicKey(item.address),
+                store: new PublicKey(storePda),
               }),
             ],
             publicKey,
@@ -70,7 +71,7 @@ export function DeleteItemDialog({ item, storePda }: { item: ParsedItem; storePd
                 }
 
                 return prev.filter((prevItem) => {
-                  return prevItem.publicKey !== item.publicKey;
+                  return prevItem.address !== item.address;
                 });
               },
               {
@@ -114,7 +115,7 @@ export function DeleteItemDialog({ item, storePda }: { item: ParsedItem; storePd
         <DialogHeader>
           <FormDialogTitle title="Delete Item" />
           <DialogDescription className="text-foreground">
-            Are you sure you want to delete {item.name}? Warning: reviews will be lost forever!
+            Are you sure you want to delete {item.data.name}? Warning: reviews will be lost forever!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit}>

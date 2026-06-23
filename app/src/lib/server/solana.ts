@@ -4,6 +4,7 @@ import { clusterApiUrl, Connection, TransactionMessage } from "@solana/web3.js";
 import { Cluster } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 import { VersionedTransaction } from "@solana/web3.js";
+import { SPLURGE_PROGRAM_ID } from "@splurge/sdk";
 
 import {
   BuildGatewayTransactionResponse,
@@ -12,7 +13,6 @@ import {
   SendTransactionResponse,
 } from "@/types/transactions";
 
-import { SplurgeClient } from "../../classes/SplurgeClient";
 import { DISCRIMINATOR_SIZE } from "../constants";
 
 const CLUSTER: Cluster = (process.env.SOLANA_RPC_CLUSTER ?? "devnet") as Cluster;
@@ -20,7 +20,6 @@ export const CONNECTION = new Connection(
   process.env.SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
   "confirmed",
 );
-export const SPLURGE_CLIENT = new SplurgeClient(CONNECTION);
 
 export const ADMIN_KEYPAIR = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(process.env.ADMIN_KEYPAIR as string)),
@@ -32,7 +31,7 @@ export async function validateProgramIx(
 ): Promise<boolean> {
   const { instructions } = TransactionMessage.decompile(tx.message);
 
-  const ix = instructions.find((ix) => ix.programId.equals(SplurgeClient.PROGRAM_ID));
+  const ix = instructions.find((ix) => ix.programId.equals(SPLURGE_PROGRAM_ID));
 
   if (!ix) {
     return false;

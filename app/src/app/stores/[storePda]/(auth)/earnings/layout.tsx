@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { ReactNode } from "react";
 
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { getStoreEarnings } from "@/lib/utils";
 import { EarningsProvider } from "@/providers/EarningsProvider";
 
@@ -18,7 +18,7 @@ export default async function Layout({
 }) {
   const { storePda } = await params;
 
-  const earnings = await getStoreEarnings(SPLURGE_CLIENT, storePda);
+  const earnings = await getStoreEarnings(CONNECTION, storePda);
 
   return (
     <EarningsProvider fallbackData={earnings} store={storePda}>

@@ -1,15 +1,14 @@
 "use client";
 
-import { BN } from "@coral-xyz/anchor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { PublicKey } from "@solana/web3.js";
+import { createListItemInstruction, findItemPda } from "@splurge/sdk";
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { FormDialogTitle } from "@/components/FormDialogTitle";
 import { ImageInput } from "@/components/ImageInput";
 import { TransactionToast } from "@/components/TransactionToast";
@@ -28,7 +27,7 @@ import { useIrysUploader } from "@/hooks/useIrysUploader";
 import { useMobile } from "@/hooks/useMobile";
 import { sendTx } from "@/lib/api";
 import { DicebearStyles, getDicebearFile } from "@/lib/client/dicebear";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { MINT_DECIMALS } from "@/lib/constants";
 import { CreateItemFormData, createItemSchema } from "@/lib/schema";
 import { useItems } from "@/providers/ItemsProvider";
@@ -98,14 +97,16 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
                 let tx = await buildTx(
                   connection,
                   [
-                    await SPLURGE_CLIENT.listItemIx({
-                      price: new BN(data.price * 10 ** MINT_DECIMALS),
-                      inventoryCount: data.inventoryCount,
-                      name: data.name,
-                      image: imageUri,
-                      description: data.description,
-                      authority: publicKey,
-                    }),
+                    createListItemInstruction(
+                      { authority: publicKey },
+                      {
+                        price: BigInt(Math.round(data.price * 10 ** MINT_DECIMALS)),
+                        inventoryCount: data.inventoryCount,
+                        name: data.name,
+                        image: imageUri,
+                        description: data.description,
+                      },
+                    ),
                   ],
                   publicKey,
                   [],
@@ -120,17 +121,21 @@ export function AddItemDialog({ storePda }: { storePda: string }) {
               {
                 loading: "Waiting for signature...",
                 success: async (signature) => {
-                  const newItem = {
-                    publicKey: SplurgeClient.getItemPda(
-                      new PublicKey(storePda),
-                      data.name,
-                    ).toBase58(),
-                    store: storePda,
-                    price: data.price * 10 ** MINT_DECIMALS,
-                    inventoryCount: data.inventoryCount,
+                  const [itemAddress, bump] = findItemPda({
+                    store: new PublicKey(storePda),
                     name: data.name,
-                    image: imageUri,
-                    description: data.description,
+                  });
+                  const newItem = {
+                    address: itemAddress.toBase58(),
+                    data: {
+                      store: storePda,
+                      price: BigInt(Math.round(data.price * 10 ** MINT_DECIMALS)).toString(),
+                      inventoryCount: data.inventoryCount,
+                      bump,
+                      name: data.name,
+                      image: imageUri,
+                      description: data.description,
+                    },
                   };
 
                   await itemsMutate(

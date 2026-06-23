@@ -2,11 +2,11 @@
 
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { PublicKey } from "@solana/web3.js";
+import { createWithdrawEarningsInstruction, findStorePda } from "@splurge/sdk";
 import { HandCoins } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { MintIcon } from "@/components/MintIcon";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/table";
 import { sendTx } from "@/lib/api";
 import { buildTx } from "@/lib/client/solana";
-import { SPLURGE_CLIENT } from "@/lib/client/solana";
 import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
 import { atomicToUsd } from "@/lib/utils";
 import { useEarnings } from "@/providers/EarningsProvider";
@@ -91,10 +90,10 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
                   throw new Error(`Metadata not found for mint: ${mint}`);
                 }
 
-                return await SPLURGE_CLIENT.withdrawEarningsIx({
+                return createWithdrawEarningsInstruction({
                   authority: publicKey,
                   paymentMint: new PublicKey(mint),
-                  storePda: SplurgeClient.getStorePda(publicKey),
+                  store: findStorePda({ authority: publicKey })[0],
                   tokenProgram: metadata.owner,
                 });
               }),

@@ -1,12 +1,12 @@
 "use client";
 
 import { useWallet } from "@jup-ag/wallet-adapter";
+import { findStorePda } from "@splurge/sdk";
 import { ShoppingBasket, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { EmptyResult } from "@/components/EmptyResult";
 import { CheckoutDialog } from "@/components/formDialogs/CheckoutDialog";
 import { ItemCard } from "@/components/ItemCard";
@@ -33,12 +33,12 @@ export function LandingFeaturedSection({
 
   const filteredItems = useMemo(() => {
     // filter out items with no inventory
-    let filtered = items.filter(({ inventoryCount }) => inventoryCount > 0);
+    let filtered = items.filter(({ data }) => data.inventoryCount > 0);
 
     if (publicKey) {
       // filter out items from personal store
-      const storePda = SplurgeClient.getStorePda(publicKey);
-      filtered = filtered.filter(({ store }) => store !== storePda.toBase58());
+      const storePda = findStorePda({ authority: publicKey })[0];
+      filtered = filtered.filter(({ data }) => data.store !== storePda.toBase58());
     }
 
     return filtered;
@@ -50,7 +50,11 @@ export function LandingFeaturedSection({
         <Skeleton className="h-8 w-2/5" />
       ) : (
         <SectionHeader
-          text={shopperData?.name ? `Welcome back, ${shopperData.name}` : "Welcome to Splurge!"}
+          text={
+            shopperData?.data.name
+              ? `Welcome back, ${shopperData.data.name}`
+              : "Welcome to Splurge!"
+          }
         />
       )}
       <div className="flex w-full flex-1 flex-wrap gap-6">
@@ -63,38 +67,38 @@ export function LandingFeaturedSection({
         ) : stores.length > 0 && filteredItems.length > 0 ? (
           <>
             {filteredItems.map((item) => {
-              const store = stores.find(({ publicKey }) => publicKey === item.store);
+              const store = stores.find(({ address }) => address === item.data.store);
 
               if (!store) {
                 throw new Error("Matching store not found for item.");
               }
 
               return (
-                <ItemCard key={item.publicKey} item={item} store={store}>
+                <ItemCard key={item.address} item={item} store={store}>
                   <>
                     <div className="flex w-full justify-between gap-y-1 overflow-hidden">
-                      <ItemCardInfoText text={`${atomicToUsd(item.price)} USD`} />
+                      <ItemCardInfoText text={`${atomicToUsd(item.data.price)} USD`} />
                       <ItemCardInfoText
-                        text={`${item.inventoryCount} left`}
+                        text={`${item.data.inventoryCount} left`}
                         className="hidden md:block"
                       />
                     </div>
                     <div className="flex h-fit items-center justify-between gap-1">
-                      <Link href={`/stores/${item.store}`}>
+                      <Link href={`/stores/${item.data.store}`}>
                         <div className="flex items-center gap-x-2">
                           <Image
-                            src={store.image}
-                            alt={store.name}
+                            src={store.data.image}
+                            alt={store.data.name}
                             width={0}
                             height={0}
                             className="size-5 rounded-full md:size-7"
                           />
                           <div className="hidden min-w-0 flex-1 flex-col md:flex">
                             <p className="w-full truncate text-xs font-medium md:text-sm">
-                              {store.name}
+                              {store.data.name}
                             </p>
                             <p className="text-foreground text-xs md:text-sm">
-                              {truncateAddress(item.store)}
+                              {truncateAddress(item.data.store)}
                             </p>
                           </div>
                         </div>

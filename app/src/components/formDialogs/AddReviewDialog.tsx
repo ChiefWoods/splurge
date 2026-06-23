@@ -3,15 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { PublicKey } from "@solana/web3.js";
+import { createCreateReviewInstruction, findReviewPda, findShopperPda } from "@splurge/sdk";
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { FormDialogTitle } from "@/components/FormDialogTitle";
 import { sendTx } from "@/lib/api";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { CreateReviewFormData, createReviewSchema } from "@/lib/schema";
 import { useReviews } from "@/providers/ReviewsProvider";
 import { useSettings } from "@/providers/SettingsProvider";
@@ -61,13 +61,17 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
           let tx = await buildTx(
             connection,
             [
-              await SPLURGE_CLIENT.createReviewIx({
-                text: data.text,
-                rating: data.rating,
-                authority: publicKey,
-                shopperPda: SplurgeClient.getShopperPda(publicKey),
-                orderPda: new PublicKey(orderPda),
-              }),
+              createCreateReviewInstruction(
+                {
+                  authority: publicKey,
+                  shopper: findShopperPda({ authority: publicKey })[0],
+                  order: new PublicKey(orderPda),
+                },
+                {
+                  text: data.text,
+                  rating: data.rating,
+                },
+              ),
             ],
             publicKey,
             [],
@@ -82,12 +86,16 @@ export function AddReviewDialog({ orderPda }: { orderPda: string }) {
         {
           loading: "Waiting for signature...",
           success: async (signature) => {
+            const [reviewAddress, bump] = findReviewPda({ order: new PublicKey(orderPda) });
             const newReview = {
-              publicKey: SplurgeClient.getReviewPda(new PublicKey(orderPda)).toBase58(),
-              order: orderPda,
-              rating: data.rating,
-              timestamp: Date.now() / 1000,
-              text: data.text,
+              address: reviewAddress.toBase58(),
+              data: {
+                order: orderPda,
+                rating: data.rating,
+                timestamp: BigInt(Math.floor(Date.now() / 1000)).toString(),
+                bump,
+                text: data.text,
+              },
             };
 
             await reviewsMutate(

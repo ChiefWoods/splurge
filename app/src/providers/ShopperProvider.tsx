@@ -1,10 +1,10 @@
 "use client";
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { findShopperPda } from "@splurge/sdk";
 import { createContext, ReactNode, useContext } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { wrappedFetch } from "@/lib/api";
 import { ParsedShopper } from "@/types/accounts";
 
@@ -30,7 +30,7 @@ export function ShopperProvider({ children }: { children: ReactNode }) {
     isLoading: shopperLoading,
     mutate: shopperMutate,
   } = useSWR(
-    publicKey ? { pda: SplurgeClient.getShopperPda(publicKey).toBase58() } : null,
+    publicKey ? { pda: findShopperPda({ authority: publicKey })[0].toBase58() } : null,
     async ({ pda }) => {
       const url = new URL(apiEndpoint);
 

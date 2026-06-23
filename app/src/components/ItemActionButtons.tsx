@@ -20,13 +20,13 @@ export function ItemActionButtons({
 }) {
   const { publicKey } = useUnifiedWallet();
 
-  return publicKey?.toBase58() === store.authority ? (
+  return publicKey?.toBase58() === store.data.authority ? (
     <div className="flex items-end gap-x-2">
-      <UpdateItemDialog item={item} storePda={store.publicKey} />
-      <DeleteItemDialog item={item} storePda={store.publicKey} />
+      <UpdateItemDialog item={item} storePda={store.address} />
+      <DeleteItemDialog item={item} storePda={store.address} />
     </div>
   ) : (
-    item.inventoryCount > 0 && (
+    item.data.inventoryCount > 0 && (
       <CheckoutDialog config={config} item={item} store={store} btnVariant="default" btnSize="icon">
         <ShoppingCart />
       </CheckoutDialog>

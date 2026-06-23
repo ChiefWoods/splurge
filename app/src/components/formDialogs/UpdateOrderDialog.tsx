@@ -1,16 +1,23 @@
 "use client";
 
+import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
+import {
+  createCancelOrderInstruction,
+  createShipOrderInstruction,
+  findShopperPda,
+} from "@splurge/sdk";
 import { Pencil, Truck, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { SplurgeClient } from "@/classes/SplurgeClient";
 import { useWalletAuth } from "@/hooks/useWalletAuth";
 import { sendPermissionedTx } from "@/lib/api";
-import { buildTx, SPLURGE_CLIENT, TUKTUK_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
+import { fetchTaskQueue, TASK_QUEUE, TUKTUK_PROGRAM_ID } from "@/lib/client/tuktuk";
 import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
 import { alertOrderUpdate } from "@/lib/server/dialect";
 import { atomicToUsd, capitalizeFirstLetter, truncateAddress } from "@/lib/utils";
@@ -71,12 +78,12 @@ export function UpdateOrderDialog({
 
           setIsSubmitting(true);
 
-          const admin = new PublicKey(config.admin);
-          const authorityPubkey = new PublicKey(shopper.authority);
-          const orderPdaPubkey = new PublicKey(order.publicKey);
-          const shopperPda = SplurgeClient.getShopperPda(authorityPubkey);
+          const admin = new PublicKey(config.data.admin);
+          const authorityPubkey = new PublicKey(shopper.data.authority);
+          const orderPdaPubkey = new PublicKey(order.address);
+          const shopperPda = findShopperPda({ authority: authorityPubkey })[0];
 
-          const paymentMintPubkey = new PublicKey(order.paymentMint);
+          const paymentMintPubkey = new PublicKey(order.data.paymentMint);
           const mintAcc = await connection.getAccountInfo(paymentMintPubkey);
 
           if (!mintAcc) {
@@ -89,22 +96,41 @@ export function UpdateOrderDialog({
             connection,
             [
               status === "shipping"
-                ? await SPLURGE_CLIENT.shipOrderIx({
+                ? await (async () => {
+                    const taskQueue = await fetchTaskQueue(connection);
+                    const taskId = nextAvailableTaskIds(taskQueue.taskBitmap, 1, false)[0];
+                    const [task] = taskKey(TASK_QUEUE, taskId, TUKTUK_PROGRAM_ID);
+                    const [taskQueueAuthority] = taskQueueAuthorityKey(TASK_QUEUE, admin);
+                    return createShipOrderInstruction(
+                      {
+                        admin,
+                        order: orderPdaPubkey,
+                        authority: authorityPubkey,
+                        item: new PublicKey(item.address),
+                        orderTokenAccount: getAssociatedTokenAddressSync(
+                          paymentMintPubkey,
+                          orderPdaPubkey,
+                          true,
+                          tokenProgram,
+                        ),
+                        paymentMint: paymentMintPubkey,
+                        shopper: shopperPda,
+                        store: new PublicKey(storePda),
+                        tokenProgram,
+                        tuktuk: TUKTUK_PROGRAM_ID,
+                        taskQueue: TASK_QUEUE,
+                        task,
+                        taskQueueAuthority,
+                      },
+                      { taskId },
+                    );
+                  })()
+                : createCancelOrderInstruction({
                     admin,
-                    orderPda: orderPdaPubkey,
                     authority: authorityPubkey,
-                    itemPda: new PublicKey(item.publicKey),
+                    order: orderPdaPubkey,
                     paymentMint: paymentMintPubkey,
-                    shopperPda,
-                    storePda: new PublicKey(storePda),
-                    tokenProgram,
-                    tuktukProgram: TUKTUK_CLIENT.program,
-                  })
-                : await SPLURGE_CLIENT.cancelOrderIx({
-                    admin,
-                    orderPda: orderPdaPubkey,
-                    paymentMint: paymentMintPubkey,
-                    shopperPda,
+                    shopper: shopperPda,
                     tokenProgram,
                   }),
             ],
@@ -115,7 +141,7 @@ export function UpdateOrderDialog({
 
           await signMessage(
             new TextEncoder().encode(
-              `Update order ${truncateAddress(order.publicKey)} to '${capitalizeFirstLetter(status)}' status.`,
+              `Update order ${truncateAddress(order.address)} to '${capitalizeFirstLetter(status)}' status.`,
             ),
           );
 
@@ -123,7 +149,7 @@ export function UpdateOrderDialog({
 
           return {
             signature,
-            storeName: storeData.name,
+            storeName: storeData.data.name,
           };
         },
         {
@@ -136,10 +162,10 @@ export function UpdateOrderDialog({
                 }
 
                 return prev.map((prevOrder) => {
-                  if (prevOrder.publicKey === order.publicKey) {
+                  if (prevOrder.address === order.address) {
                     return {
                       ...prevOrder,
-                      status,
+                      data: { ...prevOrder.data, status },
                     };
                   } else {
                     return prevOrder;
@@ -154,21 +180,21 @@ export function UpdateOrderDialog({
             setIsOpen(false);
             setIsSubmitting(false);
 
-            const paymentMintSymbol = ACCEPTED_MINTS_METADATA.get(order.paymentMint)?.symbol;
+            const paymentMintSymbol = ACCEPTED_MINTS_METADATA.get(order.data.paymentMint)?.symbol;
 
             if (!paymentMintSymbol) {
               throw new Error("Payment mint not found.");
             }
 
             await alertOrderUpdate({
-              itemAmount: order.amount,
-              itemName: item.name,
-              orderPda: order.publicKey,
-              orderTimestamp: order.timestamp,
+              itemAmount: order.data.amount,
+              itemName: item.data.name,
+              orderPda: order.address,
+              orderTimestamp: order.data.timestamp,
               paymentMintSymbol,
-              paymentSubtotal: atomicToUsd(order.paymentSubtotal),
+              paymentSubtotal: atomicToUsd(order.data.paymentSubtotal),
               storeName,
-              shopperAuthority: shopper.authority,
+              shopperAuthority: shopper.data.authority,
               status,
             });
 
@@ -201,7 +227,7 @@ export function UpdateOrderDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <StatusBadge
-          status={order.status}
+          status={order.data.status}
           className="cursor-pointer"
           onClick={() => checkAuth(() => setIsOpen(true))}
         >
@@ -213,11 +239,11 @@ export function UpdateOrderDialog({
           <FormDialogTitle title="Update Order" />
         </DialogHeader>
         <section className="flex flex-col items-stretch gap-y-4">
-          <LargeImage src={item.image} alt={item.name} />
+          <LargeImage src={item.data.image} alt={item.data.name} />
           <div className="flex flex-col gap-2">
-            <h3 className="truncate font-medium">{shopper.name}</h3>
-            <p className="text-sm">Amount - {order.amount}</p>
-            <p className="text-sm">{shopper.address}</p>
+            <h3 className="truncate font-medium">{shopper.data.name}</h3>
+            <p className="text-sm">Amount - {order.data.amount}</p>
+            <p className="text-sm">{shopper.data.address}</p>
           </div>
           <FormDialogFooter>
             <FormCancelButton onClick={() => setIsOpen(false)} />

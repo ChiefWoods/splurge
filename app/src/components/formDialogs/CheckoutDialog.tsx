@@ -5,6 +5,7 @@ import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { MAX_FEE_BASIS_POINTS } from "@solana/spl-token";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
+import { createCreateOrderInstruction, findOrderPda, findShopperPda } from "@splurge/sdk";
 import { Package } from "lucide-react";
 import { ReactNode, useCallback, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -12,7 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { FormDialogTitle } from "@/components/FormDialogTitle";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { ACCEPTED_MINTS_METADATA } from "@/lib/constants";
 import { MINT_DECIMALS } from "@/lib/constants";
 import { zAmount, zPaymentMint } from "@/lib/schema";
@@ -62,7 +63,7 @@ export function CheckoutDialog({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const createOrderSchema = z.object({
-    amount: zAmount.max(item.inventoryCount, "Amount exceeds inventory count."),
+    amount: zAmount.max(item.data.inventoryCount, "Amount exceeds inventory count."),
     paymentMint: zPaymentMint,
   });
 
@@ -81,9 +82,10 @@ export function CheckoutDialog({
     name: "amount",
   });
 
-  const orderSubtotal = item.price * (amount || 0);
+  const orderSubtotal = BigInt(item.data.price) * BigInt(amount || 0);
 
-  const platformFee = Math.floor((orderSubtotal * config.orderFeeBps) / MAX_FEE_BASIS_POINTS);
+  const platformFee =
+    (orderSubtotal * BigInt(config.data.orderFeeBps)) / BigInt(MAX_FEE_BASIS_POINTS);
 
   const closeAndReset = useCallback(() => {
     setIsOpen(false);
@@ -106,7 +108,7 @@ export function CheckoutDialog({
             throw new Error("Shopper account not created.");
           }
 
-          if (config.isPaused) {
+          if (config.data.isPaused) {
             throw new Error("Platform is currently paused. No new orders can be created.");
           }
 
@@ -118,26 +120,27 @@ export function CheckoutDialog({
             throw new Error("Payment mint not found.");
           }
 
+          const timestamp = BigInt(Math.floor(Date.now() / 1000 - 1));
+          const itemPda = new PublicKey(item.address);
+          const shopper = findShopperPda({ authority: publicKey })[0];
+          const order = findOrderPda({ shopper, item: itemPda, timestamp })[0];
+          const orderInstruction = createCreateOrderInstruction(
+            {
+              authority: publicKey,
+              store: new PublicKey(store.address),
+              item: itemPda,
+              order,
+              priceUpdateV2: token.priceUpdateV2,
+              paymentMint: new PublicKey(data.paymentMint),
+              tokenProgram: token.owner,
+            },
+            { amount: data.amount, timestamp },
+          );
+
           const signatures = await pythSolanaReceiver.provider.sendAll([
             ...(await getUpdatePriceFeedTx(token.id)),
             {
-              tx: await buildTx(
-                connection,
-                [
-                  await SPLURGE_CLIENT.createOrderIx({
-                    amount: data.amount,
-                    authority: publicKey,
-                    storePda: new PublicKey(store.publicKey),
-                    itemPda: new PublicKey(item.publicKey),
-                    priceUpdateV2: token.priceUpdateV2,
-                    paymentMint: new PublicKey(data.paymentMint),
-                    tokenProgram: token.owner,
-                  }),
-                ],
-                publicKey,
-                [],
-                priorityFee,
-              ),
+              tx: await buildTx(connection, [orderInstruction], publicKey, [], priorityFee),
               signers: [],
             },
           ]);
@@ -154,7 +157,7 @@ export function CheckoutDialog({
         {
           loading: "Waiting for signature...",
           success: async ({ signature, shopperData, paymentMintSymbol }) => {
-            const newInventoryCount = item.inventoryCount - data.amount;
+            const newInventoryCount = item.data.inventoryCount - data.amount;
 
             await itemsMutate(
               (prev) => {
@@ -163,10 +166,10 @@ export function CheckoutDialog({
                 }
 
                 return prev.map((prevItem) => {
-                  if (prevItem.publicKey === item.publicKey) {
+                  if (prevItem.address === item.address) {
                     return {
                       ...prevItem,
-                      inventoryCount: newInventoryCount,
+                      data: { ...prevItem.data, inventoryCount: newInventoryCount },
                     };
                   } else {
                     return prevItem;
@@ -182,9 +185,9 @@ export function CheckoutDialog({
             setIsSubmitting(false);
 
             await alertNewOrders({
-              storeAuthority: store.authority,
-              shopperName: shopperData.name,
-              itemName: item.name,
+              storeAuthority: store.data.authority,
+              shopperName: shopperData.data.name,
+              itemName: item.data.name,
               itemAmount: data.amount,
               shopperAddress: shopperData.address,
               paymentSubtotal: atomicToUsd(orderSubtotal),
@@ -193,8 +196,8 @@ export function CheckoutDialog({
 
             if (newInventoryCount === 0) {
               await alertOutOfStock({
-                itemName: item.name,
-                storeAuthority: store.authority,
+                itemName: item.data.name,
+                storeAuthority: store.data.authority,
               });
             }
 
@@ -238,12 +241,12 @@ export function CheckoutDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <LargeImage src={item.image} alt={item.name} />
-            <h3 className="truncate text-base font-medium">{item.name}</h3>
+            <LargeImage src={item.data.image} alt={item.data.name} />
+            <h3 className="truncate text-base font-medium">{item.data.name}</h3>
             <div className="flex w-full flex-col gap-y-2">
               <div className="flex justify-between gap-x-2">
                 <p className="text-sm">Price</p>
-                <p className="text-sm">{atomicToUsd(item.price)} USD</p>
+                <p className="text-sm">{atomicToUsd(item.data.price)} USD</p>
               </div>
               <div className="flex justify-between gap-x-2">
                 <FormField
@@ -257,7 +260,7 @@ export function CheckoutDialog({
                           type="number"
                           {...field}
                           min={1}
-                          max={item.inventoryCount}
+                          max={item.data.inventoryCount}
                           step={1}
                           onChange={(e) => {
                             const value = parseInt(e.target.value);

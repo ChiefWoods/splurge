@@ -1,9 +1,9 @@
 "use client";
 
-import { BN } from "@coral-xyz/anchor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { PublicKey } from "@solana/web3.js";
+import { createUpdateItemInstruction } from "@splurge/sdk";
 import { Pencil } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useState } from "react";
@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { sendTx } from "@/lib/api";
-import { buildTx, SPLURGE_CLIENT } from "@/lib/client/solana";
+import { buildTx } from "@/lib/client/solana";
 import { MINT_DECIMALS } from "@/lib/constants";
 import { UpdateItemFormData, updateItemSchema } from "@/lib/schema";
 import { useItems } from "@/providers/ItemsProvider";
@@ -40,8 +40,8 @@ export function UpdateItemDialog({ item, storePda }: { item: ParsedItem; storePd
   const form = useForm<UpdateItemFormData>({
     resolver: zodResolver(updateItemSchema),
     defaultValues: {
-      inventoryCount: item.inventoryCount,
-      price: item.price,
+      inventoryCount: item.data.inventoryCount,
+      price: Number(item.data.price),
     },
   });
 
@@ -58,13 +58,17 @@ export function UpdateItemDialog({ item, storePda }: { item: ParsedItem; storePd
           let tx = await buildTx(
             connection,
             [
-              await SPLURGE_CLIENT.updateItemIx({
-                price: new BN(Number(data.price.toFixed(2))),
-                inventoryCount: data.inventoryCount,
-                authority: publicKey,
-                itemPda: new PublicKey(item.publicKey),
-                storePda: new PublicKey(storePda),
-              }),
+              createUpdateItemInstruction(
+                {
+                  authority: publicKey,
+                  item: new PublicKey(item.address),
+                  store: new PublicKey(storePda),
+                },
+                {
+                  price: BigInt(Math.round(data.price)),
+                  inventoryCount: data.inventoryCount,
+                },
+              ),
             ],
             publicKey,
             [],
@@ -90,11 +94,14 @@ export function UpdateItemDialog({ item, storePda }: { item: ParsedItem; storePd
                 }
 
                 return prev.map((prevItem) => {
-                  if (prevItem.publicKey === item.publicKey) {
+                  if (prevItem.address === item.address) {
                     return {
                       ...prevItem,
-                      price: Number(price.toFixed(2)),
-                      inventoryCount,
+                      data: {
+                        ...prevItem.data,
+                        price: price.toFixed(2),
+                        inventoryCount,
+                      },
                     };
                   } else {
                     return prevItem;
@@ -149,16 +156,16 @@ export function UpdateItemDialog({ item, storePda }: { item: ParsedItem; storePd
         </DialogHeader>
         <section className="flex items-start gap-x-4">
           <Image
-            src={item.image}
-            alt={item.name}
+            src={item.data.image}
+            alt={item.data.name}
             width={100}
             height={100}
             className="aspect-square rounded-lg border"
             priority
           />
           <div className="flex flex-1 flex-col gap-y-1">
-            <p className="truncate text-lg font-semibold">{item.name}</p>
-            <p className="text-sm text-wrap">{item.description}</p>
+            <p className="truncate text-lg font-semibold">{item.data.name}</p>
+            <p className="text-sm text-wrap">{item.data.description}</p>
           </div>
         </section>
         <Form {...form}>

@@ -25,21 +25,21 @@ export function ItemAccountSection({
   return (
     <>
       <AccountSection
-        key={item.publicKey}
-        title={item.name}
-        image={item.image}
+        key={item.address}
+        title={item.data.name}
+        image={item.data.image}
         prefix="Item ID:"
-        address={store.publicKey}
+        address={item.address}
         content={
           <>
-            <ItemCardInfoText text={item.description} />
-            <ItemCardInfoText text={`${atomicToUsd(item.price)} USD`} />
-            <ItemCardInfoText text={`${item.inventoryCount} in inventory`} />
+            <ItemCardInfoText text={item.data.description} />
+            <ItemCardInfoText text={`${atomicToUsd(item.data.price)} USD`} />
+            <ItemCardInfoText text={`${item.data.inventoryCount} in inventory`} />
           </>
         }
         buttons={
-          publicKey?.toBase58() !== store.authority &&
-          item.inventoryCount > 0 && (
+          publicKey?.toBase58() !== store.data.authority &&
+          item.data.inventoryCount > 0 && (
             <AccountSectionButtonTab>
               <CheckoutDialog item={item} store={store} config={config}>
                 <ShoppingCart />

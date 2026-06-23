@@ -1,6 +1,6 @@
+import { MAX_ITEM_NAME_LEN, MAX_SHOPPER_NAME_LEN, MAX_STORE_NAME_LEN } from "@splurge/sdk";
 import { z } from "zod";
 
-import { SplurgeClient } from "../classes/SplurgeClient";
 import { ACCEPTED_IMAGE_TYPES } from "./constants";
 import { capitalizeFirstLetter } from "./utils";
 
@@ -39,19 +39,19 @@ const zRating = z
   .max(5, "Rating must be at most 5.");
 
 export const createProfileSchema = z.object({
-  name: zName(SplurgeClient.MAX_SHOPPER_NAME_LENGTH),
+  name: zName(MAX_SHOPPER_NAME_LEN),
   image: zImage,
   address: zCommonString("address"),
 });
 
 export const createStoreSchema = z.object({
-  name: zName(SplurgeClient.MAX_STORE_NAME_LENGTH),
+  name: zName(MAX_STORE_NAME_LEN),
   image: zImage,
   about: zCommonString("about"),
 });
 
 export const createItemSchema = z.object({
-  name: zName(SplurgeClient.MAX_ITEM_NAME_LENGTH),
+  name: zName(MAX_ITEM_NAME_LEN),
   image: zImage,
   description: zCommonString("description"),
   inventoryCount: zInventoryCount,

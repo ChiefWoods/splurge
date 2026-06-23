@@ -29,7 +29,7 @@ export function Header() {
   const navLinks = [
     {
       name: "My Store",
-      href: storeData ? `/stores/${storeData.publicKey}` : "/stores/create",
+      href: storeData ? `/stores/${storeData.address}` : "/stores/create",
     },
     {
       name: "My Orders",
@@ -100,10 +100,12 @@ export function Header() {
       </div>
       <div className="flex items-center gap-3">
         {shopperData && (
-          <Link href={`/shoppers/${shopperData.publicKey}`}>
+          <Link href={`/shoppers/${shopperData.address}`}>
             <Avatar className="size-7">
               <AvatarImage
-                src={shopperData.image ?? getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)}
+                src={
+                  shopperData.data.image ?? getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)
+                }
                 className="bg-white"
               />
             </Avatar>

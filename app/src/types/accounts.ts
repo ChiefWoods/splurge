@@ -1,28 +1,17 @@
-import { BN, IdlAccounts, IdlTypes } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  AcceptedMint,
+  ConfigAccountData,
+  ItemAccountData,
+  OrderAccountData,
+  OrderStatus,
+  ReviewAccountData,
+  ShopperAccountData,
+  StoreAccountData,
+} from "@splurge/sdk";
 
-import { ExtractDefinedKeys } from "./generators";
-import { Splurge } from "./splurge";
+import { parseBigInt, ParsedProgramAccount, parsePublicKey } from "./parse";
 
-type Config = IdlAccounts<Splurge>["config"];
-type Shopper = IdlAccounts<Splurge>["shopper"];
-type Store = IdlAccounts<Splurge>["store"];
-type Item = IdlAccounts<Splurge>["item"];
-type Order = IdlAccounts<Splurge>["order"];
-type Review = IdlAccounts<Splurge>["review"];
-type AcceptedMint = IdlTypes<Splurge>["acceptedMint"];
-export type OrderStatus = IdlTypes<Splurge>["orderStatus"];
-export type InitializeShopperArgs = IdlTypes<Splurge>["initializeShopperArgs"];
-export type InitializeStoreArgs = IdlTypes<Splurge>["initializeStoreArgs"];
-export type ListItemArgs = IdlTypes<Splurge>["listItemArgs"];
-export type UpdateItemArgs = IdlTypes<Splurge>["updateItemArgs"];
-export type CreateReviewArgs = IdlTypes<Splurge>["createReviewArgs"];
-
-export type ParsedOrderStatus = ExtractDefinedKeys<OrderStatus>;
-
-export interface ParsedProgramAccount {
-  publicKey: string;
-}
+export type ParsedOrderStatus = "pending" | "shipping" | "cancelled" | "completed";
 
 interface ParsedAcceptedMint {
   mint: string;
@@ -30,63 +19,42 @@ interface ParsedAcceptedMint {
 }
 
 export interface ParsedConfig extends ParsedProgramAccount {
-  orderFeeBps: number;
-  admin: string;
-  isPaused: boolean;
-  acceptedMints: ParsedAcceptedMint[];
+  data: Omit<ConfigAccountData, "admin" | "acceptedMints" | "reserved"> & {
+    admin: string;
+    acceptedMints: ParsedAcceptedMint[];
+    reserved: number[];
+  };
 }
 
 export interface ParsedShopper extends ParsedProgramAccount {
-  authority: string;
-  name: string;
-  image: string;
-  address: string;
+  data: Omit<ShopperAccountData, "authority"> & { authority: string };
 }
 
 export interface ParsedStore extends ParsedProgramAccount {
-  authority: string;
-  name: string;
-  image: string;
-  about: string;
+  data: Omit<StoreAccountData, "authority"> & { authority: string };
 }
 
 export interface ParsedItem extends ParsedProgramAccount {
-  store: string;
-  price: number;
-  inventoryCount: number;
-  name: string;
-  image: string;
-  description: string;
+  data: Omit<ItemAccountData, "store" | "price"> & { store: string; price: string };
 }
 
 export interface ParsedOrder extends ParsedProgramAccount {
-  shopper: string;
-  item: string;
-  timestamp: number;
-  status: ParsedOrderStatus;
-  amount: number;
-  paymentSubtotal: number;
-  platformFee: number;
-  paymentMint: string;
+  data: Omit<
+    OrderAccountData,
+    "shopper" | "item" | "timestamp" | "status" | "paymentSubtotal" | "platformFee" | "paymentMint"
+  > & {
+    shopper: string;
+    item: string;
+    timestamp: string;
+    status: ParsedOrderStatus;
+    paymentSubtotal: string;
+    platformFee: string;
+    paymentMint: string;
+  };
 }
 
 export interface ParsedReview extends ParsedProgramAccount {
-  order: string;
-  rating: number;
-  timestamp: number;
-  text: string;
-}
-
-export function parseEnum<T>(field: object): T {
-  return Object.keys(field)[0] as T;
-}
-
-function parsePublicKey(field: PublicKey | null): string {
-  return !field || field.equals(SystemProgram.programId) ? "" : field.toBase58();
-}
-
-function parseBN(field: BN): number {
-  return field.toNumber();
+  data: Omit<ReviewAccountData, "order" | "timestamp"> & { order: string; timestamp: string };
 }
 
 function parseAcceptedMints(acceptedMints: AcceptedMint[]): ParsedAcceptedMint[] {
@@ -100,13 +68,19 @@ export function parseConfig({
   admin,
   isPaused,
   orderFeeBps,
+  bump,
+  treasuryBump,
   acceptedMints,
-}: Config): Omit<ParsedConfig, "publicKey"> {
+  reserved,
+}: ConfigAccountData): ParsedConfig["data"] {
   return {
     admin: parsePublicKey(admin),
     isPaused,
     orderFeeBps,
+    bump,
+    treasuryBump,
     acceptedMints: parseAcceptedMints(acceptedMints),
+    reserved: Array.from(reserved),
   };
 }
 
@@ -115,9 +89,11 @@ export function parseShopper({
   name,
   image,
   address,
-}: Shopper): Omit<ParsedShopper, "publicKey"> {
+  bump,
+}: ShopperAccountData): ParsedShopper["data"] {
   return {
     authority: parsePublicKey(authority),
+    bump,
     name,
     image,
     address,
@@ -129,9 +105,11 @@ export function parseStore({
   name,
   image,
   about,
-}: Store): Omit<ParsedStore, "publicKey"> {
+  bump,
+}: StoreAccountData): ParsedStore["data"] {
   return {
     authority: parsePublicKey(authority),
+    bump,
     name,
     image,
     about,
@@ -145,11 +123,13 @@ export function parseItem({
   name,
   image,
   description,
-}: Item): Omit<ParsedItem, "publicKey"> {
+  bump,
+}: ItemAccountData): ParsedItem["data"] {
   return {
     store: parsePublicKey(store),
-    price: parseBN(price),
+    price: parseBigInt(price),
     inventoryCount,
+    bump,
     name,
     image,
     description,
@@ -165,16 +145,18 @@ export function parseOrder({
   paymentSubtotal,
   platformFee,
   paymentMint,
-}: Order): Omit<ParsedOrder, "publicKey"> {
+  bump,
+}: OrderAccountData): ParsedOrder["data"] {
   return {
     shopper: parsePublicKey(shopper),
     item: parsePublicKey(item),
-    timestamp: parseBN(timestamp),
-    status: parseEnum<ParsedOrderStatus>(status),
+    timestamp: parseBigInt(timestamp),
+    status: OrderStatus[status].toLowerCase() as ParsedOrderStatus,
     amount,
-    paymentSubtotal: parseBN(paymentSubtotal),
-    platformFee: parseBN(platformFee),
+    paymentSubtotal: parseBigInt(paymentSubtotal),
+    platformFee: parseBigInt(platformFee),
     paymentMint: parsePublicKey(paymentMint),
+    bump,
   };
 }
 
@@ -183,11 +165,13 @@ export function parseReview({
   rating,
   timestamp,
   text,
-}: Review): Omit<ParsedReview, "publicKey"> {
+  bump,
+}: ReviewAccountData): ParsedReview["data"] {
   return {
     order: parsePublicKey(order),
     rating,
-    timestamp: parseBN(timestamp),
+    timestamp: parseBigInt(timestamp),
+    bump,
     text,
   };
 }

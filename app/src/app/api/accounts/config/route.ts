@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { fetchConfig } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     return NextResponse.json(
       {
-        config: await fetchConfig(SPLURGE_CLIENT),
+        config: await fetchConfig(CONNECTION),
       },
       {
         status: 200,

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { fetchAllItems, fetchStore } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 import { ItemsProvider } from "@/providers/ItemsProvider";
 
 export async function generateMetadata({
@@ -23,7 +23,7 @@ export async function generateMetadata({
     };
   }
 
-  const store = await fetchStore(SPLURGE_CLIENT, storePda);
+  const store = await fetchStore(CONNECTION, storePda);
 
   if (!store) {
     return {
@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   return {
     title: {
-      default: store.name,
+      default: store.data.name,
       template: "%s | Splurge",
     },
   };
@@ -55,7 +55,7 @@ export default async function Layout({
     notFound();
   }
 
-  const items = await fetchAllItems(SPLURGE_CLIENT, { store: storePda });
+  const items = await fetchAllItems(CONNECTION, { store: storePda });
 
   return (
     <ItemsProvider fallbackData={items} store={storePda}>

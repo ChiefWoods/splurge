@@ -14,15 +14,15 @@ export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
 
   return (
     <AccountSection
-      key={shopper.publicKey}
+      key={shopper.data.address}
       header="My Profile"
-      title={shopper.name}
-      image={shopper.image}
+      title={shopper.data.name}
+      image={shopper.data.image}
       prefix="Shopper ID:"
-      address={shopper.publicKey}
-      content={<p>{shopper.address}</p>}
+      address={shopper.data.address}
+      content={<p>{shopper.data.address}</p>}
       buttons={
-        publicKey?.toBase58() === shopper.authority && (
+        publicKey?.toBase58() === shopper.data.authority && (
           <Button asChild size={"sm"}>
             <Link href="/orders">
               <ClipboardList />

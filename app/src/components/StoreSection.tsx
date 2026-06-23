@@ -29,11 +29,11 @@ export function StoreSection({ store, config }: { store: ParsedStore; config: Pa
             </>
           ) : itemsData && itemsData.length > 0 ? (
             itemsData.map((item) => (
-              <ItemCard key={item.publicKey} item={item} store={store}>
+              <ItemCard key={item.address} item={item} store={store}>
                 <>
                   <div className="flex w-full flex-col justify-between overflow-hidden">
-                    <ItemCardInfoText text={`${atomicToUsd(item.price)} USD`} />
-                    <ItemCardInfoText text={`${item.inventoryCount} left`} />
+                    <ItemCardInfoText text={`${atomicToUsd(item.data.price)} USD`} />
+                    <ItemCardInfoText text={`${item.data.inventoryCount} left`} />
                   </div>
                   <ItemActionButtons item={item} store={store} config={config} />
                 </>

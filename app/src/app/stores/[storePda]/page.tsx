@@ -5,7 +5,7 @@ import { StoreAccountSection } from "@/components/StoreAccountSection";
 import { StoreSection } from "@/components/StoreSection";
 import { Separator } from "@/components/ui/separator";
 import { fetchConfig, fetchStore } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export default async function Page({ params }: { params: Promise<{ storePda: string }> }) {
   const { storePda } = await params;
@@ -18,8 +18,8 @@ export default async function Page({ params }: { params: Promise<{ storePda: str
   }
 
   const [store, config] = await Promise.all([
-    fetchStore(SPLURGE_CLIENT, storePda),
-    fetchConfig(SPLURGE_CLIENT),
+    fetchStore(CONNECTION, storePda),
+    fetchConfig(CONNECTION),
   ]);
 
   // 404 if store doesn't exist

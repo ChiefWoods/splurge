@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ShopperAccountSection } from "@/components/ShopperAccountSection";
 import { fetchShopper } from "@/lib/accounts";
-import { SPLURGE_CLIENT } from "@/lib/server/solana";
+import { CONNECTION } from "@/lib/server/solana";
 
 export default async function Page({ params }: { params: Promise<{ shopperPda: string }> }) {
   const { shopperPda } = await params;
@@ -15,7 +15,7 @@ export default async function Page({ params }: { params: Promise<{ shopperPda: s
     notFound();
   }
 
-  const shopper = await fetchShopper(SPLURGE_CLIENT, shopperPda);
+  const shopper = await fetchShopper(CONNECTION, shopperPda);
 
   // 404 if shopper doesn't exist
   if (!shopper) {
