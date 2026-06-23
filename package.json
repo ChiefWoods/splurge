@@ -12,10 +12,12 @@
     "fmt": "oxfmt --check",
     "fmt:fix": "oxfmt --write",
     "prepare": "husky",
+    "build": "anchor build",
     "build:test": "anchor build -- --features no-staleness-check",
     "test": "bun test",
     "deploy": "anchor deploy -p splurge --provider.cluster d --program-keypair target/deploy/splurge-keypair.json --provider.wallet splurge-wallet.json",
-    "idl:sync": "cp target/idl/splurge.json app/src/idl/splurge.json; cp target/types/splurge.ts app/src/types/splurge.ts",
+    "idl:sync": "cp target/idl/splurge.json packages/sdk/src/idl/anchor/splurge.json && cp target/types/splurge.ts packages/sdk/src/types/splurge.ts",
+    "idl:sync:test": "bun run idl:sync",
     "idl:init": "anchor idl init $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json",
     "idl:upgrade": "anchor idl upgrade $(anchor keys list | grep 'splurge:' | awk '{print $2}') -f target/idl/splurge.json --provider.cluster d --provider.wallet splurge-wallet.json",
     "act:test": "act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest",
@@ -38,6 +40,7 @@
     "litesvm": "^0.3.3",
     "oxfmt": "^0.55.0",
     "oxlint": "^1.70.0",
+    "turbo": "^2.9.18",
     "typescript": "^6.0.3"
   },
   "packageManager": "bun@1.3.14"

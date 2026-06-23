@@ -1,0 +1,47 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "//#build": {
+      "cache": true,
+      "outputs": ["target/**"]
+    },
+    "//#build:test": {
+      "cache": true,
+      "outputs": ["target/**"]
+    },
+    "//#test": {
+      "dependsOn": ["@splurge/sdk#build:test"],
+      "cache": false
+    },
+    "//#idl:sync": {
+      "dependsOn": ["//#build"],
+      "cache": false
+    },
+    "//#idl:sync:test": {
+      "dependsOn": ["//#build:test"],
+      "cache": false
+    },
+    "@splurge/sdk#codama": {
+      "dependsOn": ["//#idl:sync"],
+      "cache": true,
+      "outputs": ["src/generated/**", "src/idl/codama/splurge.json"]
+    },
+    "@splurge/sdk#codama:test": {
+      "dependsOn": ["//#idl:sync:test"],
+      "cache": true,
+      "outputs": ["src/generated/**", "src/idl/codama/splurge.json"]
+    },
+    "@splurge/sdk#build": {
+      "dependsOn": ["@splurge/sdk#codama"],
+      "cache": false
+    },
+    "@splurge/sdk#build:test": {
+      "dependsOn": ["@splurge/sdk#codama:test"],
+      "cache": false
+    },
+    "@splurge/app#build": {
+      "dependsOn": ["@splurge/sdk#build"],
+      "outputs": [".next/**"]
+    }
+  }
+}

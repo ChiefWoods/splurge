@@ -87,18 +87,16 @@ cp .env.example .env
 anchor keys sync
 ```
 
-2. Build program
+2. Build program, SDK, and app
 
 ```bash
-anchor build
-# Alternative build for running tests
-# bun run build:test
+bunx turbo run build
 ```
 
 3. Run tests
 
 ```bash
-bun test
+bunx turbo run test
 ```
 
 > [!NOTE]  
@@ -114,14 +112,6 @@ anchor deploy
 
 ```bash
 anchor idl init -f target/idl/splurge.json <PROGRAM_ID>
-```
-
-#### Sync IDL with App
-
-IDL files in `/app` may need to be updated on every program build.
-
-```bash
-bun run idl:sync
 ```
 
 #### Accounts

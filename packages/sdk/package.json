@@ -17,8 +17,10 @@
   "private": true,
   "scripts": {
     "build": "rolldown -c",
+    "build:test": "bun run build",
     "typecheck": "tsc --noEmit",
-    "codama": "bun run scripts/generate-client.ts"
+    "codama": "bun run scripts/generate-client.ts",
+    "codama:test": "bun run codama"
   },
   "dependencies": {
     "@solana/codecs": "^6.10.0"
