@@ -1,15 +1,21 @@
-# @splurge/sdk
+# SDK
 
-To install dependencies:
+## Setup
 
-```bash
-bun install
-```
-
-To run:
+1. Install dependencies
 
 ```bash
-bun run index.ts
+bun i
 ```
 
-This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+2. Generate clients
+
+```bash
+bun run codama
+```
+
+3. Build package
+
+```bash
+bun run build
+```
