@@ -3332,73 +3332,73 @@
     "constants": [
       {
         "kind": "constantNode",
-        "name": "cONFIGSEED",
+        "name": "CONFIG_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "636f6e666967", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "iTEMSEED",
+        "name": "ITEM_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "6974656d", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "mAXITEMNAMELEN",
+        "name": "MAX_ITEM_NAME_LEN",
         "type": { "kind": "numberTypeNode", "format": "u8", "endian": "le" },
         "value": { "kind": "numberValueNode", "number": 32 }
       },
       {
         "kind": "constantNode",
-        "name": "mAXORACLESTALENESS",
+        "name": "MAX_ORACLE_STALENESS",
         "type": { "kind": "numberTypeNode", "format": "u8", "endian": "le" },
         "value": { "kind": "numberValueNode", "number": 60 }
       },
       {
         "kind": "constantNode",
-        "name": "mAXSHOPPERNAMELEN",
+        "name": "MAX_SHOPPER_NAME_LEN",
         "type": { "kind": "numberTypeNode", "format": "u8", "endian": "le" },
         "value": { "kind": "numberValueNode", "number": 64 }
       },
       {
         "kind": "constantNode",
-        "name": "mAXSTORENAMELEN",
+        "name": "MAX_STORE_NAME_LEN",
         "type": { "kind": "numberTypeNode", "format": "u8", "endian": "le" },
         "value": { "kind": "numberValueNode", "number": 64 }
       },
       {
         "kind": "constantNode",
-        "name": "oRDERSEED",
+        "name": "ORDER_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "6f72646572", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "rEVIEWSEED",
+        "name": "REVIEW_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "726576696577", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "sHOPPERSEED",
+        "name": "SHOPPER_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "73686f70706572", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "sTORESEED",
+        "name": "STORE_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "73746f7265", "encoding": "base16" }
       },
       {
         "kind": "constantNode",
-        "name": "tASKTRIGGERDELAY",
+        "name": "TASK_TRIGGER_DELAY",
         "type": { "kind": "numberTypeNode", "format": "u16", "endian": "le" },
         "value": { "kind": "numberValueNode", "number": 60 }
       },
       {
         "kind": "constantNode",
-        "name": "tREASURYSEED",
+        "name": "TREASURY_SEED",
         "type": { "kind": "bytesTypeNode" },
         "value": { "kind": "bytesValueNode", "data": "7472656173757279", "encoding": "base16" }
       }

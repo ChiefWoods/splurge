@@ -1,0 +1,12 @@
+export const CONFIG_SEED = Buffer.from("config", "utf8");
+export const ITEM_SEED = Buffer.from("item", "utf8");
+export const MAX_ITEM_NAME_LEN = 32;
+export const MAX_ORACLE_STALENESS = 60;
+export const MAX_SHOPPER_NAME_LEN = 64;
+export const MAX_STORE_NAME_LEN = 64;
+export const ORDER_SEED = Buffer.from("order", "utf8");
+export const REVIEW_SEED = Buffer.from("review", "utf8");
+export const SHOPPER_SEED = Buffer.from("shopper", "utf8");
+export const STORE_SEED = Buffer.from("store", "utf8");
+export const TASK_TRIGGER_DELAY = 60;
+export const TREASURY_SEED = Buffer.from("treasury", "utf8");

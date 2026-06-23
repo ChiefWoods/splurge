@@ -2,6 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 export const SPLURGE_PROGRAM_ID = new PublicKey("SPLGn8gSbch6dmHL4Z4HBFc2kCbSpFUMxXZPF2XC3Nd");
 
+export * from "./constants";
 export * from "./accounts/config";
 export * from "./accounts/item";
 export * from "./accounts/order";

@@ -4,6 +4,8 @@ import {
   accountValueNode,
   addPdasVisitor,
   argumentValueNode,
+  assertIsNode,
+  bottomUpTransformerVisitor,
   bytesTypeNode,
   constantPdaSeedNode,
   createFromRoot,
@@ -28,6 +30,43 @@ const sdkRoot = `${import.meta.dir}/..`;
 const anchorIdlPath = `${sdkRoot}/src/idl/anchor/splurge.json`;
 const codamaIdlPath = `${sdkRoot}/src/idl/codama/splurge.json`;
 const generatedPath = `${sdkRoot}/src/generated`;
+
+type AnchorConstant = { name: string };
+
+type CodamaBytesValueNode = {
+  kind: "bytesValueNode";
+  data: string;
+  encoding: "base16" | "base58" | "utf8";
+};
+
+type CodamaNumberValueNode = {
+  kind: "numberValueNode";
+  number: number;
+};
+
+type CodamaConstant = {
+  kind: "constantNode";
+  name: string;
+  value: CodamaBytesValueNode | CodamaNumberValueNode;
+};
+
+function preserveAnchorConstantNamesVisitor(anchorConstants: readonly AnchorConstant[]) {
+  const anchorNames = anchorConstants.map((constant) => constant.name);
+  let constantIndex = 0;
+
+  return bottomUpTransformerVisitor([
+    {
+      select: "[constantNode]",
+      transform: (node) => {
+        assertIsNode(node, "constantNode");
+        const anchorName = anchorNames[constantIndex];
+        constantIndex += 1;
+        if (anchorName === undefined) return node;
+        return Object.freeze({ ...node, name: anchorName as typeof node.name });
+      },
+    },
+  ]);
+}
 
 const idlTransforms = [
   addPdasVisitor({
@@ -145,6 +184,58 @@ function patchInstructionAccountDefaults(source: string): string {
   return patched;
 }
 
+function renderProgramConstant(constant: CodamaConstant): string {
+  const { name, value } = constant;
+
+  if (value.kind === "numberValueNode") {
+    return `export const ${name} = ${value.number};`;
+  }
+
+  if (value.kind !== "bytesValueNode") {
+    throw new Error(`Unsupported constant value kind for ${name}`);
+  }
+
+  const bytes =
+    value.encoding === "base16"
+      ? Buffer.from(value.data, "hex")
+      : value.encoding === "utf8"
+        ? Buffer.from(value.data, "utf8")
+        : (() => {
+            throw new Error(`Unsupported bytes encoding "${value.encoding}" for ${name}`);
+          })();
+  const text = bytes.toString("utf8");
+  const isPrintableAscii = [...bytes].every((byte) => byte >= 32 && byte <= 126);
+
+  if (isPrintableAscii) {
+    return `export const ${name} = Buffer.from(${JSON.stringify(text)}, "utf8");`;
+  }
+
+  return `export const ${name} = Buffer.from(${JSON.stringify([...bytes])});`;
+}
+
+function generateProgramConstantsSource(constants: readonly CodamaConstant[]): string {
+  return `${constants.map(renderProgramConstant).join("\n")}\n`;
+}
+
+async function generateProgramConstants(
+  directory: string,
+  constants: readonly CodamaConstant[],
+): Promise<void> {
+  if (constants.length === 0) return;
+  await Bun.write(`${directory}/constants.ts`, generateProgramConstantsSource(constants));
+}
+
+function patchGeneratedIndex(source: string): string {
+  if (source.includes('export * from "./constants"')) return source;
+
+  const firstReexportIndex = source.indexOf('export * from "./accounts/');
+  if (firstReexportIndex === -1) {
+    return `${source.trimEnd()}\n\nexport * from "./constants";\n`;
+  }
+
+  return `${source.slice(0, firstReexportIndex)}export * from "./constants";\n${source.slice(firstReexportIndex)}`;
+}
+
 function patchGeneratedSource(source: string): string {
   let patched = patchInstructionAccountDefaults(source);
 
@@ -210,9 +301,13 @@ if (!(await anchorIdlFile.exists())) {
   throw new Error(`Failed to load IDL: ${anchorIdlPath} does not exist`);
 }
 
-const codama = createFromRoot(rootNodeFromAnchor(await anchorIdlFile.json()));
+const anchorIdl = await anchorIdlFile.json();
+const codama = createFromRoot(rootNodeFromAnchor(anchorIdl));
 
-for (const transform of idlTransforms) {
+const anchorConstants = (anchorIdl as { constants?: AnchorConstant[] }).constants ?? [];
+const transforms = [...idlTransforms, preserveAnchorConstantNamesVisitor(anchorConstants)];
+
+for (const transform of transforms) {
   codama.update(transform);
 }
 
@@ -225,6 +320,16 @@ await codama.accept(
   }),
 );
 // manual patches that visitors cannot fix
+const programConstants = codama.getRoot().program.constants as CodamaConstant[];
+await generateProgramConstants(generatedPath, programConstants);
 await patchGeneratedClient(generatedPath);
+
+const generatedIndexPath = `${generatedPath}/index.ts`;
+const generatedIndexSource = await Bun.file(generatedIndexPath).text();
+const patchedGeneratedIndex = patchGeneratedIndex(generatedIndexSource);
+if (patchedGeneratedIndex !== generatedIndexSource) {
+  await Bun.write(generatedIndexPath, patchedGeneratedIndex);
+}
+
 await formatFile(codamaIdlPath);
 await formatGeneratedClient(generatedPath);
