@@ -13,15 +13,21 @@ export interface WithdrawEarningsInstructionAccounts {
   paymentMint: PublicKey;
   storeTokenAccount?: PublicKey;
   authorityTokenAccount?: PublicKey;
-  systemProgram: PublicKey;
-  tokenProgram: PublicKey;
-  associatedTokenProgram: PublicKey;
+  systemProgram?: PublicKey;
+  tokenProgram?: PublicKey;
+  associatedTokenProgram?: PublicKey;
 }
 
 export function createWithdrawEarningsInstruction(
   accounts: WithdrawEarningsInstructionAccounts,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
+  const tokenProgram =
+    accounts.tokenProgram ?? new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  const associatedTokenProgram =
+    accounts.associatedTokenProgram ??
+    new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
   let config = accounts.config;
   if (!config) {
     const [derived] = findConfigPda(programId);
@@ -42,7 +48,7 @@ export function createWithdrawEarningsInstruction(
     const [derived] = findStoreTokenAccountPda(
       {
         store,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -54,7 +60,7 @@ export function createWithdrawEarningsInstruction(
     const [derived] = findAuthorityTokenAccountPda(
       {
         authority: accounts.authority,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -68,10 +74,10 @@ export function createWithdrawEarningsInstruction(
     { pubkey: accounts.paymentMint, isSigner: false, isWritable: false },
     { pubkey: storeTokenAccount, isSigner: false, isWritable: true },
     { pubkey: authorityTokenAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
+    { pubkey: tokenProgram, isSigner: false, isWritable: false },
     {
-      pubkey: accounts.associatedTokenProgram,
+      pubkey: associatedTokenProgram,
       isSigner: false,
       isWritable: false,
     },

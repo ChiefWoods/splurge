@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Keypair, SystemProgram } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import {
   createInitializeConfigInstruction,
   createInitializeStoreInstruction,
@@ -42,7 +42,6 @@ describe("unlistItem", () => {
         createInitializeConfigInstruction(
           {
             authority: admin.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             acceptedMints: [
@@ -67,7 +66,6 @@ describe("unlistItem", () => {
         createInitializeStoreInstruction(
           {
             authority: storeAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             name: "Store A",
@@ -87,7 +85,6 @@ describe("unlistItem", () => {
         createListItemInstruction(
           {
             authority: storeAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             price: 1_000_000n,
@@ -115,7 +112,6 @@ describe("unlistItem", () => {
           authority: storeAuthority.publicKey,
           store: storePda,
           item: itemPda,
-          systemProgram: SystemProgram.programId,
         }),
       ],
 

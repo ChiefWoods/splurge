@@ -4,7 +4,7 @@ import { SPLURGE_PROGRAM_ID } from "..";
 
 export interface StoreTokenAccountPdaSeeds {
   store: PublicKey;
-  tokenProgram: PublicKey;
+  tokenProgram?: PublicKey;
   paymentMint: PublicKey;
 }
 

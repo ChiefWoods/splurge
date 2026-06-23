@@ -75,8 +75,75 @@ const idlTransforms = [
   ]),
 ] as const;
 
-function patchGeneratedSource(source: string): string {
+const SYSTEM_PROGRAM_ID = "11111111111111111111111111111111";
+const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+const ASSOCIATED_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+
+function patchInstructionAccountDefaults(source: string): string {
+  const hasSystemProgram = source.includes("systemProgram: PublicKey;");
+  const hasTokenProgram = source.includes("tokenProgram: PublicKey;");
+  const hasAssociatedTokenProgram = source.includes("associatedTokenProgram: PublicKey;");
+
+  if (!hasSystemProgram && !hasTokenProgram && !hasAssociatedTokenProgram) {
+    return source;
+  }
+
   let patched = source;
+  if (hasSystemProgram) {
+    patched = patched.replace("systemProgram: PublicKey;", "systemProgram?: PublicKey;");
+  }
+  if (hasTokenProgram) {
+    patched = patched.replace("tokenProgram: PublicKey;", "tokenProgram?: PublicKey;");
+  }
+  if (hasAssociatedTokenProgram) {
+    patched = patched.replace(
+      "associatedTokenProgram: PublicKey;",
+      "associatedTokenProgram?: PublicKey;",
+    );
+  }
+
+  const defaultLines: string[] = [];
+  if (hasSystemProgram) {
+    defaultLines.push(
+      `  const systemProgram = accounts.systemProgram ?? new PublicKey("${SYSTEM_PROGRAM_ID}");`,
+    );
+  }
+  if (hasTokenProgram) {
+    defaultLines.push(
+      `  const tokenProgram = accounts.tokenProgram ?? new PublicKey("${TOKEN_PROGRAM_ID}");`,
+    );
+  }
+  if (hasAssociatedTokenProgram) {
+    defaultLines.push(
+      `  const associatedTokenProgram = accounts.associatedTokenProgram ?? new PublicKey("${ASSOCIATED_TOKEN_PROGRAM_ID}");`,
+    );
+  }
+
+  patched = patched.replace(
+    /(\): TransactionInstruction \{)\n/,
+    `$1\n${defaultLines.join("\n")}\n`,
+  );
+
+  const replaceAccountRef = (accountName: string) => {
+    const assignmentPrefix = `const ${accountName} = accounts.${accountName}`;
+    patched = patched
+      .split("\n")
+      .map((line) => {
+        if (line.includes(assignmentPrefix)) return line;
+        return line.replaceAll(`accounts.${accountName}`, accountName);
+      })
+      .join("\n");
+  };
+
+  if (hasSystemProgram) replaceAccountRef("systemProgram");
+  if (hasTokenProgram) replaceAccountRef("tokenProgram");
+  if (hasAssociatedTokenProgram) replaceAccountRef("associatedTokenProgram");
+
+  return patched;
+}
+
+function patchGeneratedSource(source: string): string {
+  let patched = patchInstructionAccountDefaults(source);
 
   const resolvedAccountNames = [...patched.matchAll(/let (\w+) = accounts\.\1;/g)].map(
     (match) => match[1],

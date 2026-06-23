@@ -1,13 +1,12 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
   getAccount,
   getAssociatedTokenAddressSync,
   MAX_FEE_BASIS_POINTS,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import {
   createCreateOrderInstruction,
   createInitializeConfigInstruction,
@@ -66,8 +65,6 @@ describe("createOrder", () => {
   );
   const initShopperAtaBal = 1e8; // $100
 
-  const tokenProgram = TOKEN_PROGRAM_ID;
-
   beforeEach(async () => {
     ({ litesvm, provider, connection } = await getSetup(
       [admin, shopperAuthority, storeAuthority].map((kp) => {
@@ -90,7 +87,6 @@ describe("createOrder", () => {
         createInitializeConfigInstruction(
           {
             authority: admin.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             acceptedMints: [
@@ -115,7 +111,6 @@ describe("createOrder", () => {
         createInitializeShopperInstruction(
           {
             authority: shopperAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             name: "Shopper A",
@@ -135,7 +130,6 @@ describe("createOrder", () => {
         createInitializeStoreInstruction(
           {
             authority: storeAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             name: "Store A",
@@ -155,7 +149,6 @@ describe("createOrder", () => {
         createListItemInstruction(
           {
             authority: storeAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             price: BigInt(itemPrice),
@@ -176,7 +169,6 @@ describe("createOrder", () => {
       USDC_MINT,
       treasury,
       !PublicKey.isOnCurve(treasury),
-      tokenProgram,
     );
     const initTreasuryAtaBal = (await getAccount(provider.connection, treasuryAta)).amount;
 
@@ -204,20 +196,11 @@ describe("createOrder", () => {
             authority: shopperAuthority.publicKey,
             store: storePda,
             item: itemPda,
-            order: orderPda,
             priceUpdateV2: USDC_PRICE_UPDATE_V2,
             paymentMint,
             authorityTokenAccount: shopperAuthorityUsdcAta,
             treasuryTokenAccount: treasuryAta,
-            orderTokenAccount: getAssociatedTokenAddressSync(
-              paymentMint,
-              orderPda,
-              true,
-              tokenProgram,
-            ),
-            systemProgram: SystemProgram.programId,
-            tokenProgram,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
           },
           {
             amount,
@@ -242,7 +225,7 @@ describe("createOrder", () => {
     const postShopperUsdcAtaBal = (await getAccount(provider.connection, shopperAuthorityUsdcAta))
       .amount;
 
-    const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram);
+    const orderAta = getAssociatedTokenAddressSync(paymentMint, orderPda, true, TOKEN_PROGRAM_ID);
     const orderAtaBal = (await getAccount(provider.connection, orderAta)).amount;
 
     expect(initShopperAtaBal).toBeCloseTo(
@@ -289,30 +272,19 @@ describe("createOrder", () => {
               authority: shopperAuthority.publicKey,
               store: storePda,
               item: itemPda,
-              order: orderPda,
               priceUpdateV2: USDT_PRICE_UPDATE_V2,
               paymentMint,
               authorityTokenAccount: getAssociatedTokenAddressSync(
                 paymentMint,
                 shopperAuthority.publicKey,
                 false,
-                tokenProgram,
               ),
               treasuryTokenAccount: getAssociatedTokenAddressSync(
                 paymentMint,
                 treasury,
                 !PublicKey.isOnCurve(treasury),
-                tokenProgram,
               ),
-              orderTokenAccount: getAssociatedTokenAddressSync(
-                paymentMint,
-                orderPda,
-                true,
-                tokenProgram,
-              ),
-              systemProgram: SystemProgram.programId,
-              tokenProgram,
-              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
             },
             {
               amount,
@@ -336,7 +308,6 @@ describe("createOrder", () => {
         createUpdateConfigInstruction(
           {
             admin: admin.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             acceptedMints: null,
@@ -375,7 +346,6 @@ describe("createOrder", () => {
               authority: shopperAuthority.publicKey,
               store: storePda,
               item: itemPda,
-              order: orderPda,
               priceUpdateV2: USDC_PRICE_UPDATE_V2,
               paymentMint,
               authorityTokenAccount: shopperAuthorityUsdcAta,
@@ -383,17 +353,8 @@ describe("createOrder", () => {
                 paymentMint,
                 treasury,
                 !PublicKey.isOnCurve(treasury),
-                tokenProgram,
               ),
-              orderTokenAccount: getAssociatedTokenAddressSync(
-                paymentMint,
-                orderPda,
-                true,
-                tokenProgram,
-              ),
-              systemProgram: SystemProgram.programId,
-              tokenProgram,
-              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
             },
             {
               amount,
@@ -419,7 +380,6 @@ describe("createOrder", () => {
         createListItemInstruction(
           {
             authority: storeAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             price: BigInt(itemPrice),
@@ -459,7 +419,6 @@ describe("createOrder", () => {
               authority: shopperAuthority.publicKey,
               store: storePda,
               item: itemPda,
-              order: orderPda,
               priceUpdateV2: USDC_PRICE_UPDATE_V2,
               paymentMint,
               authorityTokenAccount: shopperAuthorityUsdcAta,
@@ -467,17 +426,8 @@ describe("createOrder", () => {
                 paymentMint,
                 treasury,
                 !PublicKey.isOnCurve(treasury),
-                tokenProgram,
               ),
-              orderTokenAccount: getAssociatedTokenAddressSync(
-                paymentMint,
-                orderPda,
-                true,
-                tokenProgram,
-              ),
-              systemProgram: SystemProgram.programId,
-              tokenProgram,
-              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
             },
             {
               amount,

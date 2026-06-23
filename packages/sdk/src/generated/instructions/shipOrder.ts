@@ -9,7 +9,7 @@ export interface ShipOrderInstructionAccounts {
   admin: PublicKey;
   config?: PublicKey;
   order: PublicKey;
-  associatedTokenProgram: PublicKey;
+  associatedTokenProgram?: PublicKey;
   authority: PublicKey;
   item: PublicKey;
   orderTokenAccount: PublicKey;
@@ -17,8 +17,8 @@ export interface ShipOrderInstructionAccounts {
   shopper: PublicKey;
   store: PublicKey;
   storeTokenAccount?: PublicKey;
-  systemProgram: PublicKey;
-  tokenProgram: PublicKey;
+  systemProgram?: PublicKey;
+  tokenProgram?: PublicKey;
   tuktuk: PublicKey;
   taskQueue: PublicKey;
   task: PublicKey;
@@ -36,6 +36,12 @@ export function createShipOrderInstruction(
   args: ShipOrderInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
+  const tokenProgram =
+    accounts.tokenProgram ?? new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  const associatedTokenProgram =
+    accounts.associatedTokenProgram ??
+    new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
   let config = accounts.config;
   if (!config) {
     const [derived] = findConfigPda(programId);
@@ -46,7 +52,7 @@ export function createShipOrderInstruction(
     const [derived] = findStoreTokenAccountPda(
       {
         store: accounts.store,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -58,7 +64,7 @@ export function createShipOrderInstruction(
     { pubkey: config, isSigner: false, isWritable: false },
     { pubkey: accounts.order, isSigner: false, isWritable: true },
     {
-      pubkey: accounts.associatedTokenProgram,
+      pubkey: associatedTokenProgram,
       isSigner: false,
       isWritable: false,
     },
@@ -69,8 +75,8 @@ export function createShipOrderInstruction(
     { pubkey: accounts.shopper, isSigner: false, isWritable: false },
     { pubkey: accounts.store, isSigner: false, isWritable: false },
     { pubkey: storeTokenAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
+    { pubkey: tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tuktuk, isSigner: false, isWritable: false },
     { pubkey: accounts.taskQueue, isSigner: false, isWritable: true },
     { pubkey: accounts.task, isSigner: false, isWritable: true },

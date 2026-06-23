@@ -2,7 +2,7 @@ import {
   getAssociatedTokenAddressSync,
   getOrCreateAssociatedTokenAccount,
 } from "@solana/spl-token";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { createInitializeConfigInstruction } from "@splurge/sdk";
 
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
@@ -25,7 +25,7 @@ const orderFeeBps = 250;
 
 const signature = await sendTransaction([
   createInitializeConfigInstruction(
-    { authority: admin.publicKey, systemProgram: SystemProgram.programId },
+    { authority: admin.publicKey },
     {
       acceptedMints,
       admin: admin.publicKey,

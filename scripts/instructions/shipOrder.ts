@@ -1,6 +1,6 @@
 import { nextAvailableTaskIds, taskKey, taskQueueAuthorityKey } from "@helium/tuktuk-sdk";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 import { createShipOrderInstruction } from "@splurge/sdk";
 
 import { TUKTUK_PROGRAM_ID } from "../../common/tuktuk";
@@ -46,9 +46,6 @@ const signature = await sendTransaction([
       task: taskPda,
       taskQueue: TASK_QUEUE,
       taskQueueAuthority: taskQueueAuthorityPda,
-      tokenProgram,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
       tuktuk: TUKTUK_PROGRAM_ID,
     },
     { taskId },

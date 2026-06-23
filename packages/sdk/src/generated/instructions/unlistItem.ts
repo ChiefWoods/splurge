@@ -6,18 +6,19 @@ export interface UnlistItemInstructionAccounts {
   authority: PublicKey;
   item: PublicKey;
   store: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export function createUnlistItemInstruction(
   accounts: UnlistItemInstructionAccounts,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   const keys: AccountMeta[] = [
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
     { pubkey: accounts.item, isSigner: false, isWritable: true },
     { pubkey: accounts.store, isSigner: false, isWritable: false },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const data = Buffer.from("aa2dc377a29b2a5e", "hex");
 

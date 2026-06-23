@@ -16,7 +16,7 @@ export interface CreateReviewInstructionAccounts {
   shopper?: PublicKey;
   order: PublicKey;
   review?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface CreateReviewInstructionArgs {
@@ -34,6 +34,7 @@ export function createCreateReviewInstruction(
   args: CreateReviewInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let shopper = accounts.shopper;
   if (!shopper) {
     const [derived] = findShopperPda(
@@ -59,7 +60,7 @@ export function createCreateReviewInstruction(
     { pubkey: shopper, isSigner: false, isWritable: false },
     { pubkey: accounts.order, isSigner: false, isWritable: false },
     { pubkey: review, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(CreateReviewInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("45ed572bee7d2801", "hex");

@@ -17,7 +17,7 @@ export interface InitializeConfigInstructionAccounts {
   authority: PublicKey;
   treasury?: PublicKey;
   config?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface InitializeConfigInstructionArgs {
@@ -44,6 +44,7 @@ export function createInitializeConfigInstruction(
   args: InitializeConfigInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let treasury = accounts.treasury;
   if (!treasury) {
     const [derived] = findTreasuryPda(programId);
@@ -58,7 +59,7 @@ export function createInitializeConfigInstruction(
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
     { pubkey: treasury, isSigner: false, isWritable: false },
     { pubkey: config, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(InitializeConfigInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("d07f1501c2bec446", "hex");

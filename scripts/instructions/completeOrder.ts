@@ -1,5 +1,5 @@
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 import {
   createCompleteOrderInstruction,
   fetchOrderAccount,
@@ -38,9 +38,6 @@ const signature = await sendTransaction([
     paymentMint,
     orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true, tokenProgram),
     storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true, tokenProgram),
-    tokenProgram,
-    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-    systemProgram: SystemProgram.programId,
   }),
 ]);
 

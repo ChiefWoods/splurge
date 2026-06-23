@@ -1,5 +1,5 @@
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 import { createCancelOrderInstruction, fetchOrderAccount, fetchShopperAccount } from "@splurge/sdk";
 
 import { admin, connection, sendTransaction, treasury } from "../setup";
@@ -41,9 +41,6 @@ const signature = await sendTransaction([
       !PublicKey.isOnCurve(authorityPubkey),
       tokenProgram,
     ),
-    tokenProgram,
-    systemProgram: SystemProgram.programId,
-    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
   }),
 ]);
 

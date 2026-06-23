@@ -7,7 +7,7 @@ import { findShopperPda } from "../pdas/shopper";
 export interface InitializeShopperInstructionAccounts {
   authority: PublicKey;
   shopper?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface InitializeShopperInstructionArgs {
@@ -27,6 +27,7 @@ export function createInitializeShopperInstruction(
   args: InitializeShopperInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let shopper = accounts.shopper;
   if (!shopper) {
     const [derived] = findShopperPda(
@@ -40,7 +41,7 @@ export function createInitializeShopperInstruction(
   const keys: AccountMeta[] = [
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
     { pubkey: shopper, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(InitializeShopperInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("b171575f355a4381", "hex");

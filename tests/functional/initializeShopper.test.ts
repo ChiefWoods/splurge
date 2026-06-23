@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Keypair, SystemProgram } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import {
   createInitializeShopperInstruction,
   fetchShopperAccount,
@@ -41,7 +41,6 @@ describe("initializeShopper", () => {
         createInitializeShopperInstruction(
           {
             authority: shopperAuthority.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             name,
@@ -79,7 +78,6 @@ describe("initializeShopper", () => {
           createInitializeShopperInstruction(
             {
               authority: shopperAuthority.publicKey,
-              systemProgram: SystemProgram.programId,
             },
             {
               name,
@@ -109,7 +107,6 @@ describe("initializeShopper", () => {
           createInitializeShopperInstruction(
             {
               authority: shopperAuthority.publicKey,
-              systemProgram: SystemProgram.programId,
             },
             {
               name,
@@ -139,7 +136,6 @@ describe("initializeShopper", () => {
           createInitializeShopperInstruction(
             {
               authority: shopperAuthority.publicKey,
-              systemProgram: SystemProgram.programId,
             },
             {
               name,
@@ -169,7 +165,6 @@ describe("initializeShopper", () => {
           createInitializeShopperInstruction(
             {
               authority: shopperAuthority.publicKey,
-              systemProgram: SystemProgram.programId,
             },
             {
               name,

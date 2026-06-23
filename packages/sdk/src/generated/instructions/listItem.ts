@@ -15,7 +15,7 @@ export interface ListItemInstructionAccounts {
   authority: PublicKey;
   item?: PublicKey;
   store?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface ListItemInstructionArgs {
@@ -39,6 +39,7 @@ export function createListItemInstruction(
   args: ListItemInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let store = accounts.store;
   if (!store) {
     const [derived] = findStorePda(
@@ -64,7 +65,7 @@ export function createListItemInstruction(
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
     { pubkey: item, isSigner: false, isWritable: true },
     { pubkey: store, isSigner: false, isWritable: false },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(ListItemInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("aef516d3e467790d", "hex");

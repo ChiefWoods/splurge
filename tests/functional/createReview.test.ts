@@ -8,12 +8,8 @@ import {
   taskQueueAuthorityKey,
   TaskQueueV0,
 } from "@helium/tuktuk-sdk";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   createCompleteOrderInstruction,
   createCreateOrderInstruction,
@@ -63,7 +59,6 @@ describe("createReview", () => {
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
   const paymentMint = USDC_MINT;
-  const tokenProgram = TOKEN_PROGRAM_ID;
   let storePda: PublicKey;
   let itemPda: PublicKey;
   let shopperPda: PublicKey;
@@ -94,7 +89,7 @@ describe("createReview", () => {
 
       [
         createInitializeConfigInstruction(
-          { authority: admin.publicKey, systemProgram: SystemProgram.programId },
+          { authority: admin.publicKey },
           {
             acceptedMints: [{ mint: USDC_MINT, priceUpdateV2: USDC_PRICE_UPDATE_V2 }],
             admin: admin.publicKey,
@@ -111,7 +106,7 @@ describe("createReview", () => {
 
       [
         createInitializeShopperInstruction(
-          { authority: shopperAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: shopperAuthority.publicKey },
           { name: "Shopper A", image: "https://example.com/image.png", address: "address" },
         ),
       ],
@@ -124,7 +119,7 @@ describe("createReview", () => {
 
       [
         createInitializeStoreInstruction(
-          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: storeAuthority.publicKey },
           { name: "Store A", image: "https://example.com/image.png", about: "about" },
         ),
       ],
@@ -137,7 +132,7 @@ describe("createReview", () => {
 
       [
         createListItemInstruction(
-          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: storeAuthority.publicKey },
           {
             price: BigInt(itemPrice),
             inventoryCount: initInventoryCount,
@@ -169,30 +164,19 @@ describe("createReview", () => {
             authority: shopperAuthority.publicKey,
             store: storePda,
             item: itemPda,
-            order: orderPda,
             priceUpdateV2: USDC_PRICE_UPDATE_V2,
             paymentMint: USDC_MINT,
             authorityTokenAccount: getAssociatedTokenAddressSync(
               USDC_MINT,
               shopperAuthority.publicKey,
               false,
-              tokenProgram,
             ),
             treasuryTokenAccount: getAssociatedTokenAddressSync(
               USDC_MINT,
               treasury,
               !PublicKey.isOnCurve(treasury),
-              tokenProgram,
             ),
-            orderTokenAccount: getAssociatedTokenAddressSync(
-              USDC_MINT,
-              orderPda,
-              true,
-              tokenProgram,
-            ),
-            systemProgram: SystemProgram.programId,
-            tokenProgram,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            orderTokenAccount: getAssociatedTokenAddressSync(USDC_MINT, orderPda, true),
           },
           { amount: 1, timestamp: unixTimestamp },
         ),
@@ -219,18 +203,10 @@ describe("createReview", () => {
             paymentMint,
             shopper: shopperPda,
             store: storePda,
-            storeTokenAccount: getAssociatedTokenAddressSync(
-              paymentMint,
-              storePda,
-              true,
-              tokenProgram,
-            ),
+            storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true),
             task: taskPda,
             taskQueue: taskQueuePda,
             taskQueueAuthority: taskQueueAuthorityPda,
-            tokenProgram,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
             tuktuk: TUKTUK_PROGRAM_ID,
           },
           { taskId },
@@ -255,15 +231,7 @@ describe("createReview", () => {
           order: orderPda,
           paymentMint,
           orderTokenAccount: orderAta,
-          storeTokenAccount: getAssociatedTokenAddressSync(
-            paymentMint,
-            storePda,
-            true,
-            tokenProgram,
-          ),
-          tokenProgram,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
+          storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true),
         }),
       ],
 
@@ -283,7 +251,6 @@ describe("createReview", () => {
           {
             authority: shopperAuthority.publicKey,
             order: orderPda,
-            systemProgram: SystemProgram.programId,
           },
           {
             text,
@@ -317,7 +284,6 @@ describe("createReview", () => {
             {
               authority: shopperAuthority.publicKey,
               order: orderPda,
-              systemProgram: SystemProgram.programId,
             },
             {
               text,
@@ -346,21 +312,8 @@ describe("createReview", () => {
           item: itemPda,
           order: orderPda,
           paymentMint,
-          orderTokenAccount: getAssociatedTokenAddressSync(
-            paymentMint,
-            orderPda,
-            true,
-            tokenProgram,
-          ),
-          storeTokenAccount: getAssociatedTokenAddressSync(
-            paymentMint,
-            storePda,
-            true,
-            tokenProgram,
-          ),
-          tokenProgram,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
+          orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
+          storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true),
         }),
       ],
 
@@ -379,7 +332,6 @@ describe("createReview", () => {
             {
               authority: shopperAuthority.publicKey,
               order: orderPda,
-              systemProgram: SystemProgram.programId,
             },
             {
               text,
@@ -408,21 +360,8 @@ describe("createReview", () => {
           item: itemPda,
           order: orderPda,
           paymentMint,
-          orderTokenAccount: getAssociatedTokenAddressSync(
-            paymentMint,
-            orderPda,
-            true,
-            tokenProgram,
-          ),
-          storeTokenAccount: getAssociatedTokenAddressSync(
-            paymentMint,
-            storePda,
-            true,
-            tokenProgram,
-          ),
-          tokenProgram,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
+          orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
+          storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true),
         }),
       ],
 
@@ -440,7 +379,6 @@ describe("createReview", () => {
           {
             authority: shopperAuthority.publicKey,
             order: orderPda,
-            systemProgram: SystemProgram.programId,
           },
           {
             text,
@@ -465,7 +403,6 @@ describe("createReview", () => {
               authority: shopperAuthority.publicKey,
               shopper: shopperPda,
               order: orderPda,
-              systemProgram: SystemProgram.programId,
             },
             {
               text: newText,

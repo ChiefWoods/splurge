@@ -16,15 +16,21 @@ export interface CompleteOrderInstructionAccounts {
   paymentMint: PublicKey;
   orderTokenAccount?: PublicKey;
   storeTokenAccount?: PublicKey;
-  systemProgram: PublicKey;
-  tokenProgram: PublicKey;
-  associatedTokenProgram: PublicKey;
+  systemProgram?: PublicKey;
+  tokenProgram?: PublicKey;
+  associatedTokenProgram?: PublicKey;
 }
 
 export function createCompleteOrderInstruction(
   accounts: CompleteOrderInstructionAccounts,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
+  const tokenProgram =
+    accounts.tokenProgram ?? new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  const associatedTokenProgram =
+    accounts.associatedTokenProgram ??
+    new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
   let config = accounts.config;
   if (!config) {
     const [derived] = findConfigPda(programId);
@@ -35,7 +41,7 @@ export function createCompleteOrderInstruction(
     const [derived] = findOrderTokenAccountPda(
       {
         order: accounts.order,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -47,7 +53,7 @@ export function createCompleteOrderInstruction(
     const [derived] = findStoreTokenAccountPda(
       {
         store: accounts.store,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -65,10 +71,10 @@ export function createCompleteOrderInstruction(
     { pubkey: accounts.paymentMint, isSigner: false, isWritable: false },
     { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
     { pubkey: storeTokenAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
+    { pubkey: tokenProgram, isSigner: false, isWritable: false },
     {
-      pubkey: accounts.associatedTokenProgram,
+      pubkey: associatedTokenProgram,
       isSigner: false,
       isWritable: false,
     },

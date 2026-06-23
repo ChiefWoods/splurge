@@ -1,4 +1,3 @@
-import { SystemProgram } from "@solana/web3.js";
 import { createUpdateConfigInstruction } from "@splurge/sdk";
 
 import { PYUSD_MINT, PYUSD_PRICE_UPDATE_V2, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
@@ -23,7 +22,7 @@ const orderFeeBps = null;
 
 const signature = await sendTransaction([
   createUpdateConfigInstruction(
-    { admin: admin.publicKey, systemProgram: SystemProgram.programId },
+    { admin: admin.publicKey },
     {
       acceptedMints,
       isPaused,

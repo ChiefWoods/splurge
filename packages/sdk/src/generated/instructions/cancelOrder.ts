@@ -18,15 +18,21 @@ export interface CancelOrderInstructionAccounts {
   treasuryTokenAccount?: PublicKey;
   orderTokenAccount?: PublicKey;
   authorityTokenAccount?: PublicKey;
-  systemProgram: PublicKey;
-  tokenProgram: PublicKey;
-  associatedTokenProgram: PublicKey;
+  systemProgram?: PublicKey;
+  tokenProgram?: PublicKey;
+  associatedTokenProgram?: PublicKey;
 }
 
 export function createCancelOrderInstruction(
   accounts: CancelOrderInstructionAccounts,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
+  const tokenProgram =
+    accounts.tokenProgram ?? new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  const associatedTokenProgram =
+    accounts.associatedTokenProgram ??
+    new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
   let treasury = accounts.treasury;
   if (!treasury) {
     const [derived] = findTreasuryPda(programId);
@@ -42,7 +48,7 @@ export function createCancelOrderInstruction(
     const [derived] = findTreasuryTokenAccountPda(
       {
         treasury,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -54,7 +60,7 @@ export function createCancelOrderInstruction(
     const [derived] = findOrderTokenAccountPda(
       {
         order: accounts.order,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -66,7 +72,7 @@ export function createCancelOrderInstruction(
     const [derived] = findAuthorityTokenAccountPda(
       {
         authority: accounts.authority,
-        tokenProgram: accounts.tokenProgram,
+        tokenProgram: tokenProgram,
         paymentMint: accounts.paymentMint,
       },
       programId,
@@ -84,10 +90,10 @@ export function createCancelOrderInstruction(
     { pubkey: treasuryTokenAccount, isSigner: false, isWritable: true },
     { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
     { pubkey: authorityTokenAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
+    { pubkey: tokenProgram, isSigner: false, isWritable: false },
     {
-      pubkey: accounts.associatedTokenProgram,
+      pubkey: associatedTokenProgram,
       isSigner: false,
       isWritable: false,
     },

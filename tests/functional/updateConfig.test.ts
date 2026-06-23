@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { Keypair, SystemProgram } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import {
   createInitializeConfigInstruction,
   createUpdateConfigInstruction,
@@ -45,7 +45,6 @@ describe("updateConfig", () => {
         createInitializeConfigInstruction(
           {
             authority: admin.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             acceptedMints,
@@ -74,7 +73,6 @@ describe("updateConfig", () => {
         createUpdateConfigInstruction(
           {
             admin: admin.publicKey,
-            systemProgram: SystemProgram.programId,
           },
           {
             acceptedMints,
@@ -112,7 +110,6 @@ describe("updateConfig", () => {
           createUpdateConfigInstruction(
             {
               admin: newAdmin.publicKey,
-              systemProgram: SystemProgram.programId,
             },
             {
               acceptedMints,

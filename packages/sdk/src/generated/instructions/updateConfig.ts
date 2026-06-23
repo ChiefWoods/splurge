@@ -17,7 +17,7 @@ import { AcceptedMint, acceptedMintCodec } from "../types/acceptedMint";
 export interface UpdateConfigInstructionAccounts {
   admin: PublicKey;
   config?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface UpdateConfigInstructionArgs {
@@ -48,6 +48,7 @@ export function createUpdateConfigInstruction(
   args: UpdateConfigInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let config = accounts.config;
   if (!config) {
     const [derived] = findConfigPda(programId);
@@ -56,7 +57,7 @@ export function createUpdateConfigInstruction(
   const keys: AccountMeta[] = [
     { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: config, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(UpdateConfigInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("1d9efcbf0a53db63", "hex");

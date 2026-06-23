@@ -7,7 +7,7 @@ import { findStorePda } from "../pdas/store";
 export interface InitializeStoreInstructionAccounts {
   authority: PublicKey;
   store?: PublicKey;
-  systemProgram: PublicKey;
+  systemProgram?: PublicKey;
 }
 
 export interface InitializeStoreInstructionArgs {
@@ -27,6 +27,7 @@ export function createInitializeStoreInstruction(
   args: InitializeStoreInstructionArgs,
   programId: PublicKey = SPLURGE_PROGRAM_ID,
 ): TransactionInstruction {
+  const systemProgram = accounts.systemProgram ?? new PublicKey("11111111111111111111111111111111");
   let store = accounts.store;
   if (!store) {
     const [derived] = findStorePda(
@@ -40,7 +41,7 @@ export function createInitializeStoreInstruction(
   const keys: AccountMeta[] = [
     { pubkey: accounts.authority, isSigner: true, isWritable: true },
     { pubkey: store, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
+    { pubkey: systemProgram, isSigner: false, isWritable: false },
   ];
   const instructionData = Buffer.from(InitializeStoreInstructionDataCodec.encode(args));
   const discriminator = Buffer.from("6d95d2d6bc7edc8c", "hex");

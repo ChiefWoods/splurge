@@ -8,13 +8,8 @@ import {
   taskQueueAuthorityKey,
   TaskQueueV0,
 } from "@helium/tuktuk-sdk";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAccount,
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   createCancelOrderInstruction,
   createCreateOrderInstruction,
@@ -63,7 +58,6 @@ describe("cancelOrder", () => {
   const initInventoryCount = 10;
   const initShopperAtaBal = 1e8; // $100
   const paymentMint = USDC_MINT;
-  const tokenProgram = TOKEN_PROGRAM_ID;
   let orderPda: PublicKey;
   let taskQueueAcc: TaskQueueV0;
   let taskId: number;
@@ -99,7 +93,7 @@ describe("cancelOrder", () => {
 
       [
         createInitializeConfigInstruction(
-          { authority: admin.publicKey, systemProgram: SystemProgram.programId },
+          { authority: admin.publicKey },
           {
             acceptedMints: [{ mint: USDC_MINT, priceUpdateV2: USDC_PRICE_UPDATE_V2 }],
             admin: admin.publicKey,
@@ -116,7 +110,7 @@ describe("cancelOrder", () => {
 
       [
         createInitializeShopperInstruction(
-          { authority: shopperAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: shopperAuthority.publicKey },
           { name: "Shopper A", image: "https://example.com/image.png", address: "address" },
         ),
       ],
@@ -129,7 +123,7 @@ describe("cancelOrder", () => {
 
       [
         createInitializeStoreInstruction(
-          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: storeAuthority.publicKey },
           { name: "Store A", image: "https://example.com/image.png", about: "about" },
         ),
       ],
@@ -142,7 +136,7 @@ describe("cancelOrder", () => {
 
       [
         createListItemInstruction(
-          { authority: storeAuthority.publicKey, systemProgram: SystemProgram.programId },
+          { authority: storeAuthority.publicKey },
           {
             price: BigInt(itemPrice),
             inventoryCount: initInventoryCount,
@@ -171,30 +165,19 @@ describe("cancelOrder", () => {
             authority: shopperAuthority.publicKey,
             store: storePda,
             item: itemPda,
-            order: orderPda,
             priceUpdateV2: USDC_PRICE_UPDATE_V2,
             paymentMint,
             authorityTokenAccount: getAssociatedTokenAddressSync(
               paymentMint,
               shopperAuthority.publicKey,
               false,
-              tokenProgram,
             ),
             treasuryTokenAccount: getAssociatedTokenAddressSync(
               paymentMint,
               treasury,
               !PublicKey.isOnCurve(treasury),
-              tokenProgram,
             ),
-            orderTokenAccount: getAssociatedTokenAddressSync(
-              paymentMint,
-              orderPda,
-              true,
-              tokenProgram,
-            ),
-            systemProgram: SystemProgram.programId,
-            tokenProgram,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
           },
           { amount: 1, timestamp: unixTimestamp },
         ),
@@ -225,18 +208,10 @@ describe("cancelOrder", () => {
             paymentMint,
             shopper: shopperPda,
             store: storePda,
-            storeTokenAccount: getAssociatedTokenAddressSync(
-              paymentMint,
-              storePda,
-              true,
-              tokenProgram,
-            ),
+            storeTokenAccount: getAssociatedTokenAddressSync(paymentMint, storePda, true),
             task: taskPda,
             taskQueue: taskQueuePda,
             taskQueueAuthority: taskQueueAuthorityPda,
-            tokenProgram,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
             tuktuk: TUKTUK_PROGRAM_ID,
           },
           { taskId },
@@ -252,7 +227,6 @@ describe("cancelOrder", () => {
       paymentMint,
       orderPda,
       !PublicKey.isOnCurve(orderPda),
-      tokenProgram,
     );
     const preOrderAtaRent = litesvm.getBalance(orderAta);
     const preShopperAuthorityBal = litesvm.getBalance(shopperAuthority.publicKey);
@@ -260,14 +234,12 @@ describe("cancelOrder", () => {
       paymentMint,
       shopperAuthority.publicKey,
       !PublicKey.isOnCurve(shopperAuthority.publicKey),
-      tokenProgram,
     );
     const preShopperAuthorityAta = await getAccount(provider.connection, shopperAuthorityAta);
     const treasuryAta = getAssociatedTokenAddressSync(
       paymentMint,
       treasury,
       !PublicKey.isOnCurve(treasury),
-      tokenProgram,
     );
     const preTreasuryAta = await getAccount(provider.connection, treasuryAta);
 
@@ -284,9 +256,6 @@ describe("cancelOrder", () => {
           treasuryTokenAccount: treasuryAta,
           orderTokenAccount: orderAta,
           authorityTokenAccount: shopperAuthorityAta,
-          tokenProgram,
-          systemProgram: SystemProgram.programId,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         }),
       ],
 
@@ -336,23 +305,13 @@ describe("cancelOrder", () => {
               paymentMint,
               treasury,
               !PublicKey.isOnCurve(treasury),
-              tokenProgram,
             ),
-            orderTokenAccount: getAssociatedTokenAddressSync(
-              paymentMint,
-              orderPda,
-              true,
-              tokenProgram,
-            ),
+            orderTokenAccount: getAssociatedTokenAddressSync(paymentMint, orderPda, true),
             authorityTokenAccount: getAssociatedTokenAddressSync(
               paymentMint,
               shopperAuthority.publicKey,
               false,
-              tokenProgram,
             ),
-            tokenProgram,
-            systemProgram: SystemProgram.programId,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           }),
         ],
 
