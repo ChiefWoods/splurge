@@ -5,11 +5,11 @@ import {
   createInitializeShopperInstruction,
   fetchShopperAccount,
   findShopperPda,
+  MAX_SHOPPER_NAME_LEN,
   SPLURGE_PROGRAM_ID,
 } from "@splurge/sdk";
 import { LiteSVMProvider } from "anchor-litesvm";
 
-import { MAX_SHOPPER_NAME_LEN } from "../constants";
 import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("initializeShopper", () => {

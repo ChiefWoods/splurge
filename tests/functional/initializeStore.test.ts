@@ -5,11 +5,11 @@ import {
   createInitializeStoreInstruction,
   fetchStoreAccount,
   findStorePda,
+  MAX_STORE_NAME_LEN,
   SPLURGE_PROGRAM_ID,
 } from "@splurge/sdk";
 import { LiteSVMProvider } from "anchor-litesvm";
 
-import { MAX_STORE_NAME_LEN } from "../constants";
 import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("initializeStore", () => {

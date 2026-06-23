@@ -8,11 +8,12 @@ import {
   fetchItemAccount,
   findItemPda,
   findStorePda,
+  MAX_ITEM_NAME_LEN,
   SPLURGE_PROGRAM_ID,
 } from "@splurge/sdk";
 import { LiteSVMProvider } from "anchor-litesvm";
 
-import { MAX_STORE_ITEM_NAME_LEN, USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
+import { USDC_MINT, USDC_PRICE_UPDATE_V2 } from "../constants";
 import { expectAnchorError, fundedSystemAccountInfo, getSetup, sendTransaction } from "../setup";
 
 describe("listItem", () => {
@@ -153,7 +154,7 @@ describe("listItem", () => {
   test("throws if item name is too long", async () => {
     const price = 1e6; // $1
     const inventoryCount = 10;
-    const name = "_".repeat(MAX_STORE_ITEM_NAME_LEN + 1);
+    const name = "_".repeat(MAX_ITEM_NAME_LEN + 1);
     const image = "https://example.com/item.png";
     const description = "description";
 
