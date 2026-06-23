@@ -8,7 +8,7 @@ import {
   getUtf8Codec,
   transformCodec,
 } from "@solana/codecs";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 
 export interface ShopperAccountData {
   authority: PublicKey;
@@ -92,11 +92,14 @@ export async function fetchAllShopperAccounts(
 export async function fetchProgramAccountsShopper(
   connection: Connection,
   programId: PublicKey,
-  options?: { commitment?: "processed" | "confirmed" | "finalized" },
+  options?: {
+    commitment?: "processed" | "confirmed" | "finalized";
+    filters?: GetProgramAccountsFilter[];
+  },
 ): Promise<ShopperAccount[]> {
   const accounts = await connection.getProgramAccounts(programId, {
     commitment: options?.commitment,
-    filters: [{ memcmp: { offset: 0, bytes: "56s75fPshLR" } }],
+    filters: [{ memcmp: { offset: 0, bytes: "56s75fPshLR" } }, ...(options?.filters ?? [])],
   });
   return accounts.map(({ pubkey, account }) => ({
     address: pubkey,

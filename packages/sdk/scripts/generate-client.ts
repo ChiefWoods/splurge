@@ -239,6 +239,22 @@ function patchGeneratedIndex(source: string): string {
 function patchGeneratedSource(source: string): string {
   let patched = patchInstructionAccountDefaults(source);
 
+  // Allow consumers to add RPC filters without losing the generated account discriminator.
+  if (patched.includes("export async function fetchProgramAccounts")) {
+    patched = patched.replace(
+      'import { Connection, PublicKey } from "@solana/web3.js";',
+      'import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";',
+    );
+    patched = patched.replace(
+      'options?: { commitment?: "processed" | "confirmed" | "finalized" },',
+      'options?: {\n    commitment?: "processed" | "confirmed" | "finalized";\n    filters?: GetProgramAccountsFilter[];\n  },',
+    );
+    patched = patched.replace(
+      /filters: \[(\{ memcmp: \{ offset: 0, bytes: "[^"]+" \} \})\],/,
+      "filters: [$1, ...(options?.filters ?? [])],",
+    );
+  }
+
   const resolvedAccountNames = [...patched.matchAll(/let (\w+) = accounts\.\1;/g)].map(
     (match) => match[1],
   );

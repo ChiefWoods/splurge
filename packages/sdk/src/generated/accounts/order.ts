@@ -8,7 +8,7 @@ import {
   getU8Codec,
   transformCodec,
 } from "@solana/codecs";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 
 import { OrderStatus, orderStatusCodec } from "../types/orderStatus";
 
@@ -116,7 +116,10 @@ export async function fetchAllOrderAccounts(
 export async function fetchProgramAccountsOrder(
   connection: Connection,
   programId: PublicKey,
-  options?: { commitment?: "processed" | "confirmed" | "finalized" },
+  options?: {
+    commitment?: "processed" | "confirmed" | "finalized";
+    filters?: GetProgramAccountsFilter[];
+  },
 ): Promise<OrderAccount[]> {
   const accounts = await connection.getProgramAccounts(programId, {
     commitment: options?.commitment,

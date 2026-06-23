@@ -8,7 +8,7 @@ import {
   getUtf8Codec,
   transformCodec,
 } from "@solana/codecs";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 
 export interface StoreAccountData {
   authority: PublicKey;
@@ -92,11 +92,14 @@ export async function fetchAllStoreAccounts(
 export async function fetchProgramAccountsStore(
   connection: Connection,
   programId: PublicKey,
-  options?: { commitment?: "processed" | "confirmed" | "finalized" },
+  options?: {
+    commitment?: "processed" | "confirmed" | "finalized";
+    filters?: GetProgramAccountsFilter[];
+  },
 ): Promise<StoreAccount[]> {
   const accounts = await connection.getProgramAccounts(programId, {
     commitment: options?.commitment,
-    filters: [{ memcmp: { offset: 0, bytes: "Nn25MFiXzvM" } }],
+    filters: [{ memcmp: { offset: 0, bytes: "Nn25MFiXzvM" } }, ...(options?.filters ?? [])],
   });
   return accounts.map(({ pubkey, account }) => ({
     address: pubkey,

@@ -8,7 +8,7 @@ import {
   getU8Codec,
   transformCodec,
 } from "@solana/codecs";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 
 import { AcceptedMint, acceptedMintCodec } from "../types/acceptedMint";
 
@@ -98,11 +98,14 @@ export async function fetchAllConfigAccounts(
 export async function fetchProgramAccountsConfig(
   connection: Connection,
   programId: PublicKey,
-  options?: { commitment?: "processed" | "confirmed" | "finalized" },
+  options?: {
+    commitment?: "processed" | "confirmed" | "finalized";
+    filters?: GetProgramAccountsFilter[];
+  },
 ): Promise<ConfigAccount[]> {
   const accounts = await connection.getProgramAccounts(programId, {
     commitment: options?.commitment,
-    filters: [{ memcmp: { offset: 0, bytes: "SwB71qnXfS1" } }],
+    filters: [{ memcmp: { offset: 0, bytes: "SwB71qnXfS1" } }, ...(options?.filters ?? [])],
   });
   return accounts.map(({ pubkey, account }) => ({
     address: pubkey,
