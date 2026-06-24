@@ -9,8 +9,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.32.1",
-    "@splurge/sdk": "workspace:*",
     "@dialectlabs/blockchain-sdk-solana": "^2.0.0-beta.4",
     "@dialectlabs/react-sdk-blockchain-solana": "^3.0.0-beta.7",
     "@dialectlabs/react-ui": "^3.0.0-beta.7",
@@ -38,8 +36,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.98.4",
+    "@splurge/sdk": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
