@@ -12,7 +12,7 @@ import { useStore } from "@/providers/StoreProvider";
 
 import { DialectNotification } from "./DialectNotification";
 import { SettingsDropdown } from "./SettingsDropdown";
-import { Avatar, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
@@ -25,6 +25,8 @@ export function Header() {
   const avatarSeed = useMemo(() => {
     return publicKey?.toBase58() ?? Keypair.generate().publicKey.toBase58();
   }, [publicKey]);
+
+  const shopperInitial = shopperData?.data.name.trim().charAt(0).toUpperCase() || "S";
 
   const navLinks = [
     {
@@ -106,8 +108,12 @@ export function Header() {
                 src={
                   shopperData.data.image ?? getDicebearEndpoint(DicebearStyles.Shopper, avatarSeed)
                 }
+                alt={shopperData.data.name}
                 className="bg-white"
               />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                {shopperInitial}
+              </AvatarFallback>
             </Avatar>
           </Link>
         )}
