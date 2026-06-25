@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Moderustic } from "next/font/google";
+import Script from "next/script";
 
 import "./globals.css";
 import { ReactNode } from "react";
@@ -44,6 +45,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body
         className={`${moderustic.variable} flex min-h-screen flex-col items-center antialiased`}
       >
