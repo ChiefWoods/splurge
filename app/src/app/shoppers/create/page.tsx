@@ -6,9 +6,9 @@ import { User } from "lucide-react";
 import { AlreadyCreatedEmpty } from "@/components/AlreadyCreatedEmpty";
 import { ConnectWalletEmpty } from "@/components/ConnectWalletEmpty";
 import { CreateSection } from "@/components/CreateSection";
-import { CreateStoreDialog } from "@/components/formDialogs/CreateStoreDialog";
 import { WrappedSpinner } from "@/components/WrappedSpinner";
 import { useShopper } from "@/providers/ShopperProvider";
+import { CreateProfileDialog } from "@/components/formDialogs/CreateProfileDialog";
 
 export default function Page() {
   const { publicKey } = useUnifiedWallet();
@@ -32,7 +32,7 @@ export default function Page() {
     />
   ) : (
     <CreateSection header="Create your Shopper profile to start splurging!">
-      <CreateStoreDialog />
+      <CreateProfileDialog />
     </CreateSection>
   );
 }
