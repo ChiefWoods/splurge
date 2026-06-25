@@ -31,6 +31,8 @@ export function ImageInput({
   setImagePreview: (image: string) => void;
 }) {
   const imageFileInput = useRef<HTMLInputElement>(null);
+  const handleLoadRef = useRef<() => void>(() => {});
+  const handleErrorRef = useRef<() => void>(() => {});
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
   const reader = useMemo(() => new FileReader(), []);
@@ -90,14 +92,26 @@ export function ImageInput({
   }, []);
 
   useEffect(() => {
-    reader.addEventListener("load", handleLoad);
-    reader.addEventListener("error", handleError);
+    handleLoadRef.current = handleLoad;
+    handleErrorRef.current = handleError;
+  }, [handleLoad, handleError]);
+
+  useEffect(() => {
+    const onLoad = () => {
+      handleLoadRef.current();
+    };
+    const onError = () => {
+      handleErrorRef.current();
+    };
+
+    reader.addEventListener("load", onLoad);
+    reader.addEventListener("error", onError);
 
     return () => {
-      reader.removeEventListener("load", handleLoad);
-      reader.removeEventListener("error", handleError);
+      reader.removeEventListener("load", onLoad);
+      reader.removeEventListener("error", onError);
     };
-  }, [reader, setImagePreview, handleLoad, handleError]);
+  }, [reader]);
 
   return (
     <div className="relative flex justify-between gap-x-4">

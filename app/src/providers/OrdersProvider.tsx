@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -52,16 +52,14 @@ export function OrdersProvider({
       revalidateOnMount: false,
     },
   );
-
-  return (
-    <OrdersContext.Provider
-      value={{
-        ordersData,
-        ordersLoading,
-        ordersMutate,
-      }}
-    >
-      {children}
-    </OrdersContext.Provider>
+  const value = useMemo(
+    () => ({
+      ordersData,
+      ordersLoading,
+      ordersMutate,
+    }),
+    [ordersData, ordersLoading, ordersMutate],
   );
+
+  return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;
 }

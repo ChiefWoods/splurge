@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { CLUSTER } from "@/lib/client/solana";
 import { getExplorerLink } from "@/lib/solana-developers-helpers";
@@ -77,7 +77,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("custom-rpc-url", customRpcUrl);
   }, [customRpcUrl]);
 
-  function getTransactionLink(signature: string): string {
+  const getTransactionLink = useCallback((signature: string): string => {
     switch (explorer) {
       case "solana-explorer":
         return getExplorerLink("tx", signature, CLUSTER);
@@ -109,9 +109,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             return `https://orb.helius.dev/tx/${signature}?cluster=testnet`;
         }
     }
-  }
+  }, [explorer]);
 
-  function getAccountLink(address: string): string {
+  const getAccountLink = useCallback((address: string): string => {
     switch (explorer) {
       case "solana-explorer":
         return getExplorerLink("address", address, CLUSTER);
@@ -143,24 +143,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             return `https://orb.helius.dev/address/${address}?cluster=testnet`;
         }
     }
-  }
-
-  return (
-    <SettingsContext.Provider
-      value={{
-        explorer,
-        setExplorer,
-        priorityFee,
-        setPriorityFee,
-        rpcType,
-        setRpcType,
-        customRpcUrl,
-        setCustomRpcUrl,
-        getTransactionLink,
-        getAccountLink,
-      }}
-    >
-      {children}
-    </SettingsContext.Provider>
+  }, [explorer]);
+  const value = useMemo(
+    () => ({
+      explorer,
+      setExplorer,
+      priorityFee,
+      setPriorityFee,
+      rpcType,
+      setRpcType,
+      customRpcUrl,
+      setCustomRpcUrl,
+      getTransactionLink,
+      getAccountLink,
+    }),
+    [explorer, priorityFee, rpcType, customRpcUrl, getTransactionLink, getAccountLink],
   );
+
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -54,16 +54,16 @@ export function EarningsProvider({
       revalidateOnMount: false,
     },
   );
+  const value = useMemo(
+    () => ({
+      earningsData,
+      earningsLoading,
+      earningsMutate,
+    }),
+    [earningsData, earningsLoading, earningsMutate],
+  );
 
   return (
-    <EarningsContext.Provider
-      value={{
-        earningsData,
-        earningsLoading,
-        earningsMutate,
-      }}
-    >
-      {children}
-    </EarningsContext.Provider>
+    <EarningsContext.Provider value={value}>{children}</EarningsContext.Provider>
   );
 }

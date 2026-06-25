@@ -2,7 +2,7 @@
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { findStorePda } from "@splurge/sdk";
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -41,16 +41,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return store;
     },
   );
-
-  return (
-    <StoreContext.Provider
-      value={{
-        storeData,
-        storeLoading,
-        storeMutate,
-      }}
-    >
-      {children}
-    </StoreContext.Provider>
+  const value = useMemo(
+    () => ({
+      storeData,
+      storeLoading,
+      storeMutate,
+    }),
+    [storeData, storeLoading, storeMutate],
   );
+
+  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

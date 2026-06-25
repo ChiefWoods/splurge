@@ -1,7 +1,7 @@
 "use client";
 
 import { useConnection, useUnifiedWallet } from "@jup-ag/wallet-adapter";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createWithdrawEarningsInstruction, findStorePda } from "@splurge/sdk";
 import { HandCoins } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -78,30 +78,28 @@ export function EarningsSection({ prices }: { prices: Price[] }) {
 
         setIsWithdrawing(true);
 
-        let tx = await buildTx(
-          connection,
-          await Promise.all(
-            earningsData
-              .filter(({ amount }) => amount > 0)
-              .map(async ({ mint }) => {
-                const metadata = ACCEPTED_MINTS_METADATA.get(mint);
+        const instructions: TransactionInstruction[] = [];
 
-                if (!metadata) {
-                  throw new Error(`Metadata not found for mint: ${mint}`);
-                }
+        for (const { amount, mint } of earningsData) {
+          if (amount <= 0) continue;
 
-                return createWithdrawEarningsInstruction({
-                  authority: publicKey,
-                  paymentMint: new PublicKey(mint),
-                  store: findStorePda({ authority: publicKey })[0],
-                  tokenProgram: metadata.owner,
-                });
-              }),
-          ),
-          publicKey,
-          [],
-          priorityFee,
-        );
+          const metadata = ACCEPTED_MINTS_METADATA.get(mint);
+
+          if (!metadata) {
+            throw new Error(`Metadata not found for mint: ${mint}`);
+          }
+
+          instructions.push(
+            createWithdrawEarningsInstruction({
+              authority: publicKey,
+              paymentMint: new PublicKey(mint),
+              store: findStorePda({ authority: publicKey })[0],
+              tokenProgram: metadata.owner,
+            }),
+          );
+        }
+
+        let tx = await buildTx(connection, instructions, publicKey, [], priorityFee);
 
         tx = await signTransaction(tx);
         const signature = await sendTx(tx);

@@ -23,8 +23,8 @@ export function ReviewRow({ review, shopper }: { review: ParsedReview; shopper: 
         </div>
         <div className="flex flex-wrap items-center justify-end gap-x-3">
           <div className="flex items-center gap-x-1">
-            {[...Array(review.data.rating)].map((_, i) => (
-              <Star key={i} className="text-rating" size={12} />
+            {Array.from({ length: review.data.rating }, (_, index) => index + 1).map((rating) => (
+              <Star key={rating} className="text-rating" size={12} />
             ))}
           </div>
           <p className="text-muted text-xs">{getRelativeTime(review.data.timestamp)}</p>

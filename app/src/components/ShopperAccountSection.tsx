@@ -3,6 +3,7 @@
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { ParsedShopper } from "@/types/accounts";
 
@@ -11,6 +12,20 @@ import { Button } from "./ui/button";
 
 export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
   const { publicKey } = useUnifiedWallet();
+  const publicKeyString = publicKey?.toBase58();
+  const content = useMemo(() => <p>{shopper.data.address}</p>, [shopper.data.address]);
+  const buttons = useMemo(
+    () =>
+      publicKeyString === shopper.data.authority && (
+        <Button asChild size={"sm"}>
+          <Link href="/orders">
+            <ClipboardList />
+            View Orders
+          </Link>
+        </Button>
+      ),
+    [publicKeyString, shopper.data.authority],
+  );
 
   return (
     <AccountSection
@@ -20,17 +35,8 @@ export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
       image={shopper.data.image}
       prefix="Shopper ID:"
       address={shopper.address}
-      content={<p>{shopper.data.address}</p>}
-      buttons={
-        publicKey?.toBase58() === shopper.data.authority && (
-          <Button asChild size={"sm"}>
-            <Link href="/orders">
-              <ClipboardList />
-              View Orders
-            </Link>
-          </Button>
-        )
-      }
+      content={content}
+      buttons={buttons}
     />
   );
 }

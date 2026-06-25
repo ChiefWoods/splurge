@@ -59,31 +59,28 @@ export function OrderTable({
   const data = useMemo<OrderWithItem[]>(() => {
     if (!orders || !items) return [];
 
-    return orders
-      .map((order) => {
-        const itemData = items.find(({ address }) => address === order.data.item);
+    const itemByAddress = new Map(items.map((item) => [item.address, item]));
+    const search = searchValue.toLowerCase();
+    const rows: OrderWithItem[] = [];
 
-        if (!itemData) {
-          throw new Error("Matching item not found for order.");
-        }
+    for (const order of orders) {
+      const itemData = itemByAddress.get(order.data.item);
 
-        return {
-          ...order,
-          itemData,
-          statusElement: statusRenderer(order),
-        };
-      })
-      .filter((order) => {
-        if (tabValue !== "all") {
-          if (order.data.status !== tabValue) return false;
-        }
+      if (!itemData) {
+        throw new Error("Matching item not found for order.");
+      }
 
-        if (searchValue) {
-          return order.itemData.data.name.toLowerCase().includes(searchValue.toLowerCase());
-        }
+      if (tabValue !== "all" && order.data.status !== tabValue) continue;
+      if (search && !itemData.data.name.toLowerCase().includes(search)) continue;
 
-        return true;
+      rows.push({
+        ...order,
+        itemData,
+        statusElement: statusRenderer(order),
       });
+    }
+
+    return rows;
   }, [orders, items, tabValue, searchValue, statusRenderer]);
 
   const columns = useMemo<ColumnDef<OrderWithItem>[]>(

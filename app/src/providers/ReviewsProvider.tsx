@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -49,16 +49,14 @@ export function ReviewsProvider({
       revalidateOnMount: false,
     },
   );
-
-  return (
-    <ReviewsContext.Provider
-      value={{
-        reviewsData,
-        reviewsLoading,
-        reviewsMutate,
-      }}
-    >
-      {children}
-    </ReviewsContext.Provider>
+  const value = useMemo(
+    () => ({
+      reviewsData,
+      reviewsLoading,
+      reviewsMutate,
+    }),
+    [reviewsData, reviewsLoading, reviewsMutate],
   );
+
+  return <ReviewsContext.Provider value={value}>{children}</ReviewsContext.Provider>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -47,16 +47,14 @@ export function ItemProvider({
       revalidateOnMount: false,
     },
   );
-
-  return (
-    <ItemContext.Provider
-      value={{
-        itemData,
-        itemLoading,
-        itemMutate,
-      }}
-    >
-      {children}
-    </ItemContext.Provider>
+  const value = useMemo(
+    () => ({
+      itemData,
+      itemLoading,
+      itemMutate,
+    }),
+    [itemData, itemLoading, itemMutate],
   );
+
+  return <ItemContext.Provider value={value}>{children}</ItemContext.Provider>;
 }

@@ -5,7 +5,7 @@ import { useAnchorWallet } from "@jup-ag/wallet-adapter";
 import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Signer } from "@solana/web3.js";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { HERMES_CLIENT } from "@/lib/client/pyth";
 import { getPriorityFee } from "@/lib/client/solana";
@@ -21,6 +21,17 @@ export interface VersionedTransactionWithEphemeralSigners {
 }
 
 const PythContext = createContext<PythContextType>({} as PythContextType);
+
+async function getPriceUpdateData(id: string): Promise<string[]> {
+  const { data } = (await HERMES_CLIENT.getLatestPriceUpdates([id], { encoding: "base64" }))
+    .binary;
+
+  if (data.length === 0) {
+    throw new Error("No price update data returned.");
+  }
+
+  return data;
+}
 
 export function usePyth() {
   return useContext(PythContext);
@@ -44,45 +55,33 @@ export function PythProvider({ children }: { children: ReactNode }) {
     })();
   }, [connection, wallet]);
 
-  async function getPriceUpdateData(id: string): Promise<string[]> {
-    const { data } = (await HERMES_CLIENT.getLatestPriceUpdates([id], { encoding: "base64" }))
-      .binary;
+  const getUpdatePriceFeedTx = useCallback(
+    async (id: string): Promise<VersionedTransactionWithEphemeralSigners[]> => {
+      if (!pythSolanaReceiver) {
+        throw new Error("Pyth Solana Receiver not initialized.");
+      }
 
-    if (data.length === 0) {
-      throw new Error("No price update data returned.");
-    }
+      const data = await getPriceUpdateData(id);
 
-    return data;
-  }
+      const txBuilder = pythSolanaReceiver.newTransactionBuilder({
+        closeUpdateAccounts: true,
+      });
+      await txBuilder.addUpdatePriceFeed(data, 0);
 
-  async function getUpdatePriceFeedTx(
-    id: string,
-  ): Promise<VersionedTransactionWithEphemeralSigners[]> {
-    if (!pythSolanaReceiver) {
-      throw new Error("Pyth Solana Receiver not initialized.");
-    }
-
-    const data = await getPriceUpdateData(id);
-
-    const txBuilder = pythSolanaReceiver.newTransactionBuilder({
-      closeUpdateAccounts: true,
-    });
-    await txBuilder.addUpdatePriceFeed(data, 0);
-
-    return await txBuilder.buildVersionedTransactions({
-      computeUnitPriceMicroLamports: await getPriorityFee(connection),
-      tightComputeBudget: true,
-    });
-  }
-
-  return (
-    <PythContext.Provider
-      value={{
-        pythSolanaReceiver,
-        getUpdatePriceFeedTx,
-      }}
-    >
-      {children}
-    </PythContext.Provider>
+      return await txBuilder.buildVersionedTransactions({
+        computeUnitPriceMicroLamports: await getPriorityFee(connection),
+        tightComputeBudget: true,
+      });
+    },
+    [connection, pythSolanaReceiver],
   );
+  const value = useMemo(
+    () => ({
+      pythSolanaReceiver,
+      getUpdatePriceFeedTx,
+    }),
+    [pythSolanaReceiver, getUpdatePriceFeedTx],
+  );
+
+  return <PythContext.Provider value={value}>{children}</PythContext.Provider>;
 }
