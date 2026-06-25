@@ -12,6 +12,15 @@ import { optimizeTx } from "../api";
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? "devnet") as Cluster;
 
+export function isPublicKey(value: string): boolean {
+  try {
+    new PublicKey(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function getPriorityFee(connection: Connection): Promise<number> {
   const recentFees = await connection.getRecentPrioritizationFees();
   return Math.floor(

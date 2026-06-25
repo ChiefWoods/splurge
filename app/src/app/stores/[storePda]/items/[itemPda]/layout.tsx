@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { fetchItem } from "@/lib/accounts";
+import { isPublicKey } from "@/lib/client/solana";
 import { CONNECTION } from "@/lib/server/solana";
 import { ItemProvider } from "@/providers/ItemProvider";
 
@@ -45,10 +46,7 @@ export default async function Layout({
 }) {
   const { itemPda } = await params;
 
-  // 404 if PDA is not a valid public key
-  try {
-    new PublicKey(itemPda);
-  } catch {
+  if (!isPublicKey(itemPda)) {
     notFound();
   }
 

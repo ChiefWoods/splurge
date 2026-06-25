@@ -1,19 +1,16 @@
-import { PublicKey } from "@solana/web3.js";
 import { notFound } from "next/navigation";
 
 import { StoreAccountSection } from "@/components/StoreAccountSection";
 import { StoreSection } from "@/components/StoreSection";
 import { Separator } from "@/components/ui/separator";
 import { fetchConfig, fetchStore } from "@/lib/accounts";
+import { isPublicKey } from "@/lib/client/solana";
 import { CONNECTION } from "@/lib/server/solana";
 
 export default async function Page({ params }: { params: Promise<{ storePda: string }> }) {
   const { storePda } = await params;
 
-  // 404 if PDA is not a valid public key
-  try {
-    new PublicKey(storePda);
-  } catch {
+  if (!isPublicKey(storePda)) {
     notFound();
   }
 

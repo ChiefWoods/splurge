@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { fetchShopper } from "@/lib/accounts";
+import { isPublicKey } from "@/lib/client/solana";
 import { CONNECTION } from "@/lib/server/solana";
 
 export async function generateMetadata({
@@ -44,10 +45,7 @@ export default async function Layout({
 }) {
   const { shopperPda } = await params;
 
-  // 404 if PDA is not a valid public key
-  try {
-    new PublicKey(shopperPda);
-  } catch {
+  if (!isPublicKey(shopperPda)) {
     notFound();
   }
 
