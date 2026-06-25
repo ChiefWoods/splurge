@@ -59,9 +59,7 @@ export function ItemReviewSection({
               throw new Error("Matching order not found for review.");
             }
 
-            const shopper = shoppers.find(
-              (shopper) => shopper.data.address === reviewOrder.data.shopper,
-            );
+            const shopper = shoppers.find(({ address }) => address === reviewOrder.data.shopper);
 
             if (!shopper) {
               throw new Error("Matching shopper not found for order.");

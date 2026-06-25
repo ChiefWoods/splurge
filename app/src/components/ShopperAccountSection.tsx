@@ -14,12 +14,12 @@ export function ShopperAccountSection({ shopper }: { shopper: ParsedShopper }) {
 
   return (
     <AccountSection
-      key={shopper.data.address}
+      key={shopper.address}
       header="My Profile"
       title={shopper.data.name}
       image={shopper.data.image}
       prefix="Shopper ID:"
-      address={shopper.data.address}
+      address={shopper.address}
       content={<p>{shopper.data.address}</p>}
       buttons={
         publicKey?.toBase58() === shopper.data.authority && (

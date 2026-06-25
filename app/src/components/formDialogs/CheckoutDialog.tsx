@@ -189,7 +189,7 @@ export function CheckoutDialog({
               shopperName: shopperData.data.name,
               itemName: item.data.name,
               itemAmount: data.amount,
-              shopperAddress: shopperData.address,
+              shopperAddress: shopperData.data.address,
               paymentSubtotal: atomicToUsd(orderSubtotal),
               paymentMintSymbol,
             });

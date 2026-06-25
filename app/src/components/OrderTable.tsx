@@ -115,7 +115,7 @@ export function OrderTable({
         },
       },
       {
-        accessorKey: "amount",
+        accessorKey: "data.amount",
         header: ({ column }) => <SortButton text="Amount" column={column} />,
       },
       {
@@ -148,6 +148,7 @@ export function OrderTable({
         },
       },
       {
+        id: "timestamp",
         accessorKey: "data.timestamp",
         header: ({ column }) => <SortButton text="Created At" column={column} />,
         cell: ({ row }) => <TimestampTooltip timestamp={row.original.data.timestamp} />,
