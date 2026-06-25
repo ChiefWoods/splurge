@@ -11,10 +11,6 @@ import { CuPriceRange, JitoTipRange } from "@/types/transactions";
 import { optimizeTx } from "../api";
 
 export const CLUSTER: Cluster = (process.env.NEXT_PUBLIC_SOLANA_RPC_CLUSTER ?? "devnet") as Cluster;
-export const CONNECTION = new Connection(
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(CLUSTER),
-  "confirmed",
-);
 
 export async function getPriorityFee(connection: Connection): Promise<number> {
   const recentFees = await connection.getRecentPrioritizationFees();
