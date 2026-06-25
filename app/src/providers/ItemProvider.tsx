@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, use, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -16,8 +16,8 @@ const ItemContext = createContext<ItemContextType>({} as ItemContextType);
 
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/items`;
 
-export function useItem() {
-  return useContext(ItemContext);
+function useItem() {
+  return use(ItemContext);
 }
 
 export function ItemProvider({

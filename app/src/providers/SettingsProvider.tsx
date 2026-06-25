@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { CLUSTER } from "@/lib/client/solana";
 import { getExplorerLink } from "@/lib/solana-developers-helpers";
@@ -26,7 +26,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType>({} as SettingsContextType);
 
 export function useSettings() {
-  return useContext(SettingsContext);
+  return use(SettingsContext);
 }
 
 const defaultSettings = {

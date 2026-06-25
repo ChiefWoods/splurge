@@ -2,7 +2,7 @@
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { findStorePda } from "@splurge/sdk";
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, use, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -19,7 +19,7 @@ const StoreContext = createContext<StoreContextType>({} as StoreContextType);
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/stores`;
 
 export function useStore() {
-  return useContext(StoreContext);
+  return use(StoreContext);
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {

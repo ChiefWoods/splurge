@@ -5,7 +5,7 @@ import { useAnchorWallet } from "@jup-ag/wallet-adapter";
 import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Signer } from "@solana/web3.js";
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { HERMES_CLIENT } from "@/lib/client/pyth";
 import { getPriorityFee } from "@/lib/client/solana";
@@ -34,7 +34,7 @@ async function getPriceUpdateData(id: string): Promise<string[]> {
 }
 
 export function usePyth() {
-  return useContext(PythContext);
+  return use(PythContext);
 }
 
 export function PythProvider({ children }: { children: ReactNode }) {

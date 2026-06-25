@@ -29,7 +29,7 @@ export async function getPriorityFee(connection: Connection): Promise<number> {
   );
 }
 
-export async function getALTs(
+async function getALTs(
   connection: Connection,
   addresses: PublicKey[],
 ): Promise<AddressLookupTableAccount[]> {

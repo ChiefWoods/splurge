@@ -2,7 +2,7 @@
 
 import { useUnifiedWallet } from "@jup-ag/wallet-adapter";
 import { findShopperPda } from "@splurge/sdk";
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, use, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -19,7 +19,7 @@ const ShopperContext = createContext<ShopperContextType>({} as ShopperContextTyp
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/shoppers`;
 
 export function useShopper() {
-  return useContext(ShopperContext);
+  return use(ShopperContext);
 }
 
 export function ShopperProvider({ children }: { children: ReactNode }) {

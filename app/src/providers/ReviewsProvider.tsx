@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, use, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -17,7 +17,7 @@ const ReviewsContext = createContext<ReviewsContextType>({} as ReviewsContextTyp
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accounts/reviews`;
 
 export function useReviews() {
-  return useContext(ReviewsContext);
+  return use(ReviewsContext);
 }
 
 export function ReviewsProvider({

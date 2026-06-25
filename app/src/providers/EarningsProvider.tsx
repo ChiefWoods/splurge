@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, use, useMemo } from "react";
 import useSWR, { KeyedMutator } from "swr";
 
 import { wrappedFetch } from "@/lib/api";
@@ -22,7 +22,7 @@ const EarningsContext = createContext<EarningsContextType>({} as EarningsContext
 const apiEndpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/earnings`;
 
 export function useEarnings() {
-  return useContext(EarningsContext);
+  return use(EarningsContext);
 }
 
 export function EarningsProvider({
